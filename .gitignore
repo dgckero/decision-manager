@@ -1,0 +1,26 @@
+# netbeans files
+/nbactions-release-profile.xml
+/nb-configuration.xml
+
+# eclipse files
+.classpath
+.project
+/dgc-jbpm/.project
+/dgc-jbpm/.classpath
+/dgc-web/.project
+/dgc-web/.classpath
+
+# idea files
+/.idea/
+/decision-manager.iml
+
+# common files
+/.metadata/
+/.settings/
+/dgc-jbpm/.settings/
+/dgc-jbpm/target/
+/dgc-web/.settings/
+/dgc-web/target/
+/target/
+/lib/
+/${tomcat_home}/

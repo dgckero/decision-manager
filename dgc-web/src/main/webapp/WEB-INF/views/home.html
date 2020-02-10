@@ -1,0 +1,23 @@
+<html>
+<body>
+
+<div if="${message}">
+    <h2 text="${message}"/>
+</div>
+
+<div>
+    <form method="post" action="uploadFile" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="importar"/>
+    </form>
+</div>
+
+<div>
+    <ul>
+        <li each="file : ${files}">
+            <a href="${file}" text="${file}"/>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.dgc</groupId>
+    <artifactId>decission-manager</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>dgc-jbpm</module>
+        <module>dgc-web</module>
+    </modules>
+    <name>Decission Manager</name>
+    <url>http://localhost:8080/decission-manager</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.3</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <jbpm.version>7.32.0.Final</jbpm.version>
+
+        <java.version>1.8</java.version>
+        <spring.version>5.2.3.RELEASE</spring.version>
+        <cglib.version>2.2.2</cglib.version>
+
+        <servlet-api.version>4.0.1</servlet-api.version>
+        <jsp-api.version>2.1</jsp-api.version>
+        <commons-fileupload.version>1.4</commons-fileupload.version>
+        <hibernate.version>6.1.2.Final</hibernate.version>
+
+        <lombok.version>1.18.12</lombok.version>
+        <poi.version>4.1.1</poi.version>
+        <log4j.version>2.13.0</log4j.version>
+    </properties>
+
+</project>
