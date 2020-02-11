@@ -2,38 +2,50 @@ package com.dgc.jbpm.core.util;
 
 import com.dgc.jbpm.core.dto.CommonDto;
 import javassist.*;
+import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class PojoGenerator {
 
     public static Class<? extends CommonDto> generate(String className, Map<String, Class<?>> properties)
-            throws NotFoundException, CannotCompileException {
+            throws NotFoundException, CannotCompileException, IOException {
 
-        ClassPool pool = ClassPool.getDefault();
-        CtClass cc = pool.makeClass(className);
+        CtClass cc = getCtcClass(className);
 
-        cc.setSuperclass(resolveCtClass(CommonDto.class));
+        populateClass(cc, properties.entrySet());
 
-        for (Entry<String, Class<?>> entry : properties.entrySet()) {
+        return cc.toClass();
+    }
 
+    private static void populateClass(CtClass cc, Set<Entry<String, Class<?>>> props) throws NotFoundException, CannotCompileException {
+        for (Entry<String, Class<?>> entry : props) {
             cc.addField(new CtField(resolveCtClass(entry.getValue()), entry.getKey(), cc));
-
             // add getter
             cc.addMethod(generateGetter(cc, entry.getKey(), entry.getValue()));
-
             // add setter
             cc.addMethod(generateSetter(cc, entry.getKey(), entry.getValue()));
         }
+    }
 
-        return cc.toClass();
+    private static CtClass getCtcClass(String className) throws IOException, CannotCompileException, NotFoundException {
+        ClassPool pool = ClassPool.getDefault();
+
+        CtClass cc = pool.makeClass(className);
+        cc.writeFile();
+        cc.defrost();
+        cc.setSuperclass(resolveCtClass(CommonDto.class));
+
+        return cc;
     }
 
     private static CtMethod generateGetter(CtClass declaringClass, String fieldName, Class fieldClass)
             throws CannotCompileException {
 
-        String getterName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        String getterName = "get" + StringUtils.capitalize(fieldName);
 
         StringBuffer sb = new StringBuffer();
         sb.append("public ").append(fieldClass.getName()).append(" ").append(getterName).append("(){")
@@ -44,7 +56,7 @@ public class PojoGenerator {
     private static CtMethod generateSetter(CtClass declaringClass, String fieldName, Class fieldClass)
             throws CannotCompileException {
 
-        String setterName = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+        String setterName = "set" + StringUtils.capitalize(fieldName);
 
         StringBuffer sb = new StringBuffer();
         sb.append("public void ").append(setterName).append("(").append(fieldClass.getName()).append(" ")

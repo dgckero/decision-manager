@@ -11,8 +11,8 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * @author david
@@ -67,7 +66,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             final HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
             final HSSFSheet worksheet = workbook.getSheetAt(0);
             final HSSFRow firstRow = worksheet.getRow(0);
-            SortedMap<String, Class<?>> props = getColumnNames(firstRow, worksheet.getRow(1));
+            final LinkedHashMap<String, Class<?>> props = getColumnNames(firstRow, worksheet.getRow(1));
 
             Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.jbpm.core.dto.Pojo$Generated",
                     props);
@@ -86,7 +85,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
     private void fillGeneratedObject(HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> props,
                                      List<Object> excelObjs) throws IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException, NoSuchMethodException, SecurityException, InstantiationException {
+            SecurityException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         Iterator<Cell> cellIterator = row.cellIterator();
 
@@ -98,13 +97,14 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
             while (cellIterator.hasNext()) {
                 CommonDto obj = generatedObj.newInstance();
+                obj.setRowId(rowNumber);
 
                 for (Map.Entry<String, Class<?>> prop : props.entrySet()) {
 
-                    generatedObj.getMethod("set" + prop.getKey(), prop.getValue()).invoke(obj,
-                            cellIterator.next().getStringCellValue());
+                    log.trace("Populating property " + prop.getKey() + " with value " + prop.getValue());
+                    String setMethod = "set" + StringUtils.capitalize(prop.getKey());
+                    populateMethodParameter(setMethod, generatedObj, prop.getValue(), cellIterator.next(), obj);
                 }
-                obj.setRowId(rowNumber);
                 excelObjs.add(obj);
                 log.debug("added object (" + obj + ") by row( " + rowNumber + ")");
                 rowNumber++;
@@ -113,15 +113,29 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
     }
 
-    private SortedMap<String, Class<?>> getColumnNames(final HSSFRow firstRow, final HSSFRow secondRow) {
+    private void populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> value, Cell cell, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        Class<?> cellClass = getCellClass((HSSFCell) cell);
+
+        if (cellClass.getCanonicalName().equals("java.util.Date")) {
+            generatedObj.getMethod(setMethod, value).invoke(obj,
+                    cell.getDateCellValue());
+        } else if (cellClass.getCanonicalName().equals("java.lang.Double")) {
+            generatedObj.getMethod(setMethod, value).invoke(obj,
+                    cell.getNumericCellValue());
+        } else {
+            generatedObj.getMethod(setMethod, value).invoke(obj,
+                    cell.getStringCellValue());
+        }
+    }
+
+    private LinkedHashMap<String, Class<?>> getColumnNames(final HSSFRow firstRow, final HSSFRow secondRow) {
 
         int colNum = firstRow.getPhysicalNumberOfCells();
 
-        SortedMap<String, Class<?>> colMapByName = new TreeMap<>();
+        LinkedHashMap<String, Class<?>> colMapByName = new LinkedHashMap<>();
 
         if (firstRow.cellIterator().hasNext()) {
-            //Add rowId
-            colMapByName.put("rowId", Integer.class);
 
             for (int j = 0; j < colNum; j++) {
                 HSSFCell cell = firstRow.getCell(j);
@@ -154,25 +168,31 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         return sb.toString().replaceAll("\\s+", "").replaceAll("_", "");
     }
 
-    private Class<?> getCellClass(HSSFCell cell) {
+    private Class<?> getCellClass(final HSSFCell cell) {
 
-        if (cell.getCellType().equals(CellType.STRING)) {
-            if (isDateCell(cell.getStringCellValue())) {
-                return Date.class;
-            }
-            return String.class;
-        } else if (cell.getCellType().equals(CellType.NUMERIC)) {
-            return Integer.class;
-        } else {
-            return String.class;
+        switch (cell.getCellType()) {
+            case STRING:
+                if (isDateCell(cell)) {
+                    return Date.class;
+                }
+                return String.class;
+            case NUMERIC:
+                if (isDateCell(cell)) {
+                    return Date.class;
+                }
+                return Double.class;
+            default:
+                return String.class;
         }
+
     }
 
-    private boolean isDateCell(String stringCellValue) {
-        String dateRegex = "^[0-3]?[0-9]/[0-3]?[0-9]/(?:[0-9]{2})?[0-9]{2}$";
+    private boolean isDateCell(HSSFCell cell) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, 200);
+        cal.set(Calendar.DAY_OF_YEAR, 1);
 
-        Pattern pattern = Pattern.compile(dateRegex);
-        return pattern.matcher(dateRegex).matches();
+        return cell.getDateCellValue().after(cal.getTime());
     }
 
 }
