@@ -2,7 +2,7 @@
  * @author david
  */
 
-package com.dgc.web.controller;
+package com.dgc.dm.web.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

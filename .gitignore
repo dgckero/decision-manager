@@ -5,8 +5,8 @@
 # eclipse files
 .classpath
 .project
-/dgc-jbpm/.project
-/dgc-jbpm/.classpath
+/dgc-core/.project
+/dgc-core/.classpath
 /dgc-web/.project
 /dgc-web/.classpath
 
@@ -17,8 +17,8 @@
 # common files
 /.metadata/
 /.settings/
-/dgc-jbpm/.settings/
-/dgc-jbpm/target/
+/dgc-core/.settings/
+/dgc-core/target/
 /dgc-web/.settings/
 /dgc-web/target/
 /target/

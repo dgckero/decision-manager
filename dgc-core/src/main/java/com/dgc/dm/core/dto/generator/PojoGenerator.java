@@ -1,6 +1,6 @@
-package com.dgc.jbpm.core.util;
+package com.dgc.dm.core.dto.generator;
 
-import com.dgc.jbpm.core.dto.CommonDto;
+import com.dgc.dm.core.dto.CommonDto;
 import javassist.*;
 import org.springframework.util.StringUtils;
 

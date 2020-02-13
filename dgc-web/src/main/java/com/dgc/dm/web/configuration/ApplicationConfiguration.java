@@ -2,7 +2,7 @@
  * @author david
  */
 
-package com.dgc.web.configuration;
+package com.dgc.dm.web.configuration;
 
 
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +23,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @Log4j2
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"com.dgc.web", "com.dgc.jbpm"})
+@ComponentScan(basePackages = "com.dgc.dm.web")
 public class ApplicationConfiguration implements WebMvcConfigurer {
 
     @Override

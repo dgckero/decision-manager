@@ -2,7 +2,7 @@
  * @author david
  */
 
-package com.dgc.jbpm.core.dto;
+package com.dgc.dm.core.dto;
 
 import lombok.Data;
 

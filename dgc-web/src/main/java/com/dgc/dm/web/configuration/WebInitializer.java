@@ -2,7 +2,7 @@
  * @author david
  */
 
-package com.dgc.web.configuration;
+package com.dgc.dm.web.configuration;
 
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;

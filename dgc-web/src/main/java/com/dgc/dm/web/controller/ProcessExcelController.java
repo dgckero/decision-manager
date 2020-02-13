@@ -2,10 +2,10 @@
  * @author david
  */
 
-package com.dgc.web.controller;
+package com.dgc.dm.web.controller;
 
-import com.dgc.jbpm.core.dto.CommonDto;
-import com.dgc.jbpm.core.util.PojoGenerator;
+import com.dgc.dm.core.dto.CommonDto;
+import com.dgc.dm.core.dto.generator.PojoGenerator;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import lombok.extern.log4j.Log4j2;
@@ -82,7 +82,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     private void processExcelRows(final HSSFSheet worksheet, final LinkedHashMap<String, Class<?>> props, List<Object> excelObjs) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
         log.info("Generating dynamic class");
-        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.jbpm.core.dto.Pojo$Generated",
+        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.generator.Pojo$Generated",
                 props);
         log.info("Generated dynamic class: " + generatedObj.getName());
 

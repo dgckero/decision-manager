@@ -2,7 +2,7 @@
   @author david
  */
 
-package com.dgc.web.interceptor;
+package com.dgc.dm.web.interceptor;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
