@@ -1,3 +1,7 @@
+/**
+ * @author david
+ */
+
 package com.dgc.jbpm.core.dto;
 
 import lombok.Data;
@@ -5,8 +9,8 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class CommonDto<T> implements Serializable {
+public class CommonDto implements Serializable {
 
-    private T rowId;
+    private int rowId;
 
 }
