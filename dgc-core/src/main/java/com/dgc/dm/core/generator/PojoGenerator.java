@@ -1,4 +1,8 @@
-package com.dgc.dm.core.dto.generator;
+/**
+ * @author david
+ */
+
+package com.dgc.dm.core.generator;
 
 import com.dgc.dm.core.dto.CommonDto;
 import javassist.*;
@@ -74,7 +78,7 @@ public class PojoGenerator {
             sb += "+\"" + entry.getKey() + ":\"+" + entry.getKey() + "\n ";
         }
         sb += ";}";
-        sb = sb.replaceFirst("\\+","");
+        sb = sb.replaceFirst("\\+", "");
         return CtMethod.make(sb, declaringClass);
     }
 

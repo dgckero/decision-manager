@@ -4,8 +4,9 @@
 
 package com.dgc.dm.web.controller;
 
+import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.CommonDto;
-import com.dgc.dm.core.dto.generator.PojoGenerator;
+import com.dgc.dm.core.generator.PojoGenerator;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +16,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,12 +32,12 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-/**
- * @author david
- */
-@Controller
 @Log4j2
+@Controller
 public class ProcessExcelController implements HandlerExceptionResolver {
+
+    @Autowired
+    DbServer dbServer;
 
     @Override
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
@@ -70,7 +72,6 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
             processExcelRows(worksheet, getColumnNames(worksheet.getRow(0), worksheet.getRow(1)), excelObjs);
 
-
         } catch (Exception e) {
             log.error("Error " + e.getMessage());
             e.printStackTrace();
@@ -82,7 +83,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     private void processExcelRows(final HSSFSheet worksheet, final LinkedHashMap<String, Class<?>> props, List<Object> excelObjs) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
         log.info("Generating dynamic class");
-        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.generator.Pojo$Generated",
+        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.server.generator.Pojo$Generated",
                 props);
         log.info("Generated dynamic class: " + generatedObj.getName());
 
@@ -160,10 +161,13 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                 if (cell != null) {
                     Class<?> cellClass = getCellClass(secondRow.getCell(j));
                     colMapByName.put(getColumnNameByCellValue(cell.getStringCellValue()), cellClass);
-                    log.debug("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + cellClass.getName());
+                    log.info("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + cellClass.getName());
                 }
             }
         }
+
+        log.info("Adding Excel's column(s) to Filters table");
+        dbServer.createFilterTable(colMapByName);
 
         return colMapByName;
     }

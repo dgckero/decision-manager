@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Selección de filtros</title>
+</head>
+<body>
+
+<p><strong>Selecciona los filtros de la decisión. You may control-click (Windows) or command-click (Mac) to select more
+    than one.</strong></p>
+<tr>
+    <td>
+        <message code="lbl.filter" text="Filtros"/>
+    </td>
+    <td>
+        <select path="department" items="${allFilters}"/>
+    </td>
+    <td>
+        <errors path="filter" cssClass="error"/>
+    </td>
+</tr>
+
+</body>
+</html>
