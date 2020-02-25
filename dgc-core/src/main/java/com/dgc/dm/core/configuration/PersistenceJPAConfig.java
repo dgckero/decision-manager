@@ -5,6 +5,7 @@
 package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
+import org.h2.tools.Server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.Properties;
 
 
@@ -39,6 +41,11 @@ public class PersistenceJPAConfig {
 
     public PersistenceJPAConfig() {
         super();
+    }
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    public Server inMemoryH2DatabaseServer() throws SQLException {
+        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9091");
     }
 
     @Bean
@@ -61,7 +68,6 @@ public class PersistenceJPAConfig {
         dataSource.setUrl(Preconditions.checkNotNull(env.getProperty("jdbc.url")));
         dataSource.setUsername(Preconditions.checkNotNull(env.getProperty("jdbc.user")));
         dataSource.setPassword(Preconditions.checkNotNull(env.getProperty("jdbc.pass")));
-
         return dataSource;
     }
 
@@ -82,7 +88,7 @@ public class PersistenceJPAConfig {
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
         hibernateProperties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
         hibernateProperties.setProperty("hibernate.cache.use_second_level_cache", env.getProperty("hibernate.cache.use_second_level_cache"));
-
+        hibernateProperties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
 
         return hibernateProperties;
     }
