@@ -31,7 +31,7 @@ import java.util.Properties;
 @EnableTransactionManagement
 @PropertySource({"classpath:persistence-h2.properties"})
 @ComponentScan("com.dgc.dm.core")
-@EnableJpaRepositories(basePackages = "com.dgc.dm.core.db.dao")
+@EnableJpaRepositories(basePackages = "com.dgc.dm.core.db")
 public class PersistenceJPAConfig {
 
     @Autowired
@@ -45,7 +45,7 @@ public class PersistenceJPAConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
-        em.setPackagesToScan(new String[]{"com.dgc.dm.core.db.model"});
+        em.setPackagesToScan("com.dgc.dm.core");
 
         final JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);

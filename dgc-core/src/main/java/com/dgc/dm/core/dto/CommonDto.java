@@ -9,8 +9,8 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class CommonDto implements Serializable {
+public class CommonDto<T> implements Serializable {
 
-    private int rowId;
+    private T rowId;
 
 }

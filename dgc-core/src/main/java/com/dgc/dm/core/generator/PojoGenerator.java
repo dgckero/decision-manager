@@ -15,6 +15,30 @@ import java.util.Set;
 
 public class PojoGenerator {
 
+//
+//    public static Class<? extends CommonDto> generate(String className, Map<String, Class<?>> properties)
+//            throws NotFoundException, CannotCompileException {
+//
+//        ClassPool pool = ClassPool.getDefault();
+//        CtClass cc = pool.makeClass(className);
+//
+//        cc.setSuperclass(resolveCtClass(CommonDto.class));
+//
+//        for (Entry<String, Class<?>> entry : properties.entrySet()) {
+//
+//            cc.addField(new CtField(resolveCtClass(entry.getValue()), entry.getKey(), cc));
+//
+//            // add getter
+//            cc.addMethod(generateGetter(cc, entry.getKey(), entry.getValue()));
+//
+//            // add setter
+//            cc.addMethod(generateSetter(cc, entry.getKey(), entry.getValue()));
+//        }
+//
+//        return cc.toClass();
+//    }
+
+
     public static Class generate(String className, Map<String, Class<?>> properties)
             throws NotFoundException, CannotCompileException, IOException {
 
@@ -25,7 +49,7 @@ public class PojoGenerator {
         return cc.toClass();
     }
 
-    private static void populateClass(CtClass cc, Set<Entry<String, Class<?>>> props) throws NotFoundException, CannotCompileException {
+    private static void populateClass(CtClass cc, Set<Entry<String, Class<?>>> props) throws CannotCompileException {
         for (Entry<String, Class<?>> entry : props) {
             cc.addField(new CtField(resolveCtClass(entry.getValue()), entry.getKey(), cc));
             // add getter
@@ -41,10 +65,16 @@ public class PojoGenerator {
     private static CtClass getCtcClass(String className) throws IOException, CannotCompileException, NotFoundException {
         ClassPool pool = ClassPool.getDefault();
 
+        pool.importPackage("com.dgc.dm.core");
+        pool.appendClassPath(new LoaderClassPath(CommonDto.class.getClassLoader()));
+
         CtClass cc = pool.makeClass(className);
         cc.writeFile();
-        cc.defrost();
-        cc.setSuperclass(resolveCtClass(CommonDto.class));
+        if (cc.isFrozen()) {
+            cc.defrost();
+        }
+
+        cc.setSuperclass(pool.get(CommonDto.class.getName()));
 
         return cc;
     }
@@ -82,9 +112,9 @@ public class PojoGenerator {
         return CtMethod.make(sb, declaringClass);
     }
 
-    private static CtClass resolveCtClass(Class clazz) throws NotFoundException {
+    private static CtClass resolveCtClass(Class clazz) {
         ClassPool pool = ClassPool.getDefault();
-        return pool.get(clazz.getName());
+        return pool.getOrNull(clazz.getName());
     }
 
 }

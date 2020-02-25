@@ -80,11 +80,10 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         return excelObjs;
     }
 
-    private void processExcelRows(final HSSFSheet worksheet, final LinkedHashMap<String, Class<?>> props, List<Object> excelObjs) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void processExcelRows(final HSSFSheet worksheet, final Map<String, Class<?>> props, List<Object> excelObjs) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
         log.info("Generating dynamic class");
-        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.generator.Pojo$Generated",
-                props);
+        Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", props);
         log.info("Generated dynamic class: " + generatedObj.getName());
 
         log.info("Populating generated dynamic class with Excel's row values");
