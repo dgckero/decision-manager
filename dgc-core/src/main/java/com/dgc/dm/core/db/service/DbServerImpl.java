@@ -10,7 +10,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -22,29 +21,46 @@ public class DbServerImpl implements DbServer {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public void createFilterTable(Map<String, Class<?>> props) {
+    public void createAndPopulateFilterTable(final Map<String, Class<?>> columns) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
-
-        String[] sqlStatements = {
-                "drop table `filters` if exists",
-                "create table `filters` (`id` serial,`name` varchar(100),`class` varchar(50))",
-                "insert into `filters` (`name`, `class`) values ('rowId','int')"
+        List<String> statements = new ArrayList<String>() {
+            {
+                add("SET SCHEMA DECISION_DB");
+                add("drop table `filters` if exists");
+                add("create table `filters` (`id` serial,`name` varchar(100),`class` varchar(50))");
+                add("insert into `filters` (`name`, `class`) values ('rowId','int')");
+            }
         };
 
-        List<String> statements = new ArrayList<>();
-        statements.addAll(Arrays.asList(sqlStatements));
+        String recordsTableCreate = "create table `commonDatas` (`id` INT, ";
 
-        for (Map.Entry<String, Class<?>> prop : props.entrySet()) {
-            statements.add("insert into `filters` (`name`, `class`) values('" + prop.getKey() + "','" + prop.getValue().getName() + "') ");
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+            statements.add("insert into `filters` (`name`, `class`) values('" + column.getKey() + "','" + column.getValue().getName() + "') ");
+            recordsTableCreate += column.getKey() + " varchar(100),";
+            //TODO add row class based on column class value
         }
 
-        statements.stream().forEach(sql -> {
+        statements.forEach(sql -> {
             log.debug(sql);
             jdbcTemplate.execute(sql);
         });
 
+        recordsTableCreate = recordsTableCreate.replaceAll("[,]$", ") ");
+        jdbcTemplate.execute(recordsTableCreate);
+
         log.info(String.format("****** table: %s  successfully created ******", "Filters"));
+    }
+
+    public void persistExcelRows(final List<String> infoToBePersisted) {
+        log.info("****** Persisting Excel rows into commonDatas table: %s ******");
+
+        infoToBePersisted.forEach(sql -> {
+            log.debug(sql);
+            jdbcTemplate.execute(sql);
+        });
+
+        log.info("****** Persisted Excel rows into commonDatas table: %s ******");
     }
 
 }

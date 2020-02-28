@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Data
-@Table(name = "comonDatas")
+@Table(name = "commonDatas")
 @Entity
 public class CommonEntity {
     @Id

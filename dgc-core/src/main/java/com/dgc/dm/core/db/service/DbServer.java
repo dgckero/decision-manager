@@ -4,8 +4,11 @@
 
 package com.dgc.dm.core.db.service;
 
+import java.util.List;
 import java.util.Map;
 
 public interface DbServer {
-    void createFilterTable(Map<String, Class<?>> props);
+    void createAndPopulateFilterTable(final Map<String, Class<?>> props);
+
+    void persistExcelRows(final List<String> infoToBePersisted);
 }
