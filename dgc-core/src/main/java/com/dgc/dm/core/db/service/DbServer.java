@@ -10,5 +10,5 @@ import java.util.Map;
 public interface DbServer {
     void createAndPopulateFilterTable(final Map<String, Class<?>> props);
 
-    void persistExcelRows(final List<String> infoToBePersisted);
+    void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted);
 }

@@ -24,41 +24,36 @@ public class DbServerImpl implements DbServer {
     public void createAndPopulateFilterTable(final Map<String, Class<?>> columns) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
-        List<String> statements = new ArrayList<String>() {
+        List<String> filterTableStatements = new ArrayList<String>() {
             {
-                add("SET SCHEMA DECISION_DB");
-                add("drop table `filters` if exists");
-                add("create table `filters` (`id` serial,`name` varchar(100),`class` varchar(50))");
-                add("insert into `filters` (`name`, `class`) values ('rowId','int')");
+                add("CREATE TABLE IF NOT EXISTS FILTERS (ID INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,class TEXT)");
+                add("INSERT INTO FILTERS (name, class) values ('rowId','int')");
             }
         };
 
-        String recordsTableCreate = "create table `commonDatas` (`id` INT, ";
+        String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER PRIMARY KEY, ";
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-            statements.add("insert into `filters` (`name`, `class`) values('" + column.getKey() + "','" + column.getValue().getName() + "') ");
-            recordsTableCreate += column.getKey() + " varchar(100),";
+            filterTableStatements.add("INSERT INTO FILTERS (name, class) values('" + column.getKey() + "','" + column.getValue().getName() + "') ");
+            commonDataTableStatements += column.getKey() + " TEXT,";
             //TODO add row class based on column class value
         }
 
-        statements.forEach(sql -> {
+        filterTableStatements.forEach(sql -> {
             log.debug(sql);
             jdbcTemplate.execute(sql);
         });
 
-        recordsTableCreate = recordsTableCreate.replaceAll("[,]$", ") ");
-        jdbcTemplate.execute(recordsTableCreate);
+        commonDataTableStatements = commonDataTableStatements.replaceAll("[,]$", ") ");
+        jdbcTemplate.execute(commonDataTableStatements);
 
         log.info(String.format("****** table: %s  successfully created ******", "Filters"));
     }
 
-    public void persistExcelRows(final List<String> infoToBePersisted) {
+    public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {
         log.info("****** Persisting Excel rows into commonDatas table: %s ******");
 
-        infoToBePersisted.forEach(sql -> {
-            log.debug(sql);
-            jdbcTemplate.execute(sql);
-        });
+        jdbcTemplate.batchUpdate(insertSentence, infoToBePersisted);
 
         log.info("****** Persisted Excel rows into commonDatas table: %s ******");
     }

@@ -90,14 +90,31 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             log.info("Generated dynamic class: " + generatedObj.getName());
 
             log.info("Populating generated dynamic class with Excel's row values");
+
+            List<Object[]> infoToBePersisted = new ArrayList<>();
             for (int i = 1; i < worksheet.getPhysicalNumberOfRows(); i++) {
-                populateGeneratedObject(worksheet.getRow(i), generatedObj, columns, excelObjs, i);
+                infoToBePersisted.add(populateGeneratedObject(worksheet.getRow(i), generatedObj, columns, excelObjs, i));
             }
+            dbServer.persistExcelRows(getInsertSentence(columns), infoToBePersisted);
         } else {
             log.error("No columns found on File");
         }
 
+    }
 
+    private String getInsertSentence(final Map<String, Class<?>> columns) {
+        String insertQuery = "insert into commonDatas ( rowId, ";
+
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+            insertQuery += column.getKey() + ",";
+        }
+        insertQuery = insertQuery.replaceAll("[,]$", ") ");
+
+        insertQuery += " values(" + new String(new char[columns.size() + 1]).replace("\0", "?,");
+
+        insertQuery = insertQuery.replaceAll("[,]$", ") ");
+
+        return insertQuery;
     }
 
     private HSSFSheet getWorkSheet(final MultipartFile file) throws IOException {
@@ -106,53 +123,53 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         return workbook.getSheetAt(0);
     }
 
-    private void populateGeneratedObject(HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> columns,
-                                         List<Object> excelObjs, int rowNumber) throws IllegalAccessException, IllegalArgumentException,
+    private Object[] populateGeneratedObject(HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> columns,
+                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException, IllegalArgumentException,
             SecurityException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         log.info("populating dynamic class with Excel row number " + rowNumber);
 
-        Iterator<Cell> excelRowIterator = row.cellIterator();
-        List<String> infoToBePersisted = new ArrayList<>();
+        Object[] insertQueryValues = new Object[]{};
+        insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
 
+        Iterator<Cell> excelRowIterator = row.cellIterator();
         while (excelRowIterator.hasNext()) {
-            String insertQuery = "insert into commonDatas ( id, ";
-            String insertQueryValues = " values ( " + rowNumber + ", ";
 
             CommonDto obj = generatedObj.newInstance();
             for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-                insertQuery += column.getKey() + ",";
-                populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj, insertQueryValues);
+                insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
             obj.setRowId(rowNumber);
             excelObjs.add(obj);
 
-            insertQuery = insertQuery.replaceAll("[,]$", ") ");
-            insertQueryValues = insertQueryValues.replaceAll("[,]$", ") ");
-
-            infoToBePersisted.add(insertQuery + insertQueryValues);
-
             log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
         }
 
-        dbServer.persistExcelRows(infoToBePersisted);
-
+        return insertQueryValues;
     }
 
-    private void populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
-                                              Iterator<Cell> excelRowIterator, CommonDto obj, String insertQueryValues)
+    private Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
+        ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
+        temp.add(newObj);
+        return temp.toArray();
+    }
+
+    private String populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
+                                                Iterator<Cell> excelRowIterator, CommonDto obj)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         log.trace("Populating property " + column.getKey() + " with value " + column.getValue());
-
         String setMethod = "set" + StringUtils.capitalize(column.getKey());
         if (excelRowIterator.hasNext()) {
-            populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), insertQueryValues, obj);
-        } // else set null to class's parameter
-
-        log.trace("Populated property " + column.getKey() + " with value " + column.getValue());
+            String cellValue = populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), obj);
+            log.trace("Populated property " + column.getKey() + " with value " + cellValue);
+            return cellValue;
+        } else {
+            log.trace("Populated property " + column.getKey() + " with null value ");
+            return null + ",";
+        }
     }
 
-    private void populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> columnClass, Cell cell, String insertQueryValues, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private String populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> columnClass, Cell cell, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         Class<?> cellClass = getCellClass((HSSFCell) cell);
 
@@ -161,15 +178,15 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         if (cellClass.isAssignableFrom(Date.class)) {
             generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                     cell.getDateCellValue());
-            insertQueryValues += cell.getDateCellValue() + ",";
+            return "'" + cell.getDateCellValue() + "',";
         } else if (cellClass.isAssignableFrom(Double.class)) {
             generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                     cell.getNumericCellValue());
-            insertQueryValues += cell.getNumericCellValue() + ",";
+            return "'" + cell.getNumericCellValue() + "',";
         } else {
             generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                     cell.getStringCellValue());
-            insertQueryValues += cell.getStringCellValue() + ",";
+            return "'" + cell.getStringCellValue() + "',";
         }
     }
 

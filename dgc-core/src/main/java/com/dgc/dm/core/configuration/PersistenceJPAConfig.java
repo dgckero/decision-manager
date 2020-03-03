@@ -5,7 +5,6 @@
 package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
-import org.h2.tools.Server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,13 +24,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.util.Properties;
 
 
 @Configuration
 @EnableTransactionManagement
-@PropertySource({"classpath:persistence-h2.properties"})
+@PropertySource({"classpath:persistence.properties"})
 @ComponentScan("com.dgc.dm.core")
 @EnableJpaRepositories(basePackages = "com.dgc.dm.core.db")
 public class PersistenceJPAConfig {
@@ -43,10 +41,6 @@ public class PersistenceJPAConfig {
         super();
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    public Server inMemoryH2DatabaseServer() throws SQLException {
-        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9091");
-    }
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
@@ -85,9 +79,7 @@ public class PersistenceJPAConfig {
 
     final Properties additionalProperties() {
         final Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
         hibernateProperties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
-        hibernateProperties.setProperty("hibernate.cache.use_second_level_cache", env.getProperty("hibernate.cache.use_second_level_cache"));
         hibernateProperties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
 
         return hibernateProperties;

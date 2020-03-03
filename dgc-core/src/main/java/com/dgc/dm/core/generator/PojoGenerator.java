@@ -15,30 +15,6 @@ import java.util.Set;
 
 public class PojoGenerator {
 
-//
-//    public static Class<? extends CommonDto> generate(String className, Map<String, Class<?>> properties)
-//            throws NotFoundException, CannotCompileException {
-//
-//        ClassPool pool = ClassPool.getDefault();
-//        CtClass cc = pool.makeClass(className);
-//
-//        cc.setSuperclass(resolveCtClass(CommonDto.class));
-//
-//        for (Entry<String, Class<?>> entry : properties.entrySet()) {
-//
-//            cc.addField(new CtField(resolveCtClass(entry.getValue()), entry.getKey(), cc));
-//
-//            // add getter
-//            cc.addMethod(generateGetter(cc, entry.getKey(), entry.getValue()));
-//
-//            // add setter
-//            cc.addMethod(generateSetter(cc, entry.getKey(), entry.getValue()));
-//        }
-//
-//        return cc.toClass();
-//    }
-
-
     public static Class generate(String className, Map<String, Class<?>> properties)
             throws NotFoundException, CannotCompileException, IOException {
 
@@ -60,7 +36,6 @@ public class PojoGenerator {
         // add toString
         cc.addMethod(generateToString(cc, props));
     }
-
 
     private static CtClass getCtcClass(String className) throws IOException, CannotCompileException, NotFoundException {
         ClassPool pool = ClassPool.getDefault();

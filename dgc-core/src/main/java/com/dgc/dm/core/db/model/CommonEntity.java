@@ -6,14 +6,14 @@ package com.dgc.dm.core.db.model;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Data
 @Table(name = "commonDatas")
 @Entity
 public class CommonEntity {
     @Id
+    @Column(name = "rowId")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int rowId;
 }
