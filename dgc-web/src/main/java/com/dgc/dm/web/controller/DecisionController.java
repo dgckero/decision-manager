@@ -4,27 +4,46 @@
 
 package com.dgc.dm.web.controller;
 
-import lombok.extern.log4j.Log4j2;
+import com.dgc.dm.core.db.service.DbServer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.ModelAndView;
 
-/**
- * @author david
- */
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
+
 @Controller
-@Log4j2
-public class DecisionController /*implements HandlerExceptionResolver */ {
-/*
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.registerCustomEditor(String.class, new DepartmentEditor());
-    }
+@Slf4j
+public class DecisionController implements HandlerExceptionResolver {
+
+    @Autowired
+    DbServer dbServer;
+//
+//    @InitBinder
+//    public void initBinder(WebDataBinder binder) {
+//        binder.registerCustomEditor(String.class, new CommonDto<Integer>());
+//    }
 
     @ModelAttribute("allFilters")
     public List<String> populateFilters() {
         List<String> filters = new ArrayList<>();
-        filters = getColumnNames();
+        dbServer.getFilters();
 
         return filters;
     }
- */
+
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                         Object object, Exception exc) {
+
+        ModelAndView modelAndView = new ModelAndView("decision");
+        modelAndView.getModel().put("message", exc.getMessage());
+        return modelAndView;
+
+    }
 }

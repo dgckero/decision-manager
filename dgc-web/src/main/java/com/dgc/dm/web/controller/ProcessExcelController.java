@@ -9,7 +9,7 @@ import com.dgc.dm.core.dto.CommonDto;
 import com.dgc.dm.core.generator.PojoGenerator;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-@Log4j2
+@Slf4j
 @Controller
 public class ProcessExcelController implements HandlerExceptionResolver {
 
@@ -127,10 +127,9 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                                              List<Object> excelObjs, int rowNumber) throws IllegalAccessException, IllegalArgumentException,
             SecurityException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
-        log.info("populating dynamic class with Excel row number " + rowNumber);
+        log.trace("populating dynamic class with Excel row number " + rowNumber);
 
         Object[] insertQueryValues = new Object[]{};
-        insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
 
         Iterator<Cell> excelRowIterator = row.cellIterator();
         while (excelRowIterator.hasNext()) {
@@ -139,13 +138,28 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
                 insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
-            obj.setRowId(rowNumber);
-            excelObjs.add(obj);
+            if (!isArrayEmpty(insertQueryValues)) {
+                insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
+                obj.setRowId(rowNumber);
+                excelObjs.add(obj);
 
-            log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
+                log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
+            } else {
+                insertQueryValues = new Object[]{};
+            }
         }
 
         return insertQueryValues;
+    }
+
+    private boolean isArrayEmpty(Object[] array) {
+
+        for (Object ob : array) {
+            if (ob != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
@@ -165,28 +179,32 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             return cellValue;
         } else {
             log.trace("Populated property " + column.getKey() + " with null value ");
-            return null + ",";
+            return null;
         }
     }
 
     private String populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> columnClass, Cell cell, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         Class<?> cellClass = getCellClass((HSSFCell) cell);
-
-        log.trace("Populating method: " + setMethod + ", class: " + cellClass.getName() + ", value: " + cell.toString());
-
-        if (cellClass.isAssignableFrom(Date.class)) {
-            generatedObj.getMethod(setMethod, columnClass).invoke(obj,
-                    cell.getDateCellValue());
-            return "'" + cell.getDateCellValue() + "',";
-        } else if (cellClass.isAssignableFrom(Double.class)) {
-            generatedObj.getMethod(setMethod, columnClass).invoke(obj,
-                    cell.getNumericCellValue());
-            return "'" + cell.getNumericCellValue() + "',";
+        if (cellClass == null) {
+            log.trace("cell is BLANK");
+            return null;
         } else {
-            generatedObj.getMethod(setMethod, columnClass).invoke(obj,
-                    cell.getStringCellValue());
-            return "'" + cell.getStringCellValue() + "',";
+            log.trace("Populating method: " + setMethod + ", class: " + cellClass.getName() + ", value: " + cell.toString());
+
+            if (cellClass.isAssignableFrom(Date.class)) {
+                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                        cell.getDateCellValue());
+                return "'" + cell.getDateCellValue() + "'";
+            } else if (cellClass.isAssignableFrom(Double.class)) {
+                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                        cell.getNumericCellValue());
+                return "'" + cell.getNumericCellValue() + "'";
+            } else {
+                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                        cell.getStringCellValue());
+                return "'" + cell.getStringCellValue() + "'";
+            }
         }
     }
 
@@ -245,6 +263,8 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                     return Date.class;
                 }
                 return Double.class;
+            case BLANK:
+                return null;
             default:
                 return String.class;
         }

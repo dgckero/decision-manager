@@ -5,7 +5,7 @@
 package com.dgc.dm.web.configuration;
 
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-@Log4j2
+@Slf4j
 @EnableWebMvc
 @ComponentScan({"com.dgc.dm"})
 public class ApplicationConfiguration implements WebMvcConfigurer {

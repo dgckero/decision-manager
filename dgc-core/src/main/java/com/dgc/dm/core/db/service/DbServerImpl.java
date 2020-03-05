@@ -4,7 +4,7 @@
 
 package com.dgc.dm.core.db.service;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @Service
 public class DbServerImpl implements DbServer {
 
@@ -52,10 +52,17 @@ public class DbServerImpl implements DbServer {
 
     public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {
         log.info("****** Persisting Excel rows into commonDatas table: %s ******");
-
         jdbcTemplate.batchUpdate(insertSentence, infoToBePersisted);
-
         log.info("****** Persisted Excel rows into commonDatas table: %s ******");
+    }
+
+    public void getFilters() {
+        log.info("Getting Filters");
+
+        List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS");
+
+
+        log.info("Got filters");
     }
 
 }

@@ -11,4 +11,6 @@ public interface DbServer {
     void createAndPopulateFilterTable(final Map<String, Class<?>> props);
 
     void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted);
+
+    void getFilters();
 }
