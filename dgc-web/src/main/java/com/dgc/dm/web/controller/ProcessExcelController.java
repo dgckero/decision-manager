@@ -200,15 +200,15 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             if (cellClass.isAssignableFrom(Date.class)) {
                 generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                         cell.getDateCellValue());
-                return "'" + cell.getDateCellValue() + "'";
+                return cell.getDateCellValue() + "";
             } else if (cellClass.isAssignableFrom(Double.class)) {
                 generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                         cell.getNumericCellValue());
-                return "'" + cell.getNumericCellValue() + "'";
+                return cell.getNumericCellValue() + "";
             } else {
                 generatedObj.getMethod(setMethod, columnClass).invoke(obj,
                         cell.getStringCellValue());
-                return "'" + cell.getStringCellValue() + "'";
+                return cell.getStringCellValue();
             }
         }
     }
