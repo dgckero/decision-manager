@@ -93,7 +93,10 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
             List<Object[]> infoToBePersisted = new ArrayList<>();
             for (int i = 1; i < worksheet.getPhysicalNumberOfRows(); i++) {
-                infoToBePersisted.add(populateGeneratedObject(worksheet.getRow(i), generatedObj, columns, excelObjs, i));
+                Object[] info = populateGeneratedObject(worksheet.getRow(i), generatedObj, columns, excelObjs, i);
+                if (info != null) {
+                    infoToBePersisted.add(info);
+                }
             }
             dbServer.persistExcelRows(getInsertSentence(columns), infoToBePersisted);
         } else {
@@ -138,17 +141,19 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
                 insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
-            if (!isArrayEmpty(insertQueryValues)) {
+            if (isArrayEmpty(insertQueryValues)) {
+                insertQueryValues = new Object[]{};
+            } else {
                 insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
                 obj.setRowId(rowNumber);
                 excelObjs.add(obj);
 
                 log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
-            } else {
-                insertQueryValues = new Object[]{};
             }
         }
-
+        if (isArrayEmpty(insertQueryValues)) {
+            return null;
+        }
         return insertQueryValues;
     }
 

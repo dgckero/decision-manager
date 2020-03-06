@@ -13,12 +13,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+enum CLAZZ {
+    DATE(java.util.Date.class.getSimpleName()),
+    STRING(java.lang.String.class.getSimpleName()),
+    DOUBLE(java.lang.Double.class.getSimpleName()),
+    INTEGER(java.lang.Integer.class.getSimpleName());
+
+    private String simpleNameClass;
+
+    CLAZZ(String simpleNameClass) {
+        this.simpleNameClass = simpleNameClass;
+    }
+
+    String getSimpleNameClass() {
+        return simpleNameClass;
+    }
+}
+
 @Slf4j
 @Service
 public class DbServerImpl implements DbServer {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private String getDBClassByColumnType(String columnClassName) {
+
+        CLAZZ cl = CLAZZ.valueOf(columnClassName.toUpperCase());
+
+        switch (cl) {
+            case DATE:
+            case STRING:
+                return "TEXT";
+            case INTEGER:
+                return "INTEGER";
+            case DOUBLE:
+                return "REAL";
+            default:
+                return "TEXT";
+        }
+    }
 
     @Override
     public void createAndPopulateFilterTable(final Map<String, Class<?>> columns) {
@@ -27,16 +61,15 @@ public class DbServerImpl implements DbServer {
         List<String> filterTableStatements = new ArrayList<String>() {
             {
                 add("CREATE TABLE IF NOT EXISTS FILTERS (ID INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,class TEXT)");
-                add("INSERT INTO FILTERS (name, class) values ('rowId','int')");
+                add("INSERT INTO FILTERS (name, class) values ('rowId','java.lang.Integer')");
             }
         };
 
         String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER PRIMARY KEY, ";
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-            filterTableStatements.add("INSERT INTO FILTERS (name, class) values('" + column.getKey() + "','" + column.getValue().getName() + "') ");
-            commonDataTableStatements += column.getKey() + " TEXT,";
-            //TODO add row class based on column class value
+            filterTableStatements.add("INSERT INTO FILTERS (name, class) values('" + column.getKey() + "','" + column.getValue().getSimpleName() + "') ");
+            commonDataTableStatements += column.getKey() + " " + getDBClassByColumnType(column.getValue().getSimpleName()) + ",";
         }
 
         filterTableStatements.forEach(sql -> {
@@ -58,10 +91,7 @@ public class DbServerImpl implements DbServer {
 
     public void getFilters() {
         log.info("Getting Filters");
-
         List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS");
-
-
         log.info("Got filters");
     }
 
