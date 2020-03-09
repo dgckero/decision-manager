@@ -1,24 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Selección de filtros</title>
 </head>
 <body>
 
+
 <p><strong>Selecciona los filtros de la decisión. You may control-click (Windows) or command-click (Mac) to select more
     than one.</strong></p>
-<tr>
-    <td>
-        <message code="lbl.filter" text="Filtros"/>
-    </td>
-    <td>
-        <select path="department" items="${allFilters}"/>
-    </td>
-    <td>
-        <errors path="filter" cssClass="error"/>
-    </td>
-</tr>
+
+
+<table>
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Clase</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${filterList.empty}">
+        <td colspan="2"> No hay filtros disponibles</td>
+    </tr>
+    <tr th:each="filter : ${filterList}">
+        <td><span th:text="${filter.name}"></span></td>
+        <td><span th:text="${filter.class}"></span></td>
+    </tr>
+    <tr>
+        <td>
+            <errors cssClass="error" path="filter"/>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
 
 </body>
 </html>

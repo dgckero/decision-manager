@@ -55,13 +55,23 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         log.info("processing file ");
 
         ModelAndView modelAndView = new ModelAndView("decision");
-
         List<Object> excelObjs = processExcel(file);
-
         log.info("processed (" + excelObjs.size() + ") rows");
 
         modelAndView.getModel().put("message", "File uploaded successfully!");
+
+        modelAndView.addAllObjects(getModelMapWithFilters());
+
         return modelAndView;
+    }
+
+    private Map<String, List<Map<String, Object>>> getModelMapWithFilters() {
+        List<Map<String, Object>> filters = dbServer.getFilters();
+
+        Map<String, List<Map<String, Object>>> modelMap = new HashMap<>();
+        modelMap.put("filterList", filters);
+
+        return modelMap;
     }
 
     private List<Object> processExcel(MultipartFile file) {

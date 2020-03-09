@@ -8,7 +8,8 @@ import com.dgc.dm.core.db.service.DbServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -29,7 +30,7 @@ public class DecisionController implements HandlerExceptionResolver {
 //        binder.registerCustomEditor(String.class, new CommonDto<Integer>());
 //    }
 
-    @ModelAttribute("allFilters")
+    @RequestMapping(value = "decision", method = RequestMethod.POST)
     public List<String> populateFilters() {
         List<String> filters = new ArrayList<>();
         dbServer.getFilters();

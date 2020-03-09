@@ -155,6 +155,7 @@
         <spring-data-jpa.version>2.2.4.RELEASE</spring-data-jpa.version>
         <javax.persistence-api.version>2.2</javax.persistence-api.version>
         <cglib.version>2.2.2</cglib.version>
+        <thymeleaf-spring5.version>3.0.9.RELEASE</thymeleaf-spring5.version>
 
         <servlet-api.version>4.0.1</servlet-api.version>
         <jsp-api.version>2.1</jsp-api.version>

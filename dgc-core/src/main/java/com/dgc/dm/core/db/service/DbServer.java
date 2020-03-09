@@ -12,5 +12,5 @@ public interface DbServer {
 
     void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted);
 
-    void getFilters();
+    List<Map<String, Object>> getFilters();
 }

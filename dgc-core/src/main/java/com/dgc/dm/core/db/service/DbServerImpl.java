@@ -89,10 +89,11 @@ public class DbServerImpl implements DbServer {
         log.info("****** Persisted Excel rows into commonDatas table: %s ******");
     }
 
-    public void getFilters() {
+    public List<Map<String, Object>> getFilters() {
         log.info("Getting Filters");
         List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS");
         log.info("Got filters");
+        return filters;
     }
 
 }
