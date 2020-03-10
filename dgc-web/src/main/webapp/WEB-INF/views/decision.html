@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
+<script src="js/jquery-3.4.1.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>Selección de filtros</title>
 </head>
 <body>
-
-
-<p><strong>Selecciona los filtros de la decisión. You may control-click (Windows) or command-click (Mac) to select more
-    than one.</strong></p>
-
+<p><strong>Selecciona los filtros de la decisión</strong></p>
 
 <table>
     <thead>
     <tr>
         <th>Nombre</th>
-        <th>Clase</th>
     </tr>
     </thead>
     <tbody>
@@ -23,8 +20,33 @@
         <td colspan="2"> No hay filtros disponibles</td>
     </tr>
     <tr th:each="filter : ${filterList}">
-        <td><span th:text="${filter.name}"></span></td>
-        <td><span th:text="${filter.class}"></span></td>
+        <td>
+            <div th:if="${filter.name} != 'rowId'">
+                <div th:switch="${filter.class}">
+                    <input th:id="${filter.name} + '_checkbox'" th:name="${filter.name} + '_checkbox'" type="checkbox"/>
+                    <div th:case="'Date'">
+                        <label>
+                            <span th:text="${filter.name}"/>
+                            <input placeholder="Seleccione la fecha por la que filtrar" th:id="${filter.name}"
+                                   type="date"/>
+                        </label>
+                    </div>
+                    <div th:case="'Double'">
+                        <label>
+                            <span th:text="${filter.name}"/>
+                            <input th:id="${filter.name}" type="number"/>
+                        </label>
+                    </div>
+                    <div th:case="*">
+                        <label>
+                            <span th:text="${filter.name}"/>
+                            <input placeholder="Seleccione el valor por la que filtrar" th:id="${filter.name}"
+                                   th:value="${filter.name}" type="text"/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </td>
     </tr>
     <tr>
         <td>
@@ -33,7 +55,6 @@
     </tr>
     </tbody>
 </table>
-
 
 </body>
 </html>
