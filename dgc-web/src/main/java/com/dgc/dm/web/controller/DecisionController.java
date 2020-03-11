@@ -24,11 +24,6 @@ public class DecisionController implements HandlerExceptionResolver {
 
     @Autowired
     DbServer dbServer;
-//
-//    @InitBinder
-//    public void initBinder(WebDataBinder binder) {
-//        binder.registerCustomEditor(String.class, new CommonDto<Integer>());
-//    }
 
     @RequestMapping(value = "decision", method = RequestMethod.POST)
     public List<String> populateFilters() {
@@ -43,6 +38,7 @@ public class DecisionController implements HandlerExceptionResolver {
                                          Object object, Exception exc) {
 
         ModelAndView modelAndView = new ModelAndView("decision");
+
         modelAndView.getModel().put("message", exc.getMessage());
         return modelAndView;
 

@@ -6,6 +6,8 @@ package com.dgc.dm.web.controller;
 
 import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.CommonDto;
+import com.dgc.dm.core.dto.FilterCreationDto;
+import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.generator.PojoGenerator;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
@@ -60,7 +62,26 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
         modelAndView.getModel().put("message", "File uploaded successfully!");
 
-        modelAndView.addAllObjects(getModelMapWithFilters());
+        Map<String, List<Map<String, Object>>> filterList = getModelMapWithFilters();
+        List<FilterDto> filterDtoList = new ArrayList<>();
+
+        for (Map<String, Object> filter : filterList.get("filterList")) {
+
+            Iterator<Map.Entry<String, Object>> entryIterator = filter.entrySet().iterator();
+            entryIterator.next();
+            Map.Entry<String, Object> nameEntry = entryIterator.next();
+            Map.Entry<String, Object> classEntry = entryIterator.next();
+            filterDtoList.add(FilterDto.builder().
+                    name(nameEntry.getValue().toString()).
+                    filterClass(classEntry.getValue().toString()).
+                    build()
+            );
+
+        }
+
+        modelAndView.addAllObjects(filterList);
+        FilterCreationDto form = new FilterCreationDto(filterDtoList);
+        modelAndView.addObject("form", form);
 
         return modelAndView;
     }
