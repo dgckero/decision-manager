@@ -1,5 +1,5 @@
-/**
- * @author david
+/*
+  @author david
  */
 
 package com.dgc.dm.core.configuration;

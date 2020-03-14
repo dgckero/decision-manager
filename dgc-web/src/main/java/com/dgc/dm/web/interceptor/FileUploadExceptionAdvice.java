@@ -12,9 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * @author david
- */
+
 @ControllerAdvice
 public class FileUploadExceptionAdvice {
 

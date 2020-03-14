@@ -1,7 +1,6 @@
-/**
- * @author david
+/*
+  @author david
  */
-
 package com.dgc.dm.web.configuration;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;

@@ -1,7 +1,6 @@
-/**
- * @author david
+/*
+  @author david
  */
-
 package com.dgc.dm.core.db.service;
 
 import lombok.extern.slf4j.Slf4j;

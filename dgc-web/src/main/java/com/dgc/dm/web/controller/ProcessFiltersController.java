@@ -1,5 +1,5 @@
-/**
- * @author david
+/*
+  @author david
  */
 
 package com.dgc.dm.web.controller;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -26,6 +27,12 @@ public class ProcessFiltersController {
         List<FilterDto> filters = form.getFilters();
 
         log.info("Got filters " + filters);
+
+        List<FilterDto> activeFilters = filters.stream()
+                .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
+                .collect(Collectors.toList());
+
+        log.info("Active filters " + activeFilters);
 
         return null;
     }

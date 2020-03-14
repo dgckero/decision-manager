@@ -14,43 +14,45 @@
         <table>
             <thead>
             <tr>
-                <th>Nombre</th>
+                <th>Nombre del filtro</th>
+                <th>Valor</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="filter, itemStat : ${filterList}">
+            <tr th:each="item, itemStat : ${filterList}">
                 <td>
-                    <div th:if="${filter.name} != 'rowId'">
-                        <div th:switch="${filter.class}">
-                            <input th:field="*{filters[__${itemStat.index}__].active}"
-                                   th:id="${filter.name} + '_checkbox'"
-                                   th:name="${filter.name} + '_checkbox'" type="checkbox"/>
-                            <input th:field="*{filters[__${itemStat.index}__].filterClass}"
-                                   th:value="${filter.class}" type="hidden"/>
+                    <input th:field="*{filters[__${itemStat.index}__].filterClass}"
+                           th:value="${item.class}" type="hidden"/>
+                    <input th:field="*{filters[__${itemStat.index}__].name}"
+                           th:value="${item.name}" type="hidden"/>
+                    <input th:field="*{filters[__${itemStat.index}__].active}"
+                           th:id="${item.name} + '_checkbox'"
+                           th:name="${item.name} + '_checkbox'" type="checkbox"/>
 
-                            <div th:case="'Date'">
-                                <label>
-                                    <span th:text="${filter.name}"/>
-                                    <input placeholder="Seleccione la fecha por la que filtrar"
-                                           th:field="*{filters[__${itemStat.index}__].value}"
-                                           th:id="${filter.name}" type="date"/>
-                                </label>
-                            </div>
-                            <div th:case="'Double'">
-                                <label>
-                                    <span th:text="${filter.name}"/>
-                                    <input th:field="*{filters[__${itemStat.index}__].value}" th:id="${filter.name}"
-                                           type="number"/>
-                                </label>
-                            </div>
-                            <div th:case="*">
-                                <label>
-                                    <span th:text="${filter.name}"/>
-                                    <input placeholder="Seleccione el valor por la que filtrar"
-                                           th:field="*{filters[__${itemStat.index}__].value}"
-                                           th:id="${filter.name}" type="text"/>
-                                </label>
-                            </div>
+                    <div th:switch="${item.class}">
+
+                        <div th:case="'Date'">
+                            <label>
+                                <span th:text="${item.name}"/>
+                                <input placeholder="Seleccione la fecha por la que filtrar"
+                                       th:field="*{filters[__${itemStat.index}__].value}"
+                                       th:id="${item.name}" type="date"/>
+                            </label>
+                        </div>
+                        <div th:case="'Double'">
+                            <label>
+                                <span th:text="${item.name}"/>
+                                <input th:field="*{filters[__${itemStat.index}__].value}" th:id="${item.name}"
+                                       type="number"/>
+                            </label>
+                        </div>
+                        <div th:case="*">
+                            <label>
+                                <span th:text="${item.name}"/>
+                                <input placeholder="Seleccione el valor por la que filtrar"
+                                       th:field="*{filters[__${itemStat.index}__].value}"
+                                       th:id="${item.name}" type="text"/>
+                            </label>
                         </div>
                     </div>
                 </td>

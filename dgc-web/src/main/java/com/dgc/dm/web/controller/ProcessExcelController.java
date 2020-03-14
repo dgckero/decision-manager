@@ -1,5 +1,5 @@
-/**
- * @author david
+/*
+  @author david
  */
 
 package com.dgc.dm.web.controller;
@@ -52,7 +52,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
-    public ModelAndView uploadFile(MultipartFile file) throws IOException {
+    public ModelAndView uploadFile(MultipartFile file) {
 
         log.info("processing file ");
 
@@ -63,22 +63,26 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         modelAndView.getModel().put("message", "File uploaded successfully!");
 
         Map<String, List<Map<String, Object>>> filterList = getModelMapWithFilters();
+//TODO to be optimized
         List<FilterDto> filterDtoList = new ArrayList<>();
 
-        for (Map<String, Object> filter : filterList.get("filterList")) {
+        Iterator<Map<String, Object>> entryIterator = filterList.get("filterList").iterator();
+        while (entryIterator.hasNext()) {
+            Map<String, Object> filterIterator = entryIterator.next();
 
-            Iterator<Map.Entry<String, Object>> entryIterator = filter.entrySet().iterator();
-            entryIterator.next();
-            Map.Entry<String, Object> nameEntry = entryIterator.next();
-            Map.Entry<String, Object> classEntry = entryIterator.next();
-            filterDtoList.add(FilterDto.builder().
-                    name(nameEntry.getValue().toString()).
-                    filterClass(classEntry.getValue().toString()).
-                    build()
-            );
-
+            String filterName = (String) filterIterator.get("name");
+            if (filterName.equals("rowId")) {
+                // Don't send rowId to decision view
+                entryIterator.remove();
+            } else {
+                filterDtoList.add(FilterDto.builder().
+                        name(filterName).
+                        filterClass((String) filterIterator.get("class")).
+                        build()
+                );
+            }
         }
-
+//TODO END to be optimized
         modelAndView.addAllObjects(filterList);
         FilterCreationDto form = new FilterCreationDto(filterDtoList);
         modelAndView.addObject("form", form);
@@ -137,18 +141,18 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     private String getInsertSentence(final Map<String, Class<?>> columns) {
-        String insertQuery = "insert into commonDatas ( rowId, ";
+        StringBuilder insertQuery = new StringBuilder("insert into commonDatas ( rowId, ");
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-            insertQuery += column.getKey() + ",";
+            insertQuery.append(column.getKey()).append(",");
         }
-        insertQuery = insertQuery.replaceAll("[,]$", ") ");
+        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ") "));
 
-        insertQuery += " values(" + new String(new char[columns.size() + 1]).replace("\0", "?,");
+        insertQuery.append(" values(").append(new String(new char[columns.size() + 1]).replace("\0", "?,"));
 
-        insertQuery = insertQuery.replaceAll("[,]$", ") ");
+        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ") "));
 
-        return insertQuery;
+        return insertQuery.toString();
     }
 
     private HSSFSheet getWorkSheet(final MultipartFile file) throws IOException {
@@ -256,7 +260,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                 if (cell != null) {
                     Class<?> cellClass = getCellClass(secondRow.getCell(j));
                     colMapByName.put(getColumnNameByCellValue(cell.getStringCellValue()), cellClass);
-                    log.info("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + cellClass.getName());
+                    log.info("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + Objects.requireNonNull(cellClass).getName());
                 }
             }
         }

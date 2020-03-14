@@ -1,7 +1,6 @@
-/**
- * @author david
+/*
+  @author david
  */
-
 package com.dgc.dm.web.controller;
 
 import org.springframework.stereotype.Controller;

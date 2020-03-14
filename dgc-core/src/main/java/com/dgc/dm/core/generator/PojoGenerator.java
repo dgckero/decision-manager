@@ -1,7 +1,6 @@
-/**
- * @author david
+/*
+  @author david
  */
-
 package com.dgc.dm.core.generator;
 
 import com.dgc.dm.core.dto.CommonDto;
