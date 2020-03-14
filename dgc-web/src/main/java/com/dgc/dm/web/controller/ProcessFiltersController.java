@@ -4,9 +4,11 @@
 
 package com.dgc.dm.web.controller;
 
+import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.FilterCreationDto;
 import com.dgc.dm.core.dto.FilterDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,6 +23,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/filterList")
 public class ProcessFiltersController {
 
+    @Autowired
+    DbServer dbServer;
+
     @PostMapping("/process")
     public String processFilters(@ModelAttribute FilterCreationDto form, Model model) {
 
@@ -33,6 +38,8 @@ public class ProcessFiltersController {
                 .collect(Collectors.toList());
 
         log.info("Active filters " + activeFilters);
+
+        dbServer.updateFilters(activeFilters);
 
         return null;
     }

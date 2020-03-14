@@ -5,6 +5,9 @@
 package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -26,21 +29,33 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-
+@Slf4j
 @Configuration
 @EnableTransactionManagement
 @PropertySource({"classpath:persistence.properties"})
 @ComponentScan("com.dgc.dm.core")
 @EnableJpaRepositories(basePackages = "com.dgc.dm.core.db")
-public class PersistenceJPAConfig {
+public class ApplicationConfig {
 
     @Autowired
     private Environment env;
 
-    public PersistenceJPAConfig() {
+    public ApplicationConfig() {
         super();
     }
 
+    @Bean
+    public ModelMapper modelMapper() {
+        log.debug("Configuring modelMapper");
+
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT);
+
+        log.debug("modelMapper successfully configured");
+
+        return modelMapper;
+    }
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {

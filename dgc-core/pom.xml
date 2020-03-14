@@ -61,6 +61,11 @@
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate-core.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>${modelmapper.version}</version>
+        </dependency>
 
     </dependencies>
 
