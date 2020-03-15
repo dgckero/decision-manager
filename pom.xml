@@ -170,6 +170,13 @@
         <sqlite-dialect.version>0.1.0</sqlite-dialect.version>
         <google-collections>1.0</google-collections>
         <modelmapper.version>2.3.6</modelmapper.version>
+        <javax.mail.version>1.6.2</javax.mail.version>
+
+        <!-- BPMN dependencies's version -->
+        <camunda-bpmn-model.version>7.13.0-alpha2</camunda-bpmn-model.version>
+        <camunda-bpm-mail-core.version>1.2.0</camunda-bpm-mail-core.version>
+        <camunda-connect-core.version>1.3.0</camunda-connect-core.version>
+        <camunda-engine-dmn-bom.version>7.13.0-alpha2</camunda-engine-dmn-bom.version>
 
         <lombok.version>1.18.12</lombok.version>
         <logback-classic.version>1.3.0-alpha5</logback-classic.version>

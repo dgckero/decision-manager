@@ -4,6 +4,7 @@
 
 package com.dgc.dm.core.db.service;
 
+import com.dgc.dm.core.db.model.CommonEntity;
 import com.dgc.dm.core.dto.FilterDto;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface DbServer {
     List<Map<String, Object>> getFilters();
 
     void updateFilters(List<FilterDto> activeFilters);
+
+    Iterable<CommonEntity> getCommonData();
 }

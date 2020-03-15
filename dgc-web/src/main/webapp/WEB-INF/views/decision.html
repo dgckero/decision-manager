@@ -21,6 +21,8 @@
             <tbody>
             <tr th:each="item, itemStat : ${filterList}">
                 <td>
+                    <input th:field="*{filters[__${itemStat.index}__].id}"
+                           th:value="${item.id}" type="hidden"/>
                     <input th:field="*{filters[__${itemStat.index}__].filterClass}"
                            th:value="${item.class}" type="hidden"/>
                     <input th:field="*{filters[__${itemStat.index}__].name}"

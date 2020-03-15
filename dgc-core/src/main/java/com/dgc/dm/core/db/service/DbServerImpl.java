@@ -3,6 +3,8 @@
  */
 package com.dgc.dm.core.db.service;
 
+import com.dgc.dm.core.db.dao.CommonRepository;
+import com.dgc.dm.core.db.model.CommonEntity;
 import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.repository.FilterRepository;
 import com.dgc.dm.core.dto.FilterDto;
@@ -42,7 +44,10 @@ public class DbServerImpl implements DbServer {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    FilterRepository filterRepository;
+    private FilterRepository filterRepository;
+
+    @Autowired
+    private CommonRepository commonRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -136,4 +141,11 @@ public class DbServerImpl implements DbServer {
         log.info("Filters updated");
     }
 
+    @Override
+    public Iterable<CommonEntity> getCommonData() {
+        log.info("Getting CommonData");
+        Iterable<CommonEntity> entities = commonRepository.findAll();
+        log.info("Got CommonData");
+        return entities;
+    }
 }

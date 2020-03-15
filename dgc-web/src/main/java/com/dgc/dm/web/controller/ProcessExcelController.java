@@ -76,6 +76,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                 entryIterator.remove();
             } else {
                 filterDtoList.add(FilterDto.builder().
+                        id((Integer) filterIterator.get("ID")).
                         name(filterName).
                         filterClass((String) filterIterator.get("class")).
                         build()
