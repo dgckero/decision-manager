@@ -4,7 +4,6 @@
 package com.dgc.dm.core.db.service;
 
 import com.dgc.dm.core.db.dao.CommonRepository;
-import com.dgc.dm.core.db.model.CommonEntity;
 import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.repository.FilterRepository;
 import com.dgc.dm.core.dto.FilterDto;
@@ -142,9 +141,11 @@ public class DbServerImpl implements DbServer {
     }
 
     @Override
-    public Iterable<CommonEntity> getCommonData() {
+    public List<Map<String, Object>> getCommonData() {
         log.info("Getting CommonData");
-        Iterable<CommonEntity> entities = commonRepository.findAll();
+
+        List<Map<String, Object>> entities = jdbcTemplate.queryForList("Select * from COMMONDATAS");
+
         log.info("Got CommonData");
         return entities;
     }
