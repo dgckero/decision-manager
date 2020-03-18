@@ -144,7 +144,7 @@ public class BPMNServerImpl implements BPMNServer {
         inputExpression.setId("inputExpression_" + name);
 
         Text text = dmnModelInstance.newInstance(Text.class);
-        text.setTextContent("\"" + name + "\"");
+        text.setTextContent(name);
         inputExpression.addChildElement(text);
 
         return inputExpression;
@@ -157,70 +157,79 @@ public class BPMNServerImpl implements BPMNServer {
         for (int i = 0; i < activeFilters.size(); i++) {
             FilterDto filter = activeFilters.get(i);
             log.debug("processing filter " + filter);
-//            InputEntry inputEntryFilterName = createInputEntry(dmnModelInstance, filter.getName());
-//            rule.getInputEntries().add(inputEntryFilterName);
-            InputEntry inputEntryFilterVal = createInputEntry(dmnModelInstance, filter.getValue());
+            InputEntry inputEntryFilterVal = createInputEntry(dmnModelInstance, filter.getName(), filter.getValue());
             rule.getInputEntries().add(inputEntryFilterVal);
         }
 
         if (sendMail) {
-            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted_sendEMail\""));
+            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted_sendEMail\"", "Accepted_sendEMail", "Accepted_sendEMail"));
         } else {
-            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted\""));
+            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted\"", "Accepted", "Accepted"));
         }
 
         return rule;
     }
 
-    private InputEntry createInputEntry(DmnModelInstance dmnModelInstance, String expression) {
+    private InputEntry createInputEntry(DmnModelInstance dmnModelInstance, String name, String val) {
         Text text = dmnModelInstance.newInstance(Text.class);
-        text.setTextContent(expression);
+        text.setTextContent("\"" + val + "\"");
 
         InputEntry inputEntry = dmnModelInstance.newInstance(InputEntry.class);
+        inputEntry.setLabel(name);
         inputEntry.setText(text);
         return inputEntry;
     }
 
-    private OutputEntry createOutputEntry(DmnModelInstance dmnModelInstance, String expression) {
+    private OutputEntry createOutputEntry(DmnModelInstance dmnModelInstance, String expression, String outputEntryId, String outputEntryLabel) {
         Text text = dmnModelInstance.newInstance(Text.class);
         text.setTextContent(expression);
 
         OutputEntry outputEntry = dmnModelInstance.newInstance(OutputEntry.class);
+        outputEntry.setId(outputEntryId);
+        outputEntry.setLabel(outputEntryLabel);
         outputEntry.setText(text);
         return outputEntry;
     }
 
     private void evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId) {
 
+        log.info("Evaluating decision table");
+
         DmnEngine dmnEngine = DmnEngineConfiguration.createDefaultDmnEngineConfiguration().buildEngine();
         DmnDecision decision = dmnEngine.parseDecision(decisionId, modelInstance);
 
-        List<Map<String, Object>> commonEntities = dbServer.getCommonData();
-//TODO la tabla de decisión es para evaluar registro a registro, igual esto vale mejor para ver el tema del email, pero nada más
-        VariableMap variables = Variables.createVariables();
-        for (Map<String, Object> entityMap : commonEntities) {
+        List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
+        List<Map<String, Object>> commonEntitiesToBeValidated = dbServer.getCommonData();
+
+        VariableMap variableToBeValidated = Variables.createVariables();
+        for (Map<String, Object> entityMap : commonEntitiesToBeValidated) {
             Iterator<Map.Entry<String, Object>> iterator = entityMap.entrySet().iterator();
 
             while (iterator.hasNext()) {
                 Map.Entry<String, Object> entity = iterator.next();
-                variables.put(entity.getKey(), entity.getValue());
+                variableToBeValidated.put(entity.getKey(), entity.getValue());
             }
+
+            DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
+            if (result.size() >= 1) {
+                commonEntitiesAccepted.add(variableToBeValidated);
+                boolean sendMail = false;
+                for (Map<String, Object> res : result.getResultList()) {
+                    Collection<Object> resValues = res.values();
+                    if (resValues.equals("\"Accepted_sendEMail\"")) {
+                        sendMail = true;
+                        break;
+                    }
+                }
+
+                if (sendMail) {
+                    //TODO send email
+                }
+            }
+
         }
 
-        DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variables);
-
-        System.out.println(result.toString());
-
-        Collection<Input> inputs = modelInstance.getModelElementsByType(Input.class);
-        for (Input input2 : inputs) {
-            System.out.println("" + input2.getRawTextContent());
-        }
-        System.out.println();
-        Collection<InputEntry> inputEntries = modelInstance.getModelElementsByType(InputEntry.class);
-        for (InputEntry inputEntry3 : inputEntries) {
-            System.out.println("" + inputEntry3.getRawTextContent());
-
-        }
+        log.info("End validation process, " + commonEntitiesAccepted.size() + " entities has matched filters");
 
     }
 
