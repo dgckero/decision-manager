@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Result</title>
+
+    <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
+    <script th:src="@{/webjars/popper.js/${popper.version}/umd/popper.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/${bootstrap.version}/js/bootstrap.min.js}"></script>
+    <script th:src="@{/webjars/datatables/${datatables.version}/js/dataTables.jqueryui.min.js}"></script>
+    <script th:src="@{/webjars/datatables/${datatables.version}/js/jquery.dataTables.min.js}"></script>
+
+    <link th:href="@{/webjars/datatables/${datatables.version}/css/jquery.dataTables.min.css} " th:rel="stylesheet"/>
+    <link th:href="@{/webjars/datatables/${datatables.version}/css/dataTables.jqueryui.min.css} " th:rel="stylesheet"/>
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            $('#resultTable').dataTable();
+        });
+
+    </script>
+
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="span12">
+            <form action="#" th:object="${form}">
+                <table border="0" cellpadding="0" cellspacing="0" class="table table-striped table-bordered"
+                       id="resultTable">
+                    <thead>
+                    <tr>
+                        <th:block th:each="mapKeys : ${form.iterator().next().keySet()}">
+                            <th th:text="${mapKeys}"></th>
+                        </th:block>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="mapIterator : ${form.iterator()}">
+                        <tr>
+                            <th:block th:each="mapVal : ${mapIterator.values()}">
+                                <td th:text="${mapVal}"></td>
+                            </th:block>
+                        </tr>
+                    </th:block>
+                    </tbody>
+                </table>
+                <errors cssClass="error" path="filter"/>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

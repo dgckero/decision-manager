@@ -1,74 +1,79 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<script src="js/jquery-3.4.1.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>Selección de filtros</title>
+    <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
 </head>
 <body>
 <p><strong>Selecciona los filtros de la decisión</strong></p>
 
-<form action="#" method="post" th:action="@{/filterList/process}" th:object="${form}">
-    <fieldset>
-        <table>
-            <thead>
-            <tr>
-                <th>Nombre del filtro</th>
-                <th>Valor</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="item, itemStat : ${filterList}">
-                <td>
-                    <input th:field="*{filters[__${itemStat.index}__].id}"
-                           th:value="${item.id}" type="hidden"/>
-                    <input th:field="*{filters[__${itemStat.index}__].filterClass}"
-                           th:value="${item.class}" type="hidden"/>
-                    <input th:field="*{filters[__${itemStat.index}__].name}"
-                           th:value="${item.name}" type="hidden"/>
-                    <input th:field="*{filters[__${itemStat.index}__].active}"
-                           th:id="${item.name} + '_checkbox'"
-                           th:name="${item.name} + '_checkbox'" type="checkbox"/>
+<div class="container">
+    <div class="row">
+        <form action="#" method="post" th:action="@{/filterList/process}" th:object="${form}">
+            <fieldset>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Nombre del filtro</th>
+                        <th>Valor</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item, itemStat : ${filterList}">
+                        <td>
+                            <input th:field="*{filters[__${itemStat.index}__].id}"
+                                   th:value="${item.id}" type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].filterClass}"
+                                   th:value="${item.class}" type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].name}"
+                                   th:value="${item.name}" type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].active}"
+                                   th:id="${item.name} + '_checkbox'"
+                                   th:name="${item.name} + '_checkbox'" type="checkbox"/>
 
-                    <div th:switch="${item.class}">
+                            <div th:switch="${item.class}">
 
-                        <div th:case="'Date'">
-                            <label>
-                                <span th:text="${item.name}"/>
-                                <input placeholder="Seleccione la fecha por la que filtrar"
-                                       th:field="*{filters[__${itemStat.index}__].value}"
-                                       th:id="${item.name}" type="date"/>
-                            </label>
-                        </div>
-                        <div th:case="'Double'">
-                            <label>
-                                <span th:text="${item.name}"/>
-                                <input th:field="*{filters[__${itemStat.index}__].value}" th:id="${item.name}"
-                                       type="number"/>
-                            </label>
-                        </div>
-                        <div th:case="*">
-                            <label>
-                                <span th:text="${item.name}"/>
-                                <input placeholder="Seleccione el valor por la que filtrar"
-                                       th:field="*{filters[__${itemStat.index}__].value}"
-                                       th:id="${item.name}" type="text"/>
-                            </label>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <errors cssClass="error" path="filter"/>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <input id="submitButton" th:value="Enviar" type="submit">
-        <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
-    </fieldset>
-</form>
+                                <div th:case="'Date'">
+                                    <label>
+                                        <span th:text="${item.name}"/>
+                                        <input placeholder="Seleccione la fecha por la que filtrar"
+                                               th:field="*{filters[__${itemStat.index}__].value}"
+                                               th:id="${item.name}" type="date"/>
+                                    </label>
+                                </div>
+                                <div th:case="'Double'">
+                                    <label>
+                                        <span th:text="${item.name}"/>
+                                        <input th:field="*{filters[__${itemStat.index}__].value}" th:id="${item.name}"
+                                               type="number"/>
+                                    </label>
+                                </div>
+                                <div th:case="*">
+                                    <label>
+                                        <span th:text="${item.name}"/>
+                                        <input placeholder="Seleccione el valor por la que filtrar"
+                                               th:field="*{filters[__${itemStat.index}__].value}"
+                                               th:id="${item.name}" type="text"/>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <errors cssClass="error" path="filter"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <input id="submitButton" th:value="Enviar" type="submit">
+                <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
+            </fieldset>
+        </form>
+    </div>
+</div>
 </body>
 </html>

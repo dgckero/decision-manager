@@ -21,6 +21,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,7 +36,9 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     BPMNServer bpmnServer;
 
     @PostMapping("/process")
-    public String processFilters(@ModelAttribute FilterCreationDto form, Model model) throws Exception {
+    public ModelAndView processFilters(@ModelAttribute FilterCreationDto form, Model model) throws Exception {
+
+        ModelAndView modelAndView = new ModelAndView("result");
 
         List<FilterDto> filters = form.getFilters();
 
@@ -48,9 +51,10 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
         dbServer.updateFilters(activeFilters);
         log.info("Creating BPMN Model");
 
-        bpmnServer.createBPMNModel(activeFilters);
+        List<Map<String, Object>> commonEntitiesAccepted = bpmnServer.createBPMNModel(activeFilters, true);
+        modelAndView.addObject("form", commonEntitiesAccepted);
 
-        return null;
+        return modelAndView;
     }
 
     @Override

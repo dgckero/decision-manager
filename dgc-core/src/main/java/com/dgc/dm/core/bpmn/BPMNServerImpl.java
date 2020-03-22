@@ -38,7 +38,7 @@ public class BPMNServerImpl implements BPMNServer {
     private DbServer dbServer;
 
     @Override
-    public void createBPMNModel() {
+    public void createBPMNModel(boolean evaluateDecisionTable) {
 
         BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("decision-manager")
                 .name("BPMN API Invoice Process")
@@ -47,18 +47,22 @@ public class BPMNServerImpl implements BPMNServer {
     }
 
     @Override
-    public void createBPMNModel(List<FilterDto> activeFilters) throws Exception {
+    public List<Map<String, Object>> createBPMNModel(List<FilterDto> activeFilters, boolean evaluateDecisionTable) throws Exception {
 
         BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("decision-manager")
                 .name("BPMN API Invoice Process")
                 .done();
         boolean sendMail = false;
 
-        generateDmn("decision-manager.dm", "dm-decisionTable", "dm-definitionId", "dm-definitionName", "dm-decisionId", "dm-decisionName", activeFilters, sendMail);
+        List<Map<String, Object>> commonEntitiesAccepted = generateDmn("decision-manager.dm", "dm-decisionTable", "dm-definitionId", "dm-definitionName", "dm-decisionId", "dm-decisionName", activeFilters, sendMail, evaluateDecisionTable);
+
+        return commonEntitiesAccepted;
     }
 
 
-    public void generateDmn(String output, String decisionTableId, String definitionId, String definitionName, String decisionId, String decisionName, List<FilterDto> activeFilters, boolean sendMail) throws Exception {
+    private List<Map<String, Object>> generateDmn(String output, String decisionTableId, String definitionId, String definitionName, String decisionId, String decisionName, List<FilterDto> activeFilters, boolean sendMail, boolean evaluateDecisionTable) throws Exception {
+        List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
+
         DmnModelInstance modelInstance = Dmn.createEmptyModel();
 
         // Create definition
@@ -97,8 +101,11 @@ public class BPMNServerImpl implements BPMNServer {
 
             log.info("generate dmn file: " + dmnFile.getAbsolutePath());
 
-            evaluateDecisionTable(modelInstance, decisionId);
+            if (evaluateDecisionTable) {
+                commonEntitiesAccepted = evaluateDecisionTable(modelInstance, decisionId);
+            }
 
+            return commonEntitiesAccepted;
         } catch (ModelValidationException | DmnTransformException e) {
             log.error("Error generating DMN " + e.getMessage());
             e.printStackTrace();
@@ -191,7 +198,7 @@ public class BPMNServerImpl implements BPMNServer {
         return outputEntry;
     }
 
-    private void evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId) {
+    private List<Map<String, Object>> evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId) {
 
         log.info("Evaluating decision table");
 
@@ -201,13 +208,17 @@ public class BPMNServerImpl implements BPMNServer {
         List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
         List<Map<String, Object>> commonEntitiesToBeValidated = dbServer.getCommonData();
 
-        VariableMap variableToBeValidated = Variables.createVariables();
         for (Map<String, Object> entityMap : commonEntitiesToBeValidated) {
+            VariableMap variableToBeValidated = Variables.createVariables();
+
             Iterator<Map.Entry<String, Object>> iterator = entityMap.entrySet().iterator();
 
             while (iterator.hasNext()) {
                 Map.Entry<String, Object> entity = iterator.next();
-                variableToBeValidated.put(entity.getKey(), entity.getValue());
+                //Skip rowId
+                if (!entity.getKey().equals("rowId")) {
+                    variableToBeValidated.put(entity.getKey(), entity.getValue());
+                }
             }
 
             DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
@@ -231,6 +242,7 @@ public class BPMNServerImpl implements BPMNServer {
 
         log.info("End validation process, " + commonEntitiesAccepted.size() + " entities has matched filters");
 
+        return commonEntitiesAccepted;
     }
 
 }

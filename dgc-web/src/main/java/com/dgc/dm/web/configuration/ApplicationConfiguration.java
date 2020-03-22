@@ -19,8 +19,8 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
-@Configuration
 @Slf4j
+@Configuration
 @EnableWebMvc
 @ComponentScan({"com.dgc.dm"})
 public class ApplicationConfiguration implements WebMvcConfigurer {
@@ -36,7 +36,9 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/resources/**")
-                .addResourceLocations("/resources/");
+                .addResourceLocations("classpath:/resources/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
     @Bean
@@ -75,17 +77,6 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
         resolver.setTemplateEngine(templateEngine());
         registry.viewResolver(resolver);
     }
-//
-//    @Bean
-//    public InternalResourceViewResolver htmlViewResolver() {
-//        log.debug("init htmlViewResolver");
-//        InternalResourceViewResolver bean = new InternalResourceViewResolver();
-//        bean.setPrefix("/WEB-INF/views/");
-//        bean.setSuffix(".html");
-//        bean.setOrder(1);
-//        log.debug("end htmlViewResolver");
-//        return bean;
-//    }
 
     @Bean
     public MultipartResolver multipartResolver() {
