@@ -108,8 +108,23 @@
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
+            <artifactId>datatables-buttons</artifactId>
+            <version>${datatables-buttons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
             <artifactId>datatables-bootstrap</artifactId>
             <version>${datatables-bootstrap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jszip</artifactId>
+            <version>${jszip.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>pdfmake</artifactId>
+            <version>${pdfmake.version}</version>
         </dependency>
 
     </dependencies>

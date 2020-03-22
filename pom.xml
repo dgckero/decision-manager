@@ -183,6 +183,9 @@
         <popper.version>1.14.3</popper.version>
         <datatables.version>1.10.20</datatables.version>
         <datatables-bootstrap.version>2-20120202-2</datatables-bootstrap.version>
+        <datatables-buttons.version>1.6.1</datatables-buttons.version>
+        <jszip.version>2.6.1</jszip.version>
+        <pdfmake.version>0.1.36</pdfmake.version>
 
         <!-- BPMN dependencies's version -->
         <camunda-bpmn-model.version>7.13.0-alpha2</camunda-bpmn-model.version>

@@ -10,15 +10,29 @@
     <script th:src="@{/webjars/bootstrap/${bootstrap.version}/js/bootstrap.min.js}"></script>
     <script th:src="@{/webjars/datatables/${datatables.version}/js/dataTables.jqueryui.min.js}"></script>
     <script th:src="@{/webjars/datatables/${datatables.version}/js/jquery.dataTables.min.js}"></script>
+    <script th:src="@{/webjars/datatables-buttons/${datatables-buttons.version}/js/dataTables.buttons.min.js}"></script>
+    <script th:src="@{/webjars/datatables-buttons/${datatables-buttons.version}/js/buttons.html5.min.js}"></script>
+    <script th:src="@{/webjars/jszip/${jszip.version}/jszip.min.js}"></script>
+    <script th:src="@{/webjars/pdfmake/${pdfmake.version}/build/pdfmake.min.js}"></script>
+    <script th:src="@{/webjars/pdfmake/${pdfmake.version}/build/vfs_fonts.js}"></script>
 
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
     <link th:href="@{/webjars/datatables/${datatables.version}/css/jquery.dataTables.min.css} " th:rel="stylesheet"/>
     <link th:href="@{/webjars/datatables/${datatables.version}/css/dataTables.jqueryui.min.css} " th:rel="stylesheet"/>
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+
 
     <script th:inline="javascript">
-        $(document).ready(function () {
-            $('#resultTable').dataTable();
-        });
+        $(document).ready(function() {
+            $('#resultTable').DataTable( {
+                dom: 'Bfrtip',
+                buttons: [
+                    'copyHtml5',
+                    'excelHtml5',
+                    'csvHtml5',
+                    'pdfHtml5'
+                ]
+            } );
+        } );
 
     </script>
 
