@@ -12,5 +12,5 @@ import java.io.Serializable;
 public class CommonDto<T> implements Serializable {
 
     private T rowId;
-
+    private ProjectDto project;
 }

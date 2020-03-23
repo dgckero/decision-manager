@@ -5,8 +5,11 @@ package com.dgc.dm.core.db.service;
 
 import com.dgc.dm.core.db.dao.CommonRepository;
 import com.dgc.dm.core.db.model.Filter;
+import com.dgc.dm.core.db.model.Project;
 import com.dgc.dm.core.db.repository.FilterRepository;
+import com.dgc.dm.core.db.repository.ProjectRepository;
 import com.dgc.dm.core.dto.FilterDto;
+import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -15,6 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +53,9 @@ public class DbServerImpl implements DbServer {
     private CommonRepository commonRepository;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     private String getDBClassByColumnType(String columnClassName) {
@@ -68,19 +75,20 @@ public class DbServerImpl implements DbServer {
         }
     }
 
-    @Override
-    public void createAndPopulateFilterTable(final Map<String, Class<?>> columns) {
+    public void createFilterTable(final ProjectDto project) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
         List<String> filterTableStatements = new ArrayList<String>() {
             {
                 add("CREATE TABLE IF NOT EXISTS FILTERS " +
-                        "(ID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "name TEXT," +
                         "class TEXT, " +
                         "active INTEGER default 0," +
-                        "value TEXT default NULL)");
-                add("INSERT INTO FILTERS (name, class) values ('rowId','java.lang.Integer')");
+                        "value TEXT default NULL," +
+                        "project INTEGER NOT NULL," +
+                        "FOREIGN KEY(project) REFERENCES PROJECTS(id) )");
+                add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
             }
         };
 
@@ -89,28 +97,48 @@ public class DbServerImpl implements DbServer {
             jdbcTemplate.execute(sql);
         });
         log.info("FILTERS table successfully created");
+    }
 
-        String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER PRIMARY KEY, ";
+    private List<Filter> createCommonDatasTable(final Map<String, Class<?>> columns, final ProjectDto project) {
+        log.info(String.format("****** Creating table: %s ******", "COMMONDATAS"));
+
         List<Filter> filterList = new ArrayList<>();
-        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+        String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER PRIMARY KEY, ";
 
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
             filterList.add(Filter.builder().
                     name(column.getKey()).
                     filterClass(column.getValue().getSimpleName()).
                     active(Boolean.FALSE).
+                    project(modelMapper.map(project, Project.class)).
                     build());
 
             commonDataTableStatements += column.getKey() + " " + getDBClassByColumnType(column.getValue().getSimpleName()) + ",";
         }
 
+        String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id) )";
+
+        commonDataTableStatements = commonDataTableStatements.replaceAll("[,]$", foreignKey);
+        jdbcTemplate.execute(commonDataTableStatements);
+
+        log.info("COMMONDATAS table successfully created");
+        return filterList;
+    }
+
+    private void persistFilterList(List<Filter> filterList) {
         log.debug("Persisting filters got from Excel");
         filterRepository.saveAll(filterList);
         log.debug("Persisted filters got from Excel");
+    }
 
-        commonDataTableStatements = commonDataTableStatements.replaceAll("[,]$", ") ");
-        jdbcTemplate.execute(commonDataTableStatements);
+    @Override
+    public void createAndPopulateFilterTable(final Map<String, Class<?>> columns, final ProjectDto project) {
 
-        log.info(String.format("****** table: %s  successfully created ******", "Filters"));
+        createFilterTable(project);
+
+        List<Filter> filterList = createCommonDatasTable(columns, project);
+
+        persistFilterList(filterList);
     }
 
     public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {
@@ -148,5 +176,39 @@ public class DbServerImpl implements DbServer {
 
         log.info("Got CommonData");
         return entities;
+    }
+
+    @Override
+    public Project createProject(String projectName) {
+
+        createProjectTable();
+
+        log.info("Creating project " + projectName);
+
+        Project project = projectRepository.save(
+                Project.builder()
+                        .name(projectName)
+                        .createDate(new Date())
+                        .build()
+        );
+
+        log.info("Project " + project + " successfully created");
+
+        return project;
+
+    }
+
+    private void createProjectTable() {
+        log.debug("Creating table PROJECTS if not exist");
+
+        String createTableProject =
+                "CREATE TABLE IF NOT EXISTS PROJECTS " +
+                        "(ID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "name TEXT NOT NULL," +
+                        "createDate TEXT NOT NULL)";
+
+        jdbcTemplate.execute(createTableProject);
+
+        log.debug("Table PROJECTS successfully created");
     }
 }

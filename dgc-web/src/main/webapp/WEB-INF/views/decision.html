@@ -26,6 +26,8 @@
                         <td>
                             <input th:field="*{filters[__${itemStat.index}__].id}"
                                    th:value="${item.id}" type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].project}"
+                                   th:value="${item.project}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].filterClass}"
                                    th:value="${item.class}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].name}"

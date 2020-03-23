@@ -21,4 +21,5 @@ public class FilterDto implements Serializable {
     private String filterClass;
     private String value;
     private Boolean active;
+    private ProjectDto project;
 }

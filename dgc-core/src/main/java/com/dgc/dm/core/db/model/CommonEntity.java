@@ -16,4 +16,5 @@ public class CommonEntity {
     @Column(name = "rowId")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int rowId;
+    private Project project;
 }

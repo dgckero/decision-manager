@@ -19,19 +19,12 @@
         </div>
 
         <div>
-            <form action="uploadFile" enctype="multipart/form-data" method="post">
-                <input name="file" type="file">
-                <input type="submit" value="importar"/>
+            <form action="#" data-th-action="@{/project}" method="post">
+                <button name="action" type="submit" value="newProject">Crear Nuevo Proyecto</button>
+                <button name="action" type="submit" value="editProject">Editar Proyecto</button>
             </form>
         </div>
 
-        <div>
-            <ul>
-                <li each="file : ${files}">
-                    <a href="${file}" text="${file}"/>
-                </li>
-            </ul>
-        </div>
     </div>
 </div>
 </body>

@@ -31,4 +31,5 @@ public class Filter implements Serializable {
     private String filterClass;
     private String value;
     private Boolean active;
+    private Project project;
 }

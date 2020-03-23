@@ -11,7 +11,6 @@ import com.dgc.dm.core.dto.FilterDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +35,7 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     BPMNServer bpmnServer;
 
     @PostMapping("/process")
-    public ModelAndView processFilters(@ModelAttribute FilterCreationDto form, Model model) throws Exception {
+    public ModelAndView processFilters(@ModelAttribute FilterCreationDto form) throws Exception {
 
         ModelAndView modelAndView = new ModelAndView("result");
 
