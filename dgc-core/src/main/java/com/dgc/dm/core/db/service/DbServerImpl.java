@@ -63,11 +63,11 @@ public class DbServerImpl implements DbServer {
         CLAZZ cl = CLAZZ.valueOf(columnClassName.toUpperCase());
 
         switch (cl) {
-            case DATE:
             case STRING:
                 return "TEXT";
             case INTEGER:
                 return "INTEGER";
+            case DATE:
             case DOUBLE:
                 return "REAL";
             default:
@@ -75,6 +75,7 @@ public class DbServerImpl implements DbServer {
         }
     }
 
+    @Override
     public void createFilterTable(final ProjectDto project) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
@@ -99,7 +100,8 @@ public class DbServerImpl implements DbServer {
         log.info("FILTERS table successfully created");
     }
 
-    private List<Filter> createCommonDatasTable(final Map<String, Class<?>> columns, final ProjectDto project) {
+    @Override
+    public List<Filter> createCommonDatasTable(final Map<String, Class<?>> columns, final ProjectDto project) {
         log.info(String.format("****** Creating table: %s ******", "COMMONDATAS"));
 
         List<Filter> filterList = new ArrayList<>();
@@ -125,20 +127,11 @@ public class DbServerImpl implements DbServer {
         return filterList;
     }
 
-    private void persistFilterList(List<Filter> filterList) {
+    @Override
+    public void persistFilterList(List<Filter> filterList) {
         log.debug("Persisting filters got from Excel");
         filterRepository.saveAll(filterList);
         log.debug("Persisted filters got from Excel");
-    }
-
-    @Override
-    public void createAndPopulateFilterTable(final Map<String, Class<?>> columns, final ProjectDto project) {
-
-        createFilterTable(project);
-
-        List<Filter> filterList = createCommonDatasTable(columns, project);
-
-        persistFilterList(filterList);
     }
 
     public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {

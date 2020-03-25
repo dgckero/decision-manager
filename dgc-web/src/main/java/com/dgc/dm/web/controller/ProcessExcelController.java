@@ -4,6 +4,7 @@
 
 package com.dgc.dm.web.controller;
 
+import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.model.Project;
 import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.CommonDto;
@@ -132,8 +133,9 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             log.info("Getting Excel's column names");
             Map<String, Class<?>> colMapByName = getColumnNames(worksheet.getRow(ROW_ZERO), worksheet.getRow(ROW_ONE));
 
-            log.info("Adding Excel's column(s) to Filters table");
-            dbServer.createAndPopulateFilterTable(colMapByName, project);
+            dbServer.createFilterTable(project);
+            List<Filter> filterList = dbServer.createCommonDatasTable(colMapByName, project);
+            dbServer.persistFilterList(filterList);
 
             processExcelRows(worksheet, colMapByName, excelObjs, project);
 
@@ -162,24 +164,24 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                     infoToBePersisted.add(info);
                 }
             }
-            dbServer.persistExcelRows(getInsertSentence(columns, project), infoToBePersisted);
+            dbServer.persistExcelRows(getInsertSentence(columns), infoToBePersisted);
         } else {
             log.error("No columns found on File");
         }
 
     }
 
-    private String getInsertSentence(final Map<String, Class<?>> columns, final ProjectDto project) {
-        StringBuilder insertQuery = new StringBuilder("insert into commonDatas ( rowId, ");
+    private String getInsertSentence(final Map<String, Class<?>> columns) {
+        StringBuilder insertQuery = new StringBuilder("insert into commonDatas (");
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
             insertQuery.append(column.getKey()).append(",");
         }
-        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ", project) "));
+        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ", project, rowId) "));
 
-        insertQuery.append(" values(").append(new String(new char[columns.size() + 1]).replace("\0", "?,"));
+        insertQuery.append(" values(").append(new String(new char[columns.size() + 2]).replace("\0", "?,"));
 
-        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", "," + project.getId() + ")"));
+        insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ")"));
 
         return insertQuery.toString();
     }
@@ -205,6 +207,8 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
                 insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
+            //Add projectId
+            insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
             if (isArrayEmpty(insertQueryValues)) {
                 insertQueryValues = new Object[]{};
             } else {
