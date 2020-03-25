@@ -13,28 +13,23 @@ import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @DynamicUpdate
-@Table(name = "FILTERS")
+@Table(name = "PROJECTS")
 @Entity
-public class Filter implements Serializable {
+public class Project implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NaturalId
     @Column
     private String name;
-    @Column(name = "class")
-    private String filterClass;
+    @Temporal(TemporalType.TIMESTAMP)
     @Column
-    private String value;
-    @Column
-    private Boolean active;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "PROJECT", nullable = false)
-    private Project project;
+    private Date createDate;
 }

@@ -3,9 +3,9 @@
  */
 package com.dgc.dm.core.db.service;
 
-import com.dgc.dm.core.db.dao.CommonRepository;
 import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.model.Project;
+import com.dgc.dm.core.db.repository.CommonRepository;
 import com.dgc.dm.core.db.repository.FilterRepository;
 import com.dgc.dm.core.db.repository.ProjectRepository;
 import com.dgc.dm.core.dto.FilterDto;
@@ -185,7 +185,7 @@ public class DbServerImpl implements DbServer {
 
         log.info("Creating project " + projectName);
 
-        Project project = projectRepository.save(
+        Project project = projectRepository.saveAndFlush(
                 Project.builder()
                         .name(projectName)
                         .createDate(new Date())
@@ -205,7 +205,7 @@ public class DbServerImpl implements DbServer {
                 "CREATE TABLE IF NOT EXISTS PROJECTS " +
                         "(ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "name TEXT NOT NULL," +
-                        "createDate TEXT NOT NULL)";
+                        "createDate REAL NOT NULL)";
 
         jdbcTemplate.execute(createTableProject);
 

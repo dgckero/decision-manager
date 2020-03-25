@@ -39,19 +39,24 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
 
         ModelAndView modelAndView = new ModelAndView("result");
 
-        List<FilterDto> filters = form.getFilters();
+        try {
+            List<FilterDto> filters = form.getFilters();
+            log.info("Got filters " + filters);
 
-        log.info("Got filters " + filters);
-        List<FilterDto> activeFilters = filters.stream()
-                .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
-                .collect(Collectors.toList());
-        log.info("Active filters " + activeFilters);
+            List<FilterDto> activeFilters = filters.stream()
+                    .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
+                    .collect(Collectors.toList());
 
-        dbServer.updateFilters(activeFilters);
-        log.info("Creating BPMN Model");
+            log.info("Active filters " + activeFilters);
+            dbServer.updateFilters(activeFilters);
+            log.info("Creating BPMN Model");
 
-        List<Map<String, Object>> commonEntitiesAccepted = bpmnServer.createBPMNModel(activeFilters, true);
-        modelAndView.addObject("form", commonEntitiesAccepted);
+            List<Map<String, Object>> commonEntitiesAccepted = bpmnServer.createBPMNModel(activeFilters, true);
+            modelAndView.addObject("form", commonEntitiesAccepted);
+        } catch (Exception e) {
+            log.error("Error " + e.getMessage());
+            e.printStackTrace();
+        }
 
         return modelAndView;
     }
