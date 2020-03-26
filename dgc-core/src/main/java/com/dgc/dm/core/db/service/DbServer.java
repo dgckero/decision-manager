@@ -24,9 +24,13 @@ public interface DbServer {
 
     List<Map<String, Object>> getFilters();
 
+    List<Map<String, Object>> getFilters(ProjectDto project);
+
     void updateFilters(List<FilterDto> activeFilters);
 
     List<Map<String, Object>> getCommonData();
+
+    List<Map<String, Object>> getCommonData(ProjectDto project);
 
     Project createProject(String projectName);
 }

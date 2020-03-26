@@ -5,9 +5,11 @@
 package com.dgc.dm.web.controller;
 
 import com.dgc.dm.core.db.service.DbServer;
+import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -26,9 +28,10 @@ public class DecisionController implements HandlerExceptionResolver {
     DbServer dbServer;
 
     @RequestMapping(value = "decision", method = RequestMethod.POST)
-    public List<String> populateFilters() {
+    public List<String> populateFilters(ModelMap modelMap) {
         List<String> filters = new ArrayList<>();
-        dbServer.getFilters();
+        ProjectDto project = (ProjectDto) modelMap.getAttribute("project");
+        dbServer.getFilters(project);
 
         return filters;
     }

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -88,7 +89,8 @@ public class DbServerImpl implements DbServer {
                         "active INTEGER default 0," +
                         "value TEXT default NULL," +
                         "project INTEGER NOT NULL," +
-                        "FOREIGN KEY(project) REFERENCES PROJECTS(id) )");
+                        "FOREIGN KEY(project) REFERENCES PROJECTS(id)," +
+                        "CONSTRAINT UQ_NAME_PROJ UNIQUE (name, project) )");
                 add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
             }
         };
@@ -105,7 +107,7 @@ public class DbServerImpl implements DbServer {
         log.info(String.format("****** Creating table: %s ******", "COMMONDATAS"));
 
         List<Filter> filterList = new ArrayList<>();
-        String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER PRIMARY KEY, ";
+        String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER, ";
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
             filterList.add(Filter.builder().
@@ -118,7 +120,8 @@ public class DbServerImpl implements DbServer {
             commonDataTableStatements += column.getKey() + " " + getDBClassByColumnType(column.getValue().getSimpleName()) + ",";
         }
 
-        String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id) )";
+        String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id), " +
+                "PRIMARY KEY (rowId, project) )";
 
         commonDataTableStatements = commonDataTableStatements.replaceAll("[,]$", foreignKey);
         jdbcTemplate.execute(commonDataTableStatements);
@@ -134,6 +137,7 @@ public class DbServerImpl implements DbServer {
         log.debug("Persisted filters got from Excel");
     }
 
+    @Transactional
     public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {
         log.info("****** Persisting Excel rows into commonDatas table: %s ******");
         jdbcTemplate.batchUpdate(insertSentence, infoToBePersisted);
@@ -143,6 +147,13 @@ public class DbServerImpl implements DbServer {
     public List<Map<String, Object>> getFilters() {
         log.info("Getting Filters");
         List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS");
+        log.info("Got filters");
+        return filters;
+    }
+
+    public List<Map<String, Object>> getFilters(ProjectDto project) {
+        log.info("Getting Filters by project " + project);
+        List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS where project=" + project.getId());
         log.info("Got filters");
         return filters;
     }
@@ -166,6 +177,16 @@ public class DbServerImpl implements DbServer {
         log.info("Getting CommonData");
 
         List<Map<String, Object>> entities = jdbcTemplate.queryForList("Select * from COMMONDATAS");
+
+        log.info("Got CommonData");
+        return entities;
+    }
+
+    @Override
+    public List<Map<String, Object>> getCommonData(ProjectDto project) {
+        log.info("Getting CommonData");
+
+        List<Map<String, Object>> entities = jdbcTemplate.queryForList("Select * from COMMONDATAS where project=" + project.getId());
 
         log.info("Got CommonData");
         return entities;

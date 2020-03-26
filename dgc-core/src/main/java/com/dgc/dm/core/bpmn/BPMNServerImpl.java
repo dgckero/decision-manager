@@ -6,6 +6,7 @@ package com.dgc.dm.core.bpmn;
 
 import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.FilterDto;
+import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.dmn.engine.DmnDecision;
 import org.camunda.bpm.dmn.engine.DmnDecisionTableResult;
@@ -102,7 +103,8 @@ public class BPMNServerImpl implements BPMNServer {
             log.info("generate dmn file: " + dmnFile.getAbsolutePath());
 
             if (evaluateDecisionTable) {
-                commonEntitiesAccepted = evaluateDecisionTable(modelInstance, decisionId);
+                ProjectDto project = activeFilters.get(0).getProject();
+                commonEntitiesAccepted = evaluateDecisionTable(modelInstance, decisionId, project);
             }
 
             return commonEntitiesAccepted;
@@ -198,7 +200,7 @@ public class BPMNServerImpl implements BPMNServer {
         return outputEntry;
     }
 
-    private List<Map<String, Object>> evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId) {
+    private List<Map<String, Object>> evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId, ProjectDto project) {
 
         log.info("Evaluating decision table");
 
@@ -206,7 +208,7 @@ public class BPMNServerImpl implements BPMNServer {
         DmnDecision decision = dmnEngine.parseDecision(decisionId, modelInstance);
 
         List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
-        List<Map<String, Object>> commonEntitiesToBeValidated = dbServer.getCommonData();
+        List<Map<String, Object>> commonEntitiesToBeValidated = dbServer.getCommonData(project);
 
         for (Map<String, Object> entityMap : commonEntitiesToBeValidated) {
             VariableMap variableToBeValidated = Variables.createVariables();

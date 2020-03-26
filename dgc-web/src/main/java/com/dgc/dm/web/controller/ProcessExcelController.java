@@ -76,9 +76,10 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
         log.info("processed (" + excelObjs.size() + ") rows");
 
+        modelAndView.getModel().put("project", project);
         modelAndView.getModel().put("message", "File uploaded successfully!");
 
-        Map<String, List<Map<String, Object>>> filterList = getModelMapWithFilters();
+        Map<String, List<Map<String, Object>>> filterList = getModelMapWithFilters(project);
 //TODO to be optimized
         List<FilterDto> filterDtoList = new ArrayList<>();
 
@@ -108,8 +109,8 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         return modelAndView;
     }
 
-    private Map<String, List<Map<String, Object>>> getModelMapWithFilters() {
-        List<Map<String, Object>> filters = dbServer.getFilters();
+    private Map<String, List<Map<String, Object>>> getModelMapWithFilters(ProjectDto project) {
+        List<Map<String, Object>> filters = dbServer.getFilters(project);
 
         Map<String, List<Map<String, Object>>> modelMap = new HashMap<>();
         modelMap.put("filterList", filters);
