@@ -29,7 +29,7 @@ enum CLAZZ {
     DOUBLE(java.lang.Double.class.getSimpleName()),
     INTEGER(java.lang.Integer.class.getSimpleName());
 
-    private String simpleNameClass;
+    private final String simpleNameClass;
 
     CLAZZ(String simpleNameClass) {
         this.simpleNameClass = simpleNameClass;

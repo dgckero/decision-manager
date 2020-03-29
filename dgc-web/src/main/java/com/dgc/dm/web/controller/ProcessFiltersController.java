@@ -43,22 +43,47 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
             List<FilterDto> filters = form.getFilters();
             log.info("Got filters " + filters);
 
-            List<FilterDto> activeFilters = filters.stream()
-                    .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
-                    .collect(Collectors.toList());
+            if (filters.isEmpty()) {
+                log.warn("No filters found");
+                modelAndView.getModel().put("message", "No filters found");
+            } else {
+                List<FilterDto> activeFilters = getActiveFilters(filters);
 
-            log.info("Active filters " + activeFilters);
-            dbServer.updateFilters(activeFilters);
-            log.info("Creating BPMN Model");
+                if (activeFilters.isEmpty()) {
+                    modelAndView.getModel().put("message", "No Active filters found");
+                } else {
+                    dbServer.updateFilters(activeFilters);
 
-            List<Map<String, Object>> commonEntitiesAccepted = bpmnServer.createBPMNModel(activeFilters, true);
-            modelAndView.addObject("form", commonEntitiesAccepted);
+                    List<Map<String, Object>> result = bpmnServer.createBPMNModel(activeFilters, true);
+
+                    if (result.isEmpty()) {
+                        log.warn("No elements found that fit filters defined by user");
+                        modelAndView.getModel().put("message", "No elements found that fit filters defined by user");
+                    } else {
+                        modelAndView.addObject("form", result);
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("Error " + e.getMessage());
             e.printStackTrace();
         }
 
         return modelAndView;
+    }
+
+    private List<FilterDto> getActiveFilters(List<FilterDto> filters) {
+        List<FilterDto> activeFilters = filters.stream()
+                .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
+                .collect(Collectors.toList());
+
+        if (activeFilters.isEmpty()) {
+            log.warn("No active filters found");
+        } else {
+            log.info("Found " + activeFilters.size() + " active filters");
+            log.info("Active filters " + activeFilters);
+        }
+        return activeFilters;
     }
 
     @Override
