@@ -35,6 +35,8 @@
                                    th:value="${item.id}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].filterClass}"
                                    th:value="${item.class}" type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].contactFilter}"
+                                   th:value="${item.contactFilter}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].name}"
                                    th:value="${item.name}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].active}"

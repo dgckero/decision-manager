@@ -34,6 +34,8 @@ public class Filter implements Serializable {
     private String value;
     @Column
     private Boolean active;
+    @Column
+    private Boolean contactFilter;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "PROJECT", nullable = false)
     private Project project;

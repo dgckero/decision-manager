@@ -36,9 +36,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
+import javax.validation.constraints.Email;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Controller
@@ -47,6 +50,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     private static final int ROW_ONE = 1;
     private static final int ROW_ZERO = 0;
     private static final int SHEET_ZERO = 0;
+    private static final Integer CONTACT_FILTER = Integer.valueOf(1);
 
     @Autowired
     DbServer dbServer;
@@ -68,13 +72,13 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     public ModelAndView uploadFile(@RequestParam("projectName") String projectName, @RequestParam("file") MultipartFile file,
                                    ModelMap modelMap) {
 
-        log.info("processing file " + file.getOriginalFilename() + " for " + projectName);
+        ProcessExcelController.log.info("processing file " + file.getOriginalFilename() + " for " + projectName);
 
         ModelAndView modelAndView = new ModelAndView("decision");
         ProjectDto project = createProject(file, projectName);
         List<Object> excelObjs = processExcel(file, project);
 
-        log.info("processed (" + excelObjs.size() + ") rows");
+        ProcessExcelController.log.info("processed (" + excelObjs.size() + ") rows");
 
         modelAndView.getModel().put("project", project);
         modelAndView.getModel().put("message", "File uploaded successfully!");
@@ -96,6 +100,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                         id((Integer) filterIterator.get("ID")).
                         name(filterName).
                         filterClass((String) filterIterator.get("class")).
+                        contactFilter(filterIterator.get("contactFilter").equals(ProcessExcelController.CONTACT_FILTER)).
                         project(project).
                         build()
                 );
@@ -119,9 +124,9 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     private ProjectDto createProject(final MultipartFile file, final String projectName) {
-        log.info("Creating project " + projectName);
+        ProcessExcelController.log.info("Creating project " + projectName);
         Project project = dbServer.createProject(projectName);
-        log.info("Creating project " + projectName);
+        ProcessExcelController.log.info("Creating project " + projectName);
         return modelMapper.map(project, ProjectDto.class);
     }
 
@@ -131,32 +136,74 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         try {
             final HSSFSheet worksheet = getWorkSheet(file);
 
-            log.info("Getting Excel's column names");
-            Map<String, Class<?>> colMapByName = getColumnNames(worksheet.getRow(ROW_ZERO), worksheet.getRow(ROW_ONE));
+            ProcessExcelController.log.info("Getting Excel's column names");
+            Map<String, Class<?>> colMapByName = getColumnNames(worksheet);
 
-            dbServer.createFilterTable(project);
             List<Filter> filterList = dbServer.createCommonDatasTable(colMapByName, project);
-            dbServer.persistFilterList(filterList);
 
             processExcelRows(worksheet, colMapByName, excelObjs, project);
 
+            persistFilterList(filterList, project);
+
         } catch (Exception e) {
-            log.error("Error " + e.getMessage());
+            ProcessExcelController.log.error("Error " + e.getMessage());
             e.printStackTrace();
         }
 
         return excelObjs;
     }
 
-    private void processExcelRows(final HSSFSheet worksheet, final Map<String, Class<?>> columns, List<Object> excelObjs, final ProjectDto project) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    /**
+     * Create filter table and persist filters in this new table
+     *
+     * @param filterList list of filters
+     * @param project
+     */
+    @Transactional
+    private void persistFilterList(List<Filter> filterList, final ProjectDto project) {
+        dbServer.createFilterTable(project);
 
+        filterList = this.markContactFilter(filterList);
+
+        dbServer.persistFilterList(filterList);
+    }
+
+    private List<Filter> markContactFilter(final List<Filter> filterList) {
+        final AtomicInteger itemNumber = new AtomicInteger();
+
+        filterList.stream()
+                .filter(flt -> {
+                    String filterClass = flt.getFilterClass();
+                    itemNumber.getAndIncrement();
+                    return filterClass.equals(Email.class.getSimpleName());
+                })
+                .forEach(
+                        s ->
+                                filterList.set(
+                                        (itemNumber.get() - 1),
+                                        Filter.builder()
+                                                .name(s.getName())
+                                                .project(s.getProject())
+
+                                                .filterClass(String.class.getSimpleName())
+                                                .value(s.getValue())
+                                                .active(s.getActive())
+                                                .contactFilter(Boolean.TRUE)
+                                                .build()
+                                )
+                );
+
+        return filterList;
+    }
+
+    private void processExcelRows(final HSSFSheet worksheet, final Map<String, Class<?>> columns, List<Object> excelObjs, final ProjectDto project) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (columns != null && columns.size() > 0) {
-            log.info("Generating dynamic class");
+            ProcessExcelController.log.info("Generating dynamic class");
 
             Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", columns);
-            log.info("Generated dynamic class: " + generatedObj.getName());
+            ProcessExcelController.log.info("Generated dynamic class: " + generatedObj.getName());
 
-            log.info("Populating generated dynamic class with Excel's row values");
+            ProcessExcelController.log.info("Populating generated dynamic class with Excel's row values");
 
             List<Object[]> infoToBePersisted = new ArrayList<>();
             for (int rowNumber = 1; rowNumber < worksheet.getPhysicalNumberOfRows(); rowNumber++) {
@@ -167,9 +214,8 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             }
             dbServer.persistExcelRows(getInsertSentence(columns), infoToBePersisted);
         } else {
-            log.error("No columns found on File");
+            ProcessExcelController.log.error("No columns found on File");
         }
-
     }
 
     private String getInsertSentence(final Map<String, Class<?>> columns) {
@@ -188,7 +234,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     private HSSFSheet getWorkSheet(final MultipartFile file) throws IOException {
-        log.info("Getting workSheet from file " + file.getName());
+        ProcessExcelController.log.info("Getting workSheet from file " + file.getName());
         final HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
         return workbook.getSheetAt(SHEET_ZERO);
     }
@@ -197,9 +243,9 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                                              List<Object> excelObjs, int rowNumber) throws IllegalAccessException, IllegalArgumentException,
             SecurityException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
-        log.trace("populating dynamic class with Excel row number " + rowNumber);
+        ProcessExcelController.log.trace("populating dynamic class with Excel row number " + rowNumber);
 
-        Object[] insertQueryValues = new Object[]{};
+        Object[] insertQueryValues = {};
 
         Iterator<Cell> excelRowIterator = row.cellIterator();
         while (excelRowIterator.hasNext()) {
@@ -218,7 +264,7 @@ public class ProcessExcelController implements HandlerExceptionResolver {
                 obj.setProject(project);
                 excelObjs.add(obj);
 
-                log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
+                ProcessExcelController.log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
             }
         }
         if (isArrayEmpty(insertQueryValues)) {
@@ -246,14 +292,14 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     private String populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
                                                 Iterator<Cell> excelRowIterator, CommonDto obj)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        log.trace("Populating property " + column.getKey() + " with value " + column.getValue());
+        ProcessExcelController.log.trace("Populating property " + column.getKey() + " with value " + column.getValue());
         String setMethod = "set" + StringUtils.capitalize(column.getKey());
         if (excelRowIterator.hasNext()) {
             String cellValue = populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), obj);
-            log.trace("Populated property " + column.getKey() + " with value " + cellValue);
+            ProcessExcelController.log.trace("Populated property " + column.getKey() + " with value " + cellValue);
             return cellValue;
         } else {
-            log.trace("Populated property " + column.getKey() + " with null value ");
+            ProcessExcelController.log.trace("Populated property " + column.getKey() + " with null value ");
             return null;
         }
     }
@@ -262,40 +308,45 @@ public class ProcessExcelController implements HandlerExceptionResolver {
 
         Class<?> cellClass = getCellClass((HSSFCell) cell);
         if (cellClass == null) {
-            log.trace("cell is BLANK");
+            ProcessExcelController.log.trace("cell is BLANK");
             return null;
         } else {
-            log.trace("Populating method: " + setMethod + ", class: " + cellClass.getName() + ", value: " + cell.toString());
+            ProcessExcelController.log.trace("Populating method: " + setMethod + ", class: " + cellClass.getName() + ", value: " + cell);
+
+            final Class<?> colClass = columnClass.equals(Email.class) ? String.class : columnClass;
 
             if (cellClass.isAssignableFrom(Date.class)) {
-                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                generatedObj.getMethod(setMethod, colClass).invoke(obj,
                         cell.getDateCellValue());
                 return cell.getDateCellValue() + "";
             } else if (cellClass.isAssignableFrom(Double.class)) {
-                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                generatedObj.getMethod(setMethod, colClass).invoke(obj,
                         cell.getNumericCellValue());
                 return cell.getNumericCellValue() + "";
             } else {
-                generatedObj.getMethod(setMethod, columnClass).invoke(obj,
+                generatedObj.getMethod(setMethod, colClass).invoke(obj,
                         cell.getStringCellValue());
                 return cell.getStringCellValue();
             }
         }
     }
 
-    private LinkedHashMap<String, Class<?>> getColumnNames(final HSSFRow firstRow, final HSSFRow secondRow) {
+    private LinkedHashMap<String, Class<?>> getColumnNames(final HSSFSheet worksheet) {
 
-        int colNum = firstRow.getPhysicalNumberOfCells();
-        log.info("Found " + colNum + " column(s) on Excel");
+        HSSFRow firstRow = worksheet.getRow(ROW_ZERO);
+        HSSFRow secondRow = worksheet.getRow(ROW_ONE);
+
+        int columnsSize = firstRow.getPhysicalNumberOfCells();
+        ProcessExcelController.log.info("Found " + columnsSize + " column(s) on Excel");
 
         LinkedHashMap<String, Class<?>> colMapByName = new LinkedHashMap<>();
         if (firstRow.cellIterator().hasNext()) {
-            for (int j = 0; j < colNum; j++) {
+            for (int j = 0; j < columnsSize; j++) {
                 HSSFCell cell = firstRow.getCell(j);
                 if (cell != null) {
-                    Class<?> cellClass = getCellClass(secondRow.getCell(j));
+                    Class<?> cellClass = getCellClass(secondRow.getCell(j), worksheet, j, true);
                     colMapByName.put(getColumnNameByCellValue(cell.getStringCellValue()), cellClass);
-                    log.info("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + Objects.requireNonNull(cellClass).getName());
+                    ProcessExcelController.log.info("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + ((cellClass == null) ? "NULL" : cellClass.getName()));
                 }
             }
         }
@@ -322,15 +373,27 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     private Class<?> getCellClass(final HSSFCell cell) {
+        return this.getCellClass(cell, null, 0, false);
+    }
 
-        switch (cell.getCellType()) {
+    private Class<?> getCellClass(final HSSFCell cell, final HSSFSheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
+        HSSFCell cellToBeProcessed = this.getNextCellNoNull(cell, worksheet, cellNumber, goOverWorkSheet);
+
+        if (cellToBeProcessed == null) {
+            ProcessExcelController.log.warn("cell " + cell.getStringCellValue() + " is null in all sheet");
+            return String.class;
+        }
+
+        switch (cellToBeProcessed.getCellType()) {
             case STRING:
-                if (isDateCell(cell)) {
+                if (cellToBeProcessed.getStringCellValue().contains("@")) {
+                    return Email.class;
+                } else if (isDateCell(cellToBeProcessed)) {
                     return Date.class;
                 }
                 return String.class;
             case NUMERIC:
-                if (isDateCell(cell)) {
+                if (isDateCell(cellToBeProcessed)) {
                     return Date.class;
                 }
                 return Double.class;
@@ -339,7 +402,21 @@ public class ProcessExcelController implements HandlerExceptionResolver {
             default:
                 return String.class;
         }
+    }
 
+    private HSSFCell getNextCellNoNull(final HSSFCell cell, final HSSFSheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
+        HSSFCell cellToBeProcessed = cell;
+        if (cell == null) {
+            if (goOverWorkSheet) {
+                for (int i = 2; i < worksheet.getLastRowNum() && cellToBeProcessed == null; i++) {
+                    HSSFRow row = worksheet.getRow(i);
+                    cellToBeProcessed = row.getCell(cellNumber);
+                }
+            } else {
+                return null;
+            }
+        }
+        return cellToBeProcessed;
     }
 
     /**

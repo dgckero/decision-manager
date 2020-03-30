@@ -12,7 +12,9 @@
 
 # idea files
 /.idea/
-/decision-manager.iml
+/.metadata/
+/.settings/
+*.iml
 
 # common files
 /.metadata/
