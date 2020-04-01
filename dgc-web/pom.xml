@@ -126,6 +126,11 @@
             <artifactId>pdfmake</artifactId>
             <version>${pdfmake.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>bootstrap4-toggle</artifactId>
+            <version>${bootstrap4-toggle.version}</version>
+        </dependency>
 
     </dependencies>
 

@@ -20,7 +20,7 @@ public interface DbServer {
 
     void persistFilterList(List<Filter> filterList);
 
-    void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted);
+    void persistExcelRows(String insertSentence, List<Object[]> infoToBePersisted);
 
     List<Map<String, Object>> getFilters();
 
@@ -33,4 +33,6 @@ public interface DbServer {
     List<Map<String, Object>> getCommonData(ProjectDto project);
 
     Project createProject(String projectName);
+
+    Filter getContactFilter(ProjectDto project);
 }

@@ -6,6 +6,31 @@
     <title>Selección de filtros</title>
     <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
     <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+    <link th:href="@{/webjars/bootstrap4-toggle/${bootstrap4-toggle.version}/css/bootstrap4-toggle.min.css}"
+          th:rel="stylesheet"/>
+
+
+    <script>
+        $(document).ready(function () {
+            $("div#emailDiv").hide();
+
+            $('#toggleEmail').change(function () {
+                if ( $(this).prop("checked") ){
+                    $("div#emailDiv").show();
+                }else{
+                    $("div#emailDiv").hide();
+                }
+            });
+        });
+
+
+
+
+
+
+
+    </script>
+
 </head>
 <body>
 <p><strong>Selecciona los filtros de la decisión</strong></p>
@@ -78,6 +103,18 @@
                     </tr>
                     </tbody>
                 </table>
+
+                <div id="contactFilterDiv" th:if="${contactFilter}">
+                    <label class="checkbox-inline">
+                        <input data-toggle="toggle" id="toggleEmail" type="checkbox">Enviar Email</input>
+                    </label>
+                    <div class="col-md-4" id="emailDiv">
+                        <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"
+                                  placeholder="Defina el Texto que será enviado a la información de contacto de los registros que pasen las validaciones que defina en esta página"
+                                  rows="5"></textarea>
+                    </div>
+                </div>
+
                 <input id="submitButton" th:value="Enviar" type="submit">
                 <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
             </fieldset>

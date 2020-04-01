@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -35,26 +36,26 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     BPMNServer bpmnServer;
 
     @PostMapping("/process")
-    public ModelAndView processFilters(@ModelAttribute FilterCreationDto form) throws Exception {
+    public ModelAndView processFilters(@ModelAttribute final FilterCreationDto form, @RequestParam("emailTemplate") final String emailTemplate) {
 
-        ModelAndView modelAndView = new ModelAndView("result");
+        final ModelAndView modelAndView = new ModelAndView("result");
 
         try {
-            List<FilterDto> filters = form.getFilters();
+            final List<FilterDto> filters = form.getFilters();
             log.info("Got filters " + filters);
 
             if (filters.isEmpty()) {
                 log.warn("No filters found");
                 modelAndView.getModel().put("message", "No filters found");
             } else {
-                List<FilterDto> activeFilters = getActiveFilters(filters);
+                final List<FilterDto> activeFilters = this.getActiveFilters(filters);
 
                 if (activeFilters.isEmpty()) {
                     modelAndView.getModel().put("message", "No Active filters found");
                 } else {
-                    dbServer.updateFilters(activeFilters);
+                    this.dbServer.updateFilters(activeFilters);
 
-                    List<Map<String, Object>> result = bpmnServer.createBPMNModel(activeFilters, true);
+                    final List<Map<String, Object>> result = this.bpmnServer.createBPMNModel(activeFilters, true, this.sendEmailToContact(filters));
 
                     if (result.isEmpty()) {
                         log.warn("No elements found that fit filters defined by user");
@@ -64,7 +65,7 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error " + e.getMessage());
             e.printStackTrace();
         }
@@ -72,8 +73,16 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
         return modelAndView;
     }
 
-    private List<FilterDto> getActiveFilters(List<FilterDto> filters) {
-        List<FilterDto> activeFilters = filters.stream()
+    private boolean sendEmailToContact(final List<FilterDto> filters) {
+        boolean sendEmail = filters.stream()
+                .anyMatch(flt -> (flt.getContactFilter() != null && flt.getContactFilter().equals(Boolean.TRUE)));
+
+        log.info("Send email enabled: " + sendEmail);
+        return sendEmail;
+    }
+
+    private List<FilterDto> getActiveFilters(final List<FilterDto> filters) {
+        final List<FilterDto> activeFilters = filters.stream()
                 .filter(flt -> (flt.getActive() != null && flt.getActive().equals(Boolean.TRUE)))
                 .collect(Collectors.toList());
 
@@ -87,10 +96,10 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     }
 
     @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
-                                         Object object, Exception exc) {
+    public ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
+                                         final Object object, final Exception exc) {
 
-        ModelAndView modelAndView = new ModelAndView("decision");
+        final ModelAndView modelAndView = new ModelAndView("decision");
 
         modelAndView.getModel().put("message", exc.getMessage());
         return modelAndView;
