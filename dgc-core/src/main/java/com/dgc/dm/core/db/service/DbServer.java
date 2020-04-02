@@ -35,4 +35,6 @@ public interface DbServer {
     Project createProject(String projectName);
 
     Filter getContactFilter(ProjectDto project);
+
+    void updateProject(ProjectDto project);
 }

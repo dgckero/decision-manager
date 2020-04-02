@@ -29,6 +29,8 @@ public class Project implements Serializable {
     @NaturalId
     @Column
     private String name;
+    @Column
+    private String emailTemplate;
     @Temporal(TemporalType.TIMESTAMP)
     @Column
     private Date createDate;

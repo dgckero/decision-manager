@@ -28,21 +28,24 @@ public class DecisionController implements HandlerExceptionResolver {
     DbServer dbServer;
 
     @RequestMapping(value = "decision", method = RequestMethod.POST)
-    public List<String> populateFilters(ModelMap modelMap) {
-        List<String> filters = new ArrayList<>();
-        ProjectDto project = (ProjectDto) modelMap.getAttribute("project");
-        dbServer.getFilters(project);
+    public List<String> populateFilters(final ModelMap modelMap) {
+        final List<String> filters = new ArrayList<>();
+        final ProjectDto project = (ProjectDto) modelMap.getAttribute("project");
+        this.dbServer.getFilters(project);
 
         return filters;
     }
 
     @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
-                                         Object object, Exception exc) {
+    public ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
+                                         final Object object, final Exception exc) {
 
-        ModelAndView modelAndView = new ModelAndView("decision");
-
+        final ModelAndView modelAndView = new ModelAndView("decision");
         modelAndView.getModel().put("message", exc.getMessage());
+
+        log.error("Error " + exc.getMessage());
+        exc.printStackTrace();
+
         return modelAndView;
 
     }
