@@ -37,4 +37,6 @@ public interface DbServer {
     Filter getContactFilter(ProjectDto project);
 
     void updateProject(ProjectDto project);
+
+    List<Map<String, Object>> getProjects();
 }

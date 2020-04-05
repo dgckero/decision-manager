@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +33,12 @@ enum CLAZZ {
 
     private final String simpleNameClass;
 
-    CLAZZ(final String simpleNameClass) {
+    CLAZZ(String simpleNameClass) {
         this.simpleNameClass = simpleNameClass;
     }
 
     String getSimpleNameClass() {
-        return this.simpleNameClass;
+        return simpleNameClass;
     }
 }
 
@@ -60,9 +61,9 @@ public class DbServerImpl implements DbServer {
     @Autowired
     private ModelMapper modelMapper;
 
-    private String getDBClassByColumnType(final String columnClassName) {
+    private String getDBClassByColumnType(String columnClassName) {
 
-        final CLAZZ cl = CLAZZ.valueOf(columnClassName.toUpperCase());
+        CLAZZ cl = CLAZZ.valueOf(columnClassName.toUpperCase());
 
         switch (cl) {
             case STRING:
@@ -79,12 +80,12 @@ public class DbServerImpl implements DbServer {
     }
 
     @Override
-    public void createFilterTable(ProjectDto project) {
+    public void createFilterTable(final ProjectDto project) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
-        final List<String> filterTableStatements = new ArrayList<String>() {
+        List<String> filterTableStatements = new ArrayList<String>() {
             {
-                this.add("CREATE TABLE IF NOT EXISTS FILTERS " +
+                add("CREATE TABLE IF NOT EXISTS FILTERS " +
                         "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "name TEXT," +
                         "class TEXT, " +
@@ -94,87 +95,87 @@ public class DbServerImpl implements DbServer {
                         "project INTEGER NOT NULL," +
                         "FOREIGN KEY(project) REFERENCES PROJECTS(id)," +
                         "CONSTRAINT UQ_NAME_PROJ UNIQUE (name, project) )");
-                this.add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
+                add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
             }
         };
 
         filterTableStatements.forEach(sql -> {
             log.debug(sql);
-            this.jdbcTemplate.execute(sql);
+            jdbcTemplate.execute(sql);
         });
         log.info("FILTERS table successfully created");
     }
 
     @Override
-    public List<Filter> createCommonDatasTable(Map<String, Class<?>> columns, ProjectDto project) {
+    public List<Filter> createCommonDatasTable(final Map<String, Class<?>> columns, final ProjectDto project) {
         log.info(String.format("****** Creating table: %s ******", "COMMONDATAS"));
 
-        final List<Filter> filterList = new ArrayList<>();
+        List<Filter> filterList = new ArrayList<>();
         String commonDataTableStatements = "CREATE TABLE IF NOT EXISTS COMMONDATAS (rowId INTEGER, ";
 
-        for (final Map.Entry<String, Class<?>> column : columns.entrySet()) {
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
             filterList.add(Filter.builder().
                     name(column.getKey()).
                     filterClass(column.getValue().getSimpleName()).
                     active(Boolean.FALSE).
                     contactFilter(Boolean.FALSE).
-                    project(this.modelMapper.map(project, Project.class)).
+                    project(modelMapper.map(project, Project.class)).
                     build());
 
-            commonDataTableStatements += column.getKey() + " " + this.getDBClassByColumnType(column.getValue().getSimpleName()) + ",";
+            commonDataTableStatements += column.getKey() + " " + getDBClassByColumnType(column.getValue().getSimpleName()) + ",";
         }
 
         final String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id), " +
                 "PRIMARY KEY (rowId, project) )";
 
         commonDataTableStatements = commonDataTableStatements.replaceAll("[,]$", foreignKey);
-        this.jdbcTemplate.execute(commonDataTableStatements);
+        jdbcTemplate.execute(commonDataTableStatements);
 
         log.info("COMMONDATAS table successfully created");
         return filterList;
     }
 
     @Override
-    public void persistFilterList(final List<Filter> filterList) {
+    public void persistFilterList(List<Filter> filterList) {
         log.debug("Persisting filters got from Excel");
-        this.filterRepository.saveAll(filterList);
+        filterRepository.saveAll(filterList);
         log.debug("Persisted filters got from Excel");
     }
 
     @Override
     @Transactional
-    public void persistExcelRows(String insertSentence, List<Object[]> infoToBePersisted) {
+    public void persistExcelRows(final String insertSentence, final List<Object[]> infoToBePersisted) {
         log.info("****** Persisting Excel rows into commonDatas table: %s ******");
-        this.jdbcTemplate.batchUpdate(insertSentence, infoToBePersisted);
+        jdbcTemplate.batchUpdate(insertSentence, infoToBePersisted);
         log.info("****** Persisted Excel rows into commonDatas table: %s ******");
     }
 
     @Override
     public List<Map<String, Object>> getFilters() {
         log.info("Getting Filters");
-        final List<Map<String, Object>> filters = this.jdbcTemplate.queryForList("Select * from FILTERS");
+        List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS");
         log.info("Got filters");
         return filters;
     }
 
     @Override
-    public List<Map<String, Object>> getFilters(final ProjectDto project) {
+    public List<Map<String, Object>> getFilters(ProjectDto project) {
         log.info("Getting Filters by project " + project);
-        final List<Map<String, Object>> filters = this.jdbcTemplate.queryForList("Select * from FILTERS where project=" + project.getId());
+        List<Map<String, Object>> filters = jdbcTemplate.queryForList("Select * from FILTERS where project=" + project.getId());
         log.info("Got filters");
         return filters;
     }
 
     @Override
-    public void updateFilters(final List<FilterDto> activeFilters) {
+    public void updateFilters(List<FilterDto> activeFilters) {
         log.info("Updating filters ");
 
-        final List<Filter> filterEntityList = this.modelMapper.map(activeFilters, (new TypeToken<List<Filter>>() {
+        List<Filter> filterEntityList = modelMapper.map(activeFilters, (new TypeToken<List<Filter>>() {
         }.getType()));
 
         log.debug("FiltersDto mapped to FiltersEntity");
 
-        this.filterRepository.saveAll(filterEntityList);
+        filterRepository.saveAll(filterEntityList);
 
         log.info("Filters updated");
     }
@@ -183,30 +184,30 @@ public class DbServerImpl implements DbServer {
     public List<Map<String, Object>> getCommonData() {
         log.info("Getting CommonData");
 
-        final List<Map<String, Object>> entities = this.jdbcTemplate.queryForList("Select * from COMMONDATAS");
+        List<Map<String, Object>> entities = jdbcTemplate.queryForList("Select * from COMMONDATAS");
 
         log.info("Got CommonData");
         return entities;
     }
 
     @Override
-    public List<Map<String, Object>> getCommonData(final ProjectDto project) {
+    public List<Map<String, Object>> getCommonData(ProjectDto project) {
         log.info("Getting CommonData");
 
-        final List<Map<String, Object>> entities = this.jdbcTemplate.queryForList("Select * from COMMONDATAS where project=" + project.getId());
+        List<Map<String, Object>> entities = jdbcTemplate.queryForList("Select * from COMMONDATAS where project=" + project.getId());
 
         log.info("Got CommonData");
         return entities;
     }
 
     @Override
-    public Project createProject(final String projectName) {
+    public Project createProject(String projectName) {
 
-        this.createProjectTable();
+        createProjectTable();
 
         log.info("Creating project " + projectName);
 
-        final Project project = this.projectRepository.saveAndFlush(
+        Project project = projectRepository.saveAndFlush(
                 Project.builder()
                         .name(projectName)
                         .createDate(new Date())
@@ -229,39 +230,57 @@ public class DbServerImpl implements DbServer {
                         "createDate REAL NOT NULL," +
                         "emailTemplate TEXT)";
 
-        this.jdbcTemplate.execute(createTableProject);
+        jdbcTemplate.execute(createTableProject);
 
         log.debug("Table PROJECTS successfully created");
     }
 
     @Override
-    public Filter getContactFilter(ProjectDto project) {
+    public Filter getContactFilter(final ProjectDto project) {
         log.info("Getting Filters having contactFilter active for project " + project);
-
+        Filter filter = null;
         final String sql = "Select * from FILTERS where contactFilter=? and project=?";
 
-        final Filter filter = this.jdbcTemplate.queryForObject(sql, new Object[]{1, project.getId()}, (rs, rowNum) ->
-                new Filter(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("class"),
-                        rs.getString("value"),
-                        rs.getBoolean("active"),
-                        rs.getBoolean("contactFilter"),
-                        Project.builder().id(rs.getInt("project")).build()
-                ));
+        try {
+            filter = jdbcTemplate.queryForObject(sql, new Object[]{1, project.getId()}, (rs, rowNum) ->
+                    new Filter(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("class"),
+                            rs.getString("value"),
+                            rs.getBoolean("active"),
+                            rs.getBoolean("contactFilter"),
+                            Project.builder().id(rs.getInt("project")).build()
+                    ));
 
-        log.info("Got filter " + filter);
+            log.info("Got filter " + filter);
+
+        } catch (EmptyResultDataAccessException e) {
+            log.info("No filter found having contactFilter active for project " + project);
+        }
         return filter;
     }
 
     @Override
-    public void updateProject(final ProjectDto project) {
+    public void updateProject(ProjectDto project) {
         log.info("Updating project " + project);
 
-        final Project projectEntity = this.modelMapper.map(project, Project.class);
-        this.projectRepository.saveAndFlush(projectEntity);
+        Project projectEntity = modelMapper.map(project, Project.class);
+        projectRepository.saveAndFlush(projectEntity);
 
         log.info("Project " + project + " successfully updated");
     }
+
+    @Override
+    public List<Map<String, Object>> getProjects() {
+        log.info("Getting projects ");
+        List<Map<String, Object>> projects = jdbcTemplate.queryForList("Select * from PROJECTS");
+        if (projects == null || projects.isEmpty()) {
+            log.info("No project founds");
+            return null;
+        }
+        log.info("Got " + projects.size() + " projects");
+        return projects;
+    }
+
 }

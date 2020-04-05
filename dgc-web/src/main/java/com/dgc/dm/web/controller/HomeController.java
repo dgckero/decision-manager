@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 public class HomeController {
 
-    @RequestMapping(value = "/")
-    public ModelAndView test(HttpServletResponse response) {
+    @RequestMapping("/")
+    public ModelAndView test(final HttpServletResponse response) {
         return new ModelAndView("home");
     }
 }

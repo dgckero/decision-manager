@@ -22,19 +22,19 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 @Slf4j
 @Configuration
 @EnableWebMvc
-@ComponentScan({"com.dgc.dm"})
+@ComponentScan("com.dgc.dm")
 public class ApplicationConfiguration implements WebMvcConfigurer {
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Override
-    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+    public void configureDefaultServletHandling(final DefaultServletHandlerConfigurer configurer) {
         configurer.enable();
     }
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(final ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/resources/**")
                 .addResourceLocations("classpath:/resources/");
         registry.addResourceHandler("/webjars/**")
@@ -44,7 +44,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public ResourceBundleMessageSource resourceBundleMessageSource() {
         log.debug("init resourceBundleMessageSource");
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         log.debug("end resourceBundleMessageSource");
         return messageSource;
@@ -54,8 +54,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     public SpringResourceTemplateResolver templateResolver() {
         log.debug("init templateResolver");
 
-        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(applicationContext);
+        final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(this.applicationContext);
         templateResolver.setPrefix("/WEB-INF/views/");
         templateResolver.setSuffix(".html");
 
@@ -65,23 +65,23 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
 
     @Bean
     public SpringTemplateEngine templateEngine() {
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver());
+        final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(this.templateResolver());
         templateEngine.setEnableSpringELCompiler(true);
         return templateEngine;
     }
 
     @Override
-    public void configureViewResolvers(ViewResolverRegistry registry) {
-        ThymeleafViewResolver resolver = new ThymeleafViewResolver();
-        resolver.setTemplateEngine(templateEngine());
+    public void configureViewResolvers(final ViewResolverRegistry registry) {
+        final ThymeleafViewResolver resolver = new ThymeleafViewResolver();
+        resolver.setTemplateEngine(this.templateEngine());
         registry.viewResolver(resolver);
     }
 
     @Bean
     public MultipartResolver multipartResolver() {
         log.debug("init multipartResolver");
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        final CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         // Max upload size 5MB
         multipartResolver.setMaxUploadSize(5242880);
         log.debug("end multipartResolver");

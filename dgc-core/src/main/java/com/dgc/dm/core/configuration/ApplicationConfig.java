@@ -57,7 +57,7 @@ public class ApplicationConfig {
     public ModelMapper modelMapper() {
         log.debug("Configuring modelMapper");
 
-        ModelMapper modelMapper = new ModelMapper();
+        final ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
@@ -68,30 +68,30 @@ public class ApplicationConfig {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(dataSource());
+        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(this.dataSource());
         em.setPackagesToScan("com.dgc.dm.core");
 
-        final JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(additionalProperties());
+        em.setJpaProperties(this.additionalProperties());
 
         return em;
     }
 
     @Bean
     public DataSource dataSource() {
-        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Preconditions.checkNotNull(env.getProperty("jdbc.driverClassName")));
-        dataSource.setUrl(Preconditions.checkNotNull(env.getProperty("jdbc.url")));
-        dataSource.setUsername(Preconditions.checkNotNull(env.getProperty("jdbc.user")));
-        dataSource.setPassword(Preconditions.checkNotNull(env.getProperty("jdbc.pass")));
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(Preconditions.checkNotNull(this.env.getProperty("jdbc.driverClassName")));
+        dataSource.setUrl(Preconditions.checkNotNull(this.env.getProperty("jdbc.url")));
+        dataSource.setUsername(Preconditions.checkNotNull(this.env.getProperty("jdbc.user")));
+        dataSource.setPassword(Preconditions.checkNotNull(this.env.getProperty("jdbc.pass")));
         return dataSource;
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager(final EntityManagerFactory emf) {
-        final JpaTransactionManager transactionManager = new JpaTransactionManager();
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(emf);
         return transactionManager;
     }
@@ -102,55 +102,59 @@ public class ApplicationConfig {
     }
 
     final Properties additionalProperties() {
-        final Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
-        hibernateProperties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
+        Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty("hibernate.dialect", this.env.getProperty("hibernate.dialect"));
+        hibernateProperties.setProperty("hibernate.show_sql", this.env.getProperty("hibernate.show_sql"));
 
         return hibernateProperties;
     }
 
     @Bean
     public JdbcTemplate jdbcTemplate() {
-        return new JdbcTemplate(dataSource());
+        return new JdbcTemplate(this.dataSource());
     }
 
     @Bean
     public JavaMailSender getJavaMailSender() {
         log.info("Configuring Mail Sender");
 
-        final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(env.getProperty("mail.host"));
-        mailSender.setPort(Integer.parseInt(env.getProperty("mail.port")));
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(this.env.getProperty("mail.host"));
+        mailSender.setPort(Integer.parseInt(this.env.getProperty("mail.port")));
+        mailSender.setUsername(getEncryptedProperty(this.env.getProperty("mail.username")));
+        mailSender.setPassword(getEncryptedProperty(this.env.getProperty("mail.password")));
 
-        mailSender.setUsername(String.valueOf(this.getEncryptedProperty(env.getProperty("mail.username"))));
-        mailSender.setPassword(String.valueOf(this.getEncryptedProperty(env.getProperty("mail.password"))));
-
-        final Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", env.getProperty("mail.transport.protocol"));
-        props.put("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
-        props.put("mail.smtp.starttls.enable", env.getProperty("mail.smtp.auth"));
-        props.put("mail.debug", env.getProperty("mail.debug"));
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", this.env.getProperty("mail.transport.protocol"));
+        props.put("mail.smtp.auth", this.env.getProperty("mail.smtp.auth"));
+        props.put("mail.smtp.starttls.enable", this.env.getProperty("mail.smtp.auth"));
+        props.put("mail.debug", this.env.getProperty("mail.debug"));
 
         log.info("Mail Sender successfully configured ");
-
         return mailSender;
     }
 
-    private Object getEncryptedProperty(final String encryptedPropery) {
-        return PropertyValueEncryptionUtils.decrypt(encryptedPropery, this.getEncryptor());
+    private String getEncryptedProperty(String encryptedPropery) {
+        String decryptedProperty = null;
+        try {
+            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, getEncryptor());
+        } catch (NullPointerException e) {
+            log.error("JASYPT ENVIRONMENT VARIABLE HAS NOT BEEN DEFINED");
+        }
+        return decryptedProperty;
     }
 
     private StandardPBEStringEncryptor getEncryptor() {
-        final StandardPBEStringEncryptor configurationEncryptor = new StandardPBEStringEncryptor();
-        configurationEncryptor.setConfig(this.getEnvironmentConfig());
+        StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
+        standardPBEStringEncryptor.setConfig(getEnvironmentConfig());
 
-        return configurationEncryptor;
+        return standardPBEStringEncryptor;
     }
 
     private PBEConfig getEnvironmentConfig() {
-        final EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
-        config.setAlgorithm(env.getProperty("jasypt.environment.algorithm"));
-        config.setPasswordEnvName(env.getProperty("jasypt.environment.name"));
+        EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
+        config.setAlgorithm(this.env.getProperty("jasypt.environment.algorithm"));
+        config.setPasswordEnvName(this.env.getProperty("jasypt.environment.name"));
 
         return config;
     }

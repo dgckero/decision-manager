@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Seleccionar Proyecto Existente</title>
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+
+        <div if="${message}">
+            <h2 text="${message}"/>
+        </div>
+
+        <div>
+            <form action="viewProject" enctype="application/json" method="post">
+
+                <label for="selectedProject">Selecciona un Proyecto:</label>
+                <select id="selectedProject">
+                    <option th:each="item : ${existingProjects}"
+                            th:selected="false"
+                            th:text="${item.name}"
+                            th:value="${item.name}"
+                    />
+                </select>
+                <p><input type="submit" value="Enviar"/></p>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
