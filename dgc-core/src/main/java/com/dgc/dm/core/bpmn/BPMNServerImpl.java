@@ -28,6 +28,7 @@ import org.camunda.bpm.model.xml.ModelValidationException;
 import org.camunda.bpm.model.xml.impl.util.IoUtil;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -52,9 +53,9 @@ public class BPMNServerImpl implements BPMNServer {
      * @param evaluateDecisionTable
      */
     @Override
-    public void createBPMNModel(boolean evaluateDecisionTable) {
+    public void createBPMNModel(final boolean evaluateDecisionTable) {
 
-        BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("decision-manager")
+        final BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("decision-manager")
                 .name("BPMN API Invoice Process")
                 .done();
 
@@ -69,11 +70,11 @@ public class BPMNServerImpl implements BPMNServer {
      * @throws Exception
      */
     @Override
-    public List<Map<String, Object>> createBPMNModel(final ProjectDto project, final List<FilterDto> activeFilters, final boolean evaluateDecisionTable, final boolean sendMail) throws Exception {
+    public List<Map<String, Object>> createBPMNModel(ProjectDto project, List<FilterDto> activeFilters, boolean evaluateDecisionTable, boolean sendMail) throws Exception {
 
         log.info("Creating DMN model for project " + project);
 
-        return generateDmn(project, project.getName() + "decision-manager.dm", "decisionTable-" + project.getName(),
+        return this.generateDmn(project, project.getName() + "decision-manager.dm", "decisionTable-" + project.getName(),
                 "definition-" + project.getId(), "definition-" + project.getName(), "decision-" + project.getId(),
                 "decision-" + project.getName(), activeFilters, sendMail, evaluateDecisionTable);
     }
@@ -86,8 +87,8 @@ public class BPMNServerImpl implements BPMNServer {
      * @param definitionId   id for new Definition model
      * @return instance of Definition model
      */
-    private Definitions createDefinition(final DmnModelInstance modelInstance, final String definitionName, final String definitionId) {
-        Definitions definitions = modelInstance.newInstance(Definitions.class);
+    private Definitions createDefinition(DmnModelInstance modelInstance, String definitionName, String definitionId) {
+        final Definitions definitions = modelInstance.newInstance(Definitions.class);
         definitions.setNamespace(DEFINITIONS_NAMESPACE);
         definitions.setName(definitionName);
         definitions.setId(definitionId);
@@ -103,8 +104,8 @@ public class BPMNServerImpl implements BPMNServer {
      * @param decisionName  name for new Decision model
      * @return instance of Definition model
      */
-    private Decision createDecision(final DmnModelInstance modelInstance, final String decisionId, final String decisionName) {
-        Decision decision = modelInstance.newInstance(Decision.class);
+    private Decision createDecision(DmnModelInstance modelInstance, String decisionId, String decisionName) {
+        final Decision decision = modelInstance.newInstance(Decision.class);
         decision.setId(decisionId);
         decision.setName(decisionName);
 
@@ -119,45 +120,45 @@ public class BPMNServerImpl implements BPMNServer {
      * @param activeFilters
      * @return instance of DecisionTable model
      */
-    private DecisionTable createDecisionTable(final DmnModelInstance modelInstance, final String decisionTableId, final List<FilterDto> activeFilters) {
-        DecisionTable decisionTable = modelInstance.newInstance(DecisionTable.class);
+    private DecisionTable createDecisionTable(DmnModelInstance modelInstance, String decisionTableId, List<FilterDto> activeFilters) {
+        final DecisionTable decisionTable = modelInstance.newInstance(DecisionTable.class);
         decisionTable.setId(decisionTableId);
-        decisionTable.getInputs().addAll(createInputs(modelInstance, activeFilters));
-        decisionTable.getOutputs().add(createOutput(modelInstance));
+        decisionTable.getInputs().addAll(this.createInputs(modelInstance, activeFilters));
+        decisionTable.getOutputs().add(this.createOutput(modelInstance));
         decisionTable.setHitPolicy(HitPolicy.COLLECT);
 
         return decisionTable;
     }
 
-    private void generateDmnFile(DmnModelInstance modelInstance, String outputFilePath) {
+    private void generateDmnFile(final DmnModelInstance modelInstance, final String outputFilePath) {
         // write the dmn file
-        File dmnFile = new File(outputFilePath);
+        final File dmnFile = new File(outputFilePath);
         Dmn.writeModelToFile(dmnFile, modelInstance);
 
         log.info("generated dmn file: " + dmnFile.getAbsolutePath());
     }
 
-    private List<Map<String, Object>> generateDmn(final ProjectDto project, final String outputFilePath, final String decisionTableId, final String definitionId, final String definitionName, final String decisionId, final String decisionName, final List<FilterDto> activeFilters, final boolean sendMail, final boolean evaluateDecisionTable) throws Exception {
+    private List<Map<String, Object>> generateDmn(ProjectDto project, String outputFilePath, String decisionTableId, String definitionId, String definitionName, String decisionId, String decisionName, List<FilterDto> activeFilters, boolean sendMail, boolean evaluateDecisionTable) throws Exception {
         List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
 
-        DmnModelInstance modelInstance = createDmnModelInstance(activeFilters, definitionName, definitionId, decisionId, decisionName, decisionTableId, sendMail);
+        final DmnModelInstance modelInstance = this.createDmnModelInstance(activeFilters, definitionName, definitionId, decisionId, decisionName, decisionTableId, sendMail);
 
         try {
             log.info("Validating model \n" + IoUtil.convertXmlDocumentToString(modelInstance.getDocument()));
             Dmn.validateModel(modelInstance);
 
-            generateDmnFile(modelInstance, outputFilePath);
+            this.generateDmnFile(modelInstance, outputFilePath);
 
             if (evaluateDecisionTable) {
-                commonEntitiesAccepted = evaluateDecisionTable(modelInstance, decisionId, project, sendMail);
+                commonEntitiesAccepted = this.evaluateDecisionTable(modelInstance, decisionId, project, sendMail);
             }
 
             return commonEntitiesAccepted;
-        } catch (ModelValidationException | DmnTransformException e) {
+        } catch (final ModelValidationException | DmnTransformException e) {
             log.error("Error generating DMN " + e.getMessage());
             e.printStackTrace();
             throw new Exception("Error generating DMN " + e.getMessage());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error " + e.getMessage());
             e.printStackTrace();
             throw new Exception("Error " + e.getMessage());
@@ -165,26 +166,26 @@ public class BPMNServerImpl implements BPMNServer {
 
     }
 
-    private DmnModelInstance createDmnModelInstance(final List<FilterDto> activeFilters, final String definitionName, final String definitionId, final String decisionId, final String decisionName, final String decisionTableId, final boolean sendMail) {
-        DmnModelInstance modelInstance = Dmn.createEmptyModel();
+    private DmnModelInstance createDmnModelInstance(List<FilterDto> activeFilters, String definitionName, String definitionId, String decisionId, String decisionName, String decisionTableId, boolean sendMail) {
+        final DmnModelInstance modelInstance = Dmn.createEmptyModel();
 
         // Create definition
-        Definitions definitions = createDefinition(modelInstance, definitionName, definitionId);
+        final Definitions definitions = this.createDefinition(modelInstance, definitionName, definitionId);
         modelInstance.setDefinitions(definitions);
         log.debug("Created definition with name" + definitionName + " and id " + definitionId);
 
         // Create decision
-        Decision decision = createDecision(modelInstance, decisionId, decisionName);
+        final Decision decision = this.createDecision(modelInstance, decisionId, decisionName);
         definitions.addChildElement(decision);
         log.debug("Created decision with name" + decisionName + " and id " + decisionId);
 
         // Create DecisionTable
-        DecisionTable decisionTable = createDecisionTable(modelInstance, decisionTableId, activeFilters);
+        final DecisionTable decisionTable = this.createDecisionTable(modelInstance, decisionTableId, activeFilters);
         decision.addChildElement(decisionTable);
         log.debug("Created decisionTable with id " + decisionTableId);
 
         // Create rule
-        Rule rule = createRule(modelInstance, activeFilters, sendMail);
+        final Rule rule = this.createRule(modelInstance, activeFilters, sendMail);
         decisionTable.getRules().add(rule);
         log.debug("Created rule with id " + rule.getId());
 
@@ -192,78 +193,78 @@ public class BPMNServerImpl implements BPMNServer {
         return modelInstance;
     }
 
-    private Output createOutput(DmnModelInstance dmnModelInstance) {
-        Output output = dmnModelInstance.newInstance(Output.class);
+    private Output createOutput(final DmnModelInstance dmnModelInstance) {
+        final Output output = dmnModelInstance.newInstance(Output.class);
         output.setId("output1");
         output.setLabel("rule matched?");
         output.setTypeRef("string");
         return output;
     }
 
-    private Collection<? extends Input> createInputs(DmnModelInstance dmnModelInstance, List<FilterDto> activeFilters) {
-        List<Input> inputs = new ArrayList<>(activeFilters.size());
+    private Collection<? extends Input> createInputs(final DmnModelInstance dmnModelInstance, final List<FilterDto> activeFilters) {
+        final List<Input> inputs = new ArrayList<>(activeFilters.size());
 
         for (int i = 0; i < activeFilters.size(); i++) {
-            FilterDto filter = activeFilters.get(i);
+            final FilterDto filter = activeFilters.get(i);
             log.debug("creating input for filter " + filter);
-            inputs.add(createInput(dmnModelInstance, filter.getName(), filter.getFilterClass()));
+            inputs.add(this.createInput(dmnModelInstance, filter.getName(), filter.getFilterClass()));
         }
 
         return inputs;
     }
 
-    private Input createInput(DmnModelInstance dmnModelInstance, String name, String filterClass) {
+    private Input createInput(final DmnModelInstance dmnModelInstance, final String name, final String filterClass) {
 
-        Input input = dmnModelInstance.newInstance(Input.class);
-        input.addChildElement(createInputExpression(dmnModelInstance, name, filterClass));
+        final Input input = dmnModelInstance.newInstance(Input.class);
+        input.addChildElement(this.createInputExpression(dmnModelInstance, name, filterClass));
         return input;
     }
 
-    private ModelElementInstance createInputExpression(DmnModelInstance dmnModelInstance, String name, String filterClass) {
-        InputExpression inputExpression = dmnModelInstance.newInstance(InputExpression.class);
+    private ModelElementInstance createInputExpression(final DmnModelInstance dmnModelInstance, final String name, final String filterClass) {
+        final InputExpression inputExpression = dmnModelInstance.newInstance(InputExpression.class);
         inputExpression.setTypeRef(filterClass.toLowerCase());
         inputExpression.setId("inputExpression_" + StringUtils.stripAccents(name));
 
-        Text text = dmnModelInstance.newInstance(Text.class);
+        final Text text = dmnModelInstance.newInstance(Text.class);
         text.setTextContent(name);
         inputExpression.addChildElement(text);
 
         return inputExpression;
     }
 
-    private Rule createRule(final DmnModelInstance dmnModelInstance, final List<FilterDto> activeFilters, final boolean sendMail) {
-        Rule rule = dmnModelInstance.newInstance(Rule.class);
+    private Rule createRule(DmnModelInstance dmnModelInstance, List<FilterDto> activeFilters, boolean sendMail) {
+        final Rule rule = dmnModelInstance.newInstance(Rule.class);
 
         for (int i = 0; i < activeFilters.size(); i++) {
-            FilterDto filter = activeFilters.get(i);
-            rule.getInputEntries().add(createInputEntry(dmnModelInstance, filter.getName(), filter.getValue()));
+            final FilterDto filter = activeFilters.get(i);
+            rule.getInputEntries().add(this.createInputEntry(dmnModelInstance, filter.getName(), filter.getValue()));
             log.debug("Added inputEntry by filter" + filter);
         }
 
         if (sendMail) {
-            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted_sendEMail\"", "Accepted_sendEMail", "Accepted_sendEMail"));
+            rule.getOutputEntries().add(this.createOutputEntry(dmnModelInstance, "\"Accepted_sendEMail\"", "Accepted_sendEMail", "Accepted_sendEMail"));
         } else {
-            rule.getOutputEntries().add(createOutputEntry(dmnModelInstance, "\"Accepted\"", "Accepted", "Accepted"));
+            rule.getOutputEntries().add(this.createOutputEntry(dmnModelInstance, "\"Accepted\"", "Accepted", "Accepted"));
         }
 
         return rule;
     }
 
-    private InputEntry createInputEntry(final DmnModelInstance dmnModelInstance, final String name, final String val) {
-        Text text = dmnModelInstance.newInstance(Text.class);
+    private InputEntry createInputEntry(DmnModelInstance dmnModelInstance, String name, String val) {
+        final Text text = dmnModelInstance.newInstance(Text.class);
         text.setTextContent("\"" + val + "\"");
 
-        InputEntry inputEntry = dmnModelInstance.newInstance(InputEntry.class);
+        final InputEntry inputEntry = dmnModelInstance.newInstance(InputEntry.class);
         inputEntry.setLabel(name);
         inputEntry.setText(text);
         return inputEntry;
     }
 
-    private OutputEntry createOutputEntry(final DmnModelInstance dmnModelInstance, final String expression, final String outputEntryId, final String outputEntryLabel) {
-        Text text = dmnModelInstance.newInstance(Text.class);
+    private OutputEntry createOutputEntry(DmnModelInstance dmnModelInstance, String expression, String outputEntryId, String outputEntryLabel) {
+        final Text text = dmnModelInstance.newInstance(Text.class);
         text.setTextContent(expression);
 
-        OutputEntry outputEntry = dmnModelInstance.newInstance(OutputEntry.class);
+        final OutputEntry outputEntry = dmnModelInstance.newInstance(OutputEntry.class);
         outputEntry.setId(outputEntryId);
         outputEntry.setLabel(outputEntryLabel);
         outputEntry.setText(text);
@@ -271,12 +272,12 @@ public class BPMNServerImpl implements BPMNServer {
     }
 
 
-    private VariableMap parseEntityToVariableMap(final Map<String, Object> entityMap) {
-        VariableMap variableToBeValidated = Variables.createVariables();
+    private VariableMap parseEntityToVariableMap(Map<String, Object> entityMap) {
+        final VariableMap variableToBeValidated = Variables.createVariables();
 
-        Iterator<Map.Entry<String, Object>> iterator = entityMap.entrySet().iterator();
+        final Iterator<Map.Entry<String, Object>> iterator = entityMap.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<String, Object> entity = iterator.next();
+            final Map.Entry<String, Object> entity = iterator.next();
             //Skip rowId
             if (!entity.getKey().equals("rowId")) {
                 variableToBeValidated.put(entity.getKey(), entity.getValue());
@@ -286,10 +287,10 @@ public class BPMNServerImpl implements BPMNServer {
         return variableToBeValidated;
     }
 
-    private boolean isEntityAccepted(final DmnEngine dmnEngine, final VariableMap variableToBeValidated, final DmnDecision decision) {
+    private boolean isEntityAccepted(DmnEngine dmnEngine, VariableMap variableToBeValidated, DmnDecision decision) {
         boolean isEntityAccepted = false;
 
-        DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
+        final DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
         if (result.size() >= 1) {
             isEntityAccepted = true;
         }
@@ -297,24 +298,24 @@ public class BPMNServerImpl implements BPMNServer {
         return isEntityAccepted;
     }
 
-    private List<Map<String, Object>> evaluateEntities(final DmnEngine dmnEngine, final DmnDecision decision, final ProjectDto project, final boolean sendEmail) {
-        List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
+    private List<Map<String, Object>> evaluateEntities(DmnEngine dmnEngine, DmnDecision decision, ProjectDto project, boolean sendEmail) {
+        final List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
 
-        List<Map<String, Object>> commonEntitiesToBeValidated = dbServer.getCommonData(project);
+        final List<Map<String, Object>> commonEntitiesToBeValidated = this.dbServer.getCommonData(project);
         if (commonEntitiesToBeValidated != null && commonEntitiesAccepted.size() > 0) {
             log.warn("Not found entities to be validated");
         } else {
             log.info("Got " + commonEntitiesToBeValidated.size() + " entities to be validated");
 
-            Filter contactFilter = dbServer.getContactFilter(project);
+            final Filter contactFilter = this.dbServer.getContactFilter(project);
 
-            for (Map<String, Object> entityMap : commonEntitiesToBeValidated) {
-                VariableMap variableToBeValidated = parseEntityToVariableMap(entityMap);
+            for (final Map<String, Object> entityMap : commonEntitiesToBeValidated) {
+                final VariableMap variableToBeValidated = this.parseEntityToVariableMap(entityMap);
 
-                if (isEntityAccepted(dmnEngine, variableToBeValidated, decision)) {
+                if (this.isEntityAccepted(dmnEngine, variableToBeValidated, decision)) {
                     commonEntitiesAccepted.add(variableToBeValidated);
                     if (sendEmail) {
-                        sendEmail(variableToBeValidated, contactFilter, project);
+                        this.sendEmail(variableToBeValidated, contactFilter, project);
                     }
                 }
             }
@@ -323,16 +324,16 @@ public class BPMNServerImpl implements BPMNServer {
         return commonEntitiesAccepted;
     }
 
-    private void sendEmail(final VariableMap variableToBeValidated, final Filter contactFilter, final ProjectDto project) {
+    private void sendEmail(VariableMap variableToBeValidated, Filter contactFilter, ProjectDto project) {
         if (contactFilter == null) {
             log.warn("sendEmail not found filter having contactFilter active");
         } else {
-            String emailTo = ((variableToBeValidated.get(contactFilter.getName()) == null) ? null : (String) variableToBeValidated.get(contactFilter.getName()));
+            final String emailTo = ((variableToBeValidated.get(contactFilter.getName()) == null) ? null : (String) variableToBeValidated.get(contactFilter.getName()));
 
             if (emailTo != null) {
                 try {
-                    emailService.sendASynchronousMail(emailTo, project);
-                } catch (RuntimeException e) {
+                    this.emailService.sendASynchronousMail(emailTo, project);
+                } catch (final MailException e) {
                     log.error("Error sending email to " + emailTo + ", error: " + e.getMessage());
                     e.printStackTrace();
                 }
@@ -340,13 +341,13 @@ public class BPMNServerImpl implements BPMNServer {
         }
     }
 
-    private List<Map<String, Object>> evaluateDecisionTable(final DmnModelInstance modelInstance, final String decisionId, final ProjectDto project, final boolean sendEmail) {
+    private List<Map<String, Object>> evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId, ProjectDto project, boolean sendEmail) {
 
         log.info("Evaluating decision table");
-        DmnEngine dmnEngine = DmnEngineConfiguration.createDefaultDmnEngineConfiguration().buildEngine();
-        DmnDecision decision = dmnEngine.parseDecision(decisionId, modelInstance);
+        final DmnEngine dmnEngine = DmnEngineConfiguration.createDefaultDmnEngineConfiguration().buildEngine();
+        final DmnDecision decision = dmnEngine.parseDecision(decisionId, modelInstance);
 
-        List<Map<String, Object>> commonEntitiesAccepted = evaluateEntities(dmnEngine, decision, project, sendEmail);
+        final List<Map<String, Object>> commonEntitiesAccepted = this.evaluateEntities(dmnEngine, decision, project, sendEmail);
 
         log.info("End validation process, " + commonEntitiesAccepted.size() + " entities has matched filters");
         return commonEntitiesAccepted;

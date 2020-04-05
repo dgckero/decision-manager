@@ -7,6 +7,7 @@ package com.dgc.dm.core.email;
 import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -21,10 +22,9 @@ import java.util.concurrent.ScheduledExecutorService;
 @Service
 public class EmailServiceImpl implements EmailService {
 
+    private static final int NO_OF_QUICK_SERVICE_THREADS = 20;
     @Autowired
-    JavaMailSender mailSender;
-
-    public static int NO_OF_QUICK_SERVICE_THREADS = 20;
+    private JavaMailSender javaMailSender;
 
     /**
      * this statement create a thread pool of twenty threads
@@ -33,33 +33,30 @@ public class EmailServiceImpl implements EmailService {
     private final ScheduledExecutorService quickService = Executors.newScheduledThreadPool(NO_OF_QUICK_SERVICE_THREADS); // Creates a thread pool that reuses fixed number of threads(as specified by noOfThreads in this case).
 
     @Override
-    public void sendASynchronousMail(final String toEmail, final ProjectDto project) throws RuntimeException {
-        log.debug("inside sendASynchronousMail method");
-        final SimpleMailMessage mail = new SimpleMailMessage();
+    public void sendASynchronousMail(String toEmail, ProjectDto project) throws MailException {
+        log.debug("sendASynchronousMail to " + toEmail);
+        SimpleMailMessage mail = new SimpleMailMessage();
         mail.setFrom("prueba@gmail.com");
         mail.setTo(toEmail);
         mail.setSubject("test email");
         mail.setText(project.getEmailTemplate());
 
-        this.quickService.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    EmailServiceImpl.this.mailSender.send(mail);
-                } catch (final Exception e) {
-                    log.error("Exception occur while send a mail : ", e);
-                }
+        quickService.submit(() -> {
+            try {
+                javaMailSender.send(mail);
+            } catch (final MailException e) {
+                log.error("Exception occur while send a mail : ", e);
+                e.printStackTrace();
             }
         });
     }
 
-
     @Override
-    public void sendMail(final String to, final ProjectDto project) throws MessagingException {
+    public final void sendMail(String to, ProjectDto project) throws MessagingException {
         MimeMessage message = generateEmailMessage(to, project);
 
         log.info("Enviando mensaje " + message);
-        mailSender.send(message);
+        javaMailSender.send(message);
         log.info("Mensaje enviado correctamente");
     }
 
@@ -68,13 +65,13 @@ public class EmailServiceImpl implements EmailService {
         MimeMessage message = generateEmailMessage(from, to, subject, body, name);
 
         log.info("Enviando mensaje " + message);
-        mailSender.send(message);
+        javaMailSender.send(message);
         log.info("Mensaje enviado correctamente");
     }
 
     private MimeMessage generateEmailMessage(String from, String to, String subject, String body, String name) throws MessagingException {
 
-        MimeMessage mail = mailSender.createMimeMessage();
+        MimeMessage mail = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom(from);
         helper.setTo(to);
@@ -84,9 +81,9 @@ public class EmailServiceImpl implements EmailService {
         return mail;
     }
 
-    private MimeMessage generateEmailMessage(String to, final ProjectDto project) throws MessagingException {
+    private MimeMessage generateEmailMessage(String to, ProjectDto project) throws MessagingException {
 
-        MimeMessage mail = mailSender.createMimeMessage();
+        MimeMessage mail = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom("dgctrips@gmail.com");
         helper.setTo(to);
@@ -128,6 +125,5 @@ public class EmailServiceImpl implements EmailService {
 
         return htmlMessage;
     }
-
 
 }

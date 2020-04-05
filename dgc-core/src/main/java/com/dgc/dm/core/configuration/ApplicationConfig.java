@@ -6,6 +6,10 @@ package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig;
+import org.jasypt.encryption.pbe.config.PBEConfig;
+import org.jasypt.properties.PropertyValueEncryptionUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +38,11 @@ import java.util.Properties;
 @Slf4j
 @Configuration
 @EnableTransactionManagement
-@PropertySource("classpath:persistence.properties")
+@PropertySource({
+        "classpath:application.properties",
+        "classpath:persistence.properties",
+        "classpath:smtp.properties"
+})
 @ComponentScan("com.dgc.dm.core")
 @EnableJpaRepositories(basePackages = "com.dgc.dm.core.db")
 public class ApplicationConfig {
@@ -49,7 +57,7 @@ public class ApplicationConfig {
     public ModelMapper modelMapper() {
         log.debug("Configuring modelMapper");
 
-        final ModelMapper modelMapper = new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
@@ -60,30 +68,30 @@ public class ApplicationConfig {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(this.dataSource());
+        final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource());
         em.setPackagesToScan("com.dgc.dm.core");
 
-        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        final JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(this.additionalProperties());
+        em.setJpaProperties(additionalProperties());
 
         return em;
     }
 
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Preconditions.checkNotNull(this.env.getProperty("jdbc.driverClassName")));
-        dataSource.setUrl(Preconditions.checkNotNull(this.env.getProperty("jdbc.url")));
-        dataSource.setUsername(Preconditions.checkNotNull(this.env.getProperty("jdbc.user")));
-        dataSource.setPassword(Preconditions.checkNotNull(this.env.getProperty("jdbc.pass")));
+        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(Preconditions.checkNotNull(env.getProperty("jdbc.driverClassName")));
+        dataSource.setUrl(Preconditions.checkNotNull(env.getProperty("jdbc.url")));
+        dataSource.setUsername(Preconditions.checkNotNull(env.getProperty("jdbc.user")));
+        dataSource.setPassword(Preconditions.checkNotNull(env.getProperty("jdbc.pass")));
         return dataSource;
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
+    public PlatformTransactionManager transactionManager(final EntityManagerFactory emf) {
+        final JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(emf);
         return transactionManager;
     }
@@ -94,33 +102,56 @@ public class ApplicationConfig {
     }
 
     final Properties additionalProperties() {
-        Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.dialect", this.env.getProperty("hibernate.dialect"));
-        hibernateProperties.setProperty("hibernate.show_sql", this.env.getProperty("hibernate.show_sql"));
+        final Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
+        hibernateProperties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
 
         return hibernateProperties;
     }
 
     @Bean
     public JdbcTemplate jdbcTemplate() {
-        return new JdbcTemplate(this.dataSource());
+        return new JdbcTemplate(dataSource());
     }
 
     @Bean
     public JavaMailSender getJavaMailSender() {
-        final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(25);
+        log.info("Configuring Mail Sender");
 
-        mailSender.setUsername("admin@gmail.com");
-        mailSender.setPassword("password");
+        final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(env.getProperty("mail.host"));
+        mailSender.setPort(Integer.parseInt(env.getProperty("mail.port")));
+
+        mailSender.setUsername(String.valueOf(this.getEncryptedProperty(env.getProperty("mail.username"))));
+        mailSender.setPassword(String.valueOf(this.getEncryptedProperty(env.getProperty("mail.password"))));
 
         final Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
+        props.put("mail.transport.protocol", env.getProperty("mail.transport.protocol"));
+        props.put("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
+        props.put("mail.smtp.starttls.enable", env.getProperty("mail.smtp.auth"));
+        props.put("mail.debug", env.getProperty("mail.debug"));
+
+        log.info("Mail Sender successfully configured ");
 
         return mailSender;
+    }
+
+    private Object getEncryptedProperty(final String encryptedPropery) {
+        return PropertyValueEncryptionUtils.decrypt(encryptedPropery, this.getEncryptor());
+    }
+
+    private StandardPBEStringEncryptor getEncryptor() {
+        final StandardPBEStringEncryptor configurationEncryptor = new StandardPBEStringEncryptor();
+        configurationEncryptor.setConfig(this.getEnvironmentConfig());
+
+        return configurationEncryptor;
+    }
+
+    private PBEConfig getEnvironmentConfig() {
+        final EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
+        config.setAlgorithm(env.getProperty("jasypt.environment.algorithm"));
+        config.setPasswordEnvName(env.getProperty("jasypt.environment.name"));
+
+        return config;
     }
 }
