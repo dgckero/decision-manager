@@ -19,10 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 enum CLAZZ {
     DATE(java.util.Date.class.getSimpleName()),
@@ -283,4 +280,19 @@ public class DbServerImpl implements DbServer {
         return projects;
     }
 
+    @Override
+    public ProjectDto getProject(final Integer selectedProjectId) {
+        log.debug("Getting project by id " + selectedProjectId);
+
+        Optional<Project> optionalProject = projectRepository.findById(selectedProjectId);
+
+        if (optionalProject.isPresent()) {
+            ProjectDto projectDto = modelMapper.map(optionalProject.get(), ProjectDto.class);
+            log.debug("project found " + projectDto);
+            return projectDto;
+        } else {
+            log.warn("No project found for id " + selectedProjectId);
+            return null;
+        }
+    }
 }

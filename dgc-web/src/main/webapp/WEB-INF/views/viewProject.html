@@ -1,10 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title>Ver Proyecto</title>
+    <title>Información del proyecto</title>
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
 </head>
+
 <body>
+
+<form class="form-horizontal" method="post" th:action="@{/editProject}" th:object="${selectedProject}">
+    <fieldset>
+        <!-- Form Name -->
+        <legend>Información del proyecto: ${selectedProject.name}</legend>
+        <!-- Text input-->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="projectName">Nombre</label>
+            <div class="col-md-5">
+                <input class="form-control input-md" disabled id="projectName" name="name"
+                       th:value="${selectedProject.name}" type="text">
+            </div>
+        </div>
+
+        <!-- Text input-->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="projectCreationDate">Fecha de creación</label>
+            <div class="col-md-4">
+                <input class="form-control input-md" disabled id="projectCreationDate" name="createDate"
+                       th:value="${selectedProject.createDate}" type="date">
+            </div>
+        </div>
+
+        <!-- Textarea -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="projectEmailTemplate">Plantilla email</label>
+            <div class="col-md-4">
+                    <textarea class="form-control" id="projectEmailTemplate" name="emailTemplate"
+                              th:value="${selectedProject.emailTemplate}"></textarea>
+
+                <button class="btn btn-warning"
+                        id="editEmailTemplate" name="action" type="submit"
+                        value="editEmailTemplate">Editar plantilla
+                </button>
+            </div>
+        </div>
+
+        <!-- File Button -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="uploadFile">Añadir más registros</label>
+            <div class="col-md-4">
+                <input class="input-file"
+                       id="uploadFile" name="uploadFile" type="file">
+                <button class="btn btn-success"
+                        id="uploadFileButton" name="action" type="submit"
+                        value="uploadFile">Enviar
+                </button>
+            </div>
+        </div>
+
+        <!-- Button (Double) -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="viewDmn">Tabla de decisión</label>
+            <div class="col-md-8">
+                <button class="btn btn-success" id="viewDmn" name="action" type="submit"
+                        value="getDmn">Descargar
+                </button>
+                <button class="btn btn-warning"
+                        id="editDmn" name="action" type="submit"
+                        value="editDmn">Editar
+                </button>
+            </div>
+        </div>
+
+        <!-- Button (Double) -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="viewFilteredResults">Registros filtrados</label>
+            <div class="col-md-8">
+                <button class="btn btn-success"
+                        id="viewFilteredResults" name="action" type="submit"
+                        value="getFilteredResults">Ejecutar filtros
+                </button>
+                <button class="btn btn-warning"
+                        id="editFilter" name="action" type="submit"
+                        value="editFilters">Editar Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Button (Double) -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="ViewAll">Registros</label>
+            <div class="col-md-8">
+                <button class="btn btn-success"
+                        id="ViewAll" name="action" type="submit"
+                        value="getAllRegisters">Ver
+                </button>
+                <button class="btn btn-danger"
+                        id="deleteAll" name="action" type="submit"
+                        value="deleteRegisters">Borrar registros
+                </button>
+            </div>
+        </div>
+    </fieldset>
+</form>
 
 </body>
 </html>

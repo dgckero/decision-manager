@@ -18,11 +18,11 @@
             <form action="viewProject" enctype="application/json" method="post">
 
                 <label for="selectedProject">Selecciona un Proyecto:</label>
-                <select id="selectedProject">
+                <select id="selectedProject" name="selectedProjectId">
                     <option th:each="item : ${existingProjects}"
                             th:selected="false"
                             th:text="${item.name}"
-                            th:value="${item.name}"
+                            th:value="${item.id}"
                     />
                 </select>
                 <p><input type="submit" value="Enviar"/></p>

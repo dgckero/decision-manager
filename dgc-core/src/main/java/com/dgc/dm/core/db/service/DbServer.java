@@ -39,4 +39,6 @@ public interface DbServer {
     void updateProject(ProjectDto project);
 
     List<Map<String, Object>> getProjects();
+
+    ProjectDto getProject(Integer selectedProjectId);
 }

@@ -21,6 +21,6 @@ public class ProjectDto implements Serializable {
     private Integer id;
     private String name;
     private String emailTemplate;
-    @DateTimeFormat(pattern = "E, d MMM yyyy HH:mm:ss Z")
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date createDate;
 }

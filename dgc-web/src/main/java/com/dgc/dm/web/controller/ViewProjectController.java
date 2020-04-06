@@ -5,8 +5,10 @@
 package com.dgc.dm.web.controller;
 
 
+import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,13 +22,26 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 public class ViewProjectController implements HandlerExceptionResolver {
 
+    @Autowired
+    DbServer dbServer;
+
     @PostMapping("/viewProject")
-    public ModelAndView viewProject(@ModelAttribute("selectedProject") final ProjectDto selectedProject) {
-        log.info("Selected project: " + selectedProject);
-
+    public ModelAndView viewProject(@ModelAttribute("selectedProjectId") final Integer selectedProjectId) {
         ModelAndView modelAndView = new ModelAndView("viewProject");
-        modelAndView.addObject("selectedProject", selectedProject);
+        if (selectedProjectId == null) {
+            log.error("SelectedProjectId is NULL");
+        } else {
+            log.info("SelectedProjectId " + selectedProjectId);
+            ProjectDto selectedProject = dbServer.getProject(selectedProjectId);
 
+            if (selectedProject == null) {
+                log.error("Project not found with ID " + selectedProjectId);
+                modelAndView.addObject("message", "Project NOT found");
+            } else {
+                log.info("Got project " + selectedProject);
+                modelAndView.addObject("selectedProject", selectedProject);
+            }
+        }
         return modelAndView;
     }
 
