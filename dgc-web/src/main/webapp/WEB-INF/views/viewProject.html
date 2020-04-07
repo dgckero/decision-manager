@@ -36,7 +36,7 @@
             <label class="col-md-4 control-label" for="projectEmailTemplate">Plantilla email</label>
             <div class="col-md-4">
                     <textarea class="form-control" id="projectEmailTemplate" name="emailTemplate"
-                              th:value="${selectedProject.emailTemplate}"></textarea>
+                              th:inline="text">[[${selectedProject.emailTemplate}]]</textarea>
 
                 <button class="btn btn-warning"
                         id="editEmailTemplate" name="action" type="submit"
