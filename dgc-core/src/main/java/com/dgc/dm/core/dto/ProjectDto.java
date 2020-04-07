@@ -8,10 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @Builder
 @Data
@@ -22,6 +20,5 @@ public class ProjectDto implements Serializable {
     private String name;
     private String commonDataTableName;
     private String emailTemplate;
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-    private Date createDate;
+    private String createDate;
 }

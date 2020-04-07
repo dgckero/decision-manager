@@ -13,7 +13,6 @@ import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 @Builder
 @Data
@@ -33,7 +32,6 @@ public class Project implements Serializable {
     private String commonDataTableName;
     @Column
     private String emailTemplate;
-    @Temporal(TemporalType.TIMESTAMP)
     @Column
-    private Date createDate;
+    private String createDate;
 }
