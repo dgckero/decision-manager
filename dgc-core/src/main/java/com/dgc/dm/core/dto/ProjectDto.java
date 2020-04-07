@@ -20,6 +20,7 @@ import java.util.Date;
 public class ProjectDto implements Serializable {
     private Integer id;
     private String name;
+    private String commonDataTableName;
     private String emailTemplate;
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date createDate;

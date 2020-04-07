@@ -30,6 +30,8 @@ public class Project implements Serializable {
     @Column
     private String name;
     @Column
+    private String commonDataTableName;
+    @Column
     private String emailTemplate;
     @Temporal(TemporalType.TIMESTAMP)
     @Column

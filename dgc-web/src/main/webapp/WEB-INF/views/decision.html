@@ -55,6 +55,8 @@
                                    type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].project.createDate}"
                                    type="hidden"/>
+                            <input th:field="*{filters[__${itemStat.index}__].project.commonDataTableName}"
+                                   type="hidden"/>
 
                             <input th:field="*{filters[__${itemStat.index}__].id}"
                                    th:value="${item.id}" type="hidden"/>
