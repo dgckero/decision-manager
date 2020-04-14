@@ -1,0 +1,100 @@
+shtml,body{
+    height: 100vh;
+	background-color: #fff;
+}
+
+footer{
+    height: 5%;
+    width:100%;
+    position: fixed;
+    bottom: 0;
+	border: 1px solid #848484;
+	background-color: #c2c2c2;
+	text-shadow: 0.1em 0.1em 0.05em #880;
+	line-height: 30px;
+	text-align: center;
+}
+
+.license-cc-footer {
+    margin-left: 72px;
+}
+
+.dgc-inner-main {
+  margin-bottom: 30px;
+  background: rgba(238, 238, 238, 0.7);
+  border-radius: 6px;
+}
+
+.dgc-inner-main h1 {
+  margin-bottom: 0;
+  font-size: 60px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: inherit;
+}
+
+.dgc-inner-main p {
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 27px;
+  color: inherit;
+}
+
+.dgc-operation-ok{
+	height: 255px;
+	background: rgba(238, 238, 238, 0.7);
+}
+
+.dgc-operation-ok img{
+	max-width: 100%;
+	max-height: 82%;
+	display: block;
+	margin: 0 auto;
+}
+
+.dgc-operation-ok h1{
+	margin-bottom: 0;
+	letter-spacing: -1px;
+	color:black;
+	font: 20px bold Didot, serif;
+}
+
+.dgc-operation-ok h4{
+	margin-bottom: 0;
+	letter-spacing: -1px;
+	text-align: center;
+	color:black;
+	font: 12px arial Georgia, serif;
+}
+
+.dgc-operation-ko{
+	height: 250px;
+	background: rgba(238, 238, 238, 0.7);
+}
+
+.dgc-operation-ko h1{
+	margin-bottom: 0;
+	letter-spacing: -1px;
+	color:black;
+	font: 20px bold Didot, serif;
+}
+
+.dgc-operation-ko h2{
+	margin-bottom: 0;
+	letter-spacing: -1px;
+	text-align: center;
+	color:gray;
+	font: 15px arial Georgia, serif;
+}
+
+.dgc-operation-ko p{
+	text-align: center;
+	color: black;
+	font: italic 10px/30px semi-condensed;
+}
+
+.dgc-operation-ko img{
+	max-height: 60%;
+	display: block;
+	margin: 0 auto;
+}

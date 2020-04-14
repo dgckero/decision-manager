@@ -150,6 +150,7 @@
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>2.6</maven-dependency-plugin.version>
         <maven-war-plugin.version>3.2.3</maven-war-plugin.version>
+        <maven-compiler-plugin.version>2.0.2</maven-compiler-plugin.version>
 
         <!-- Core dependencies -->
         <jasypt.version>1.9.3</jasypt.version>
@@ -172,6 +173,7 @@
         <sl4j-api.version>2.0.0-alpha1</sl4j-api.version>
         <log4j.version>1.2.17</log4j.version>
         <commons-text.version>1.8</commons-text.version>
+        <commons-io.version>2.6</commons-io.version>
 
         <!-- email dependencies -->
         <javax.mail.version>1.4.7</javax.mail.version>

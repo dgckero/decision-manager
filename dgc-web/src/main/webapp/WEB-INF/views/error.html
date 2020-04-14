@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ERROR</title>
+    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
+</head>
+
+<body>
+<div class="container-fluid" id="generalContainer">
+
+    <div class="row" id="internalContainer">
+        <section class="span10" id="main">
+            <div class="dgc-operation-ko">
+                <h1 align="center">Error</h1>
+                <div id="errorMessageDiv" th:if="${not empty message }">
+                    <h4>${message}</h4>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

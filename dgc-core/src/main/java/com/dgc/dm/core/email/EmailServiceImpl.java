@@ -33,18 +33,18 @@ public class EmailServiceImpl implements EmailService {
     private final ScheduledExecutorService quickService = Executors.newScheduledThreadPool(NO_OF_QUICK_SERVICE_THREADS); // Creates a thread pool that reuses fixed number of threads(as specified by noOfThreads in this case).
 
     @Override
-    public void sendASynchronousMail(String toEmail, ProjectDto project) throws MailException {
+    public void sendASynchronousMail(final String toEmail, final ProjectDto project) throws MailException {
         log.debug("sendASynchronousMail to " + toEmail);
-        SimpleMailMessage mail = new SimpleMailMessage();
+        final SimpleMailMessage mail = new SimpleMailMessage();
         mail.setFrom("prueba@gmail.com");
         mail.setTo(toEmail);
         mail.setSubject("test email");
         mail.setText(project.getEmailTemplate());
 
-        quickService.submit(() -> {
+        this.quickService.submit(() -> {
             try {
-                javaMailSender.send(mail);
-            } catch (final MailException e) {
+                this.javaMailSender.send(mail);
+            } catch (MailException e) {
                 log.error("Exception occur while send a mail : ", e);
                 e.printStackTrace();
             }
@@ -52,39 +52,39 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public final void sendMail(String to, ProjectDto project) throws MessagingException {
-        MimeMessage message = generateEmailMessage(to, project);
+    public final void sendMail(final String to, final ProjectDto project) throws MessagingException {
+        final MimeMessage message = this.generateEmailMessage(to, project);
 
         log.info("Enviando mensaje " + message);
-        javaMailSender.send(message);
+        this.javaMailSender.send(message);
         log.info("Mensaje enviado correctamente");
     }
 
     @Override
-    public void sendMail(String from, String to, String subject, String body, String name) throws MessagingException {
-        MimeMessage message = generateEmailMessage(from, to, subject, body, name);
+    public void sendMail(final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
+        final MimeMessage message = this.generateEmailMessage(from, to, subject, body, name);
 
         log.info("Enviando mensaje " + message);
-        javaMailSender.send(message);
+        this.javaMailSender.send(message);
         log.info("Mensaje enviado correctamente");
     }
 
-    private MimeMessage generateEmailMessage(String from, String to, String subject, String body, String name) throws MessagingException {
+    private MimeMessage generateEmailMessage(final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
 
-        MimeMessage mail = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mail, true);
+        final MimeMessage mail = this.javaMailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom(from);
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(generateEmailBodyHtml(from, body, name), true);
+        helper.setText(this.generateEmailBodyHtml(from, body, name), true);
 
         return mail;
     }
 
-    private MimeMessage generateEmailMessage(String to, ProjectDto project) throws MessagingException {
+    private MimeMessage generateEmailMessage(final String to, final ProjectDto project) throws MessagingException {
 
-        MimeMessage mail = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mail, true);
+        final MimeMessage mail = this.javaMailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom("dgctrips@gmail.com");
         helper.setTo(to);
         helper.setSubject("test email");
@@ -93,9 +93,9 @@ public class EmailServiceImpl implements EmailService {
         return mail;
     }
 
-    private String generateDefaultEmailBodyHtml(String from) {
+    private String generateDefaultEmailBodyHtml(final String from) {
 
-        String htmlMessage = "\n" +
+        final String htmlMessage = "\n" +
                 "<html>\n" +
                 "<body>\n" +
                 "<h4>Se han encontrado sus datos de contacto en la aplicación decision-manager, por favor póngase en contacto con el administrador de la aplicación:</h4>" +
@@ -108,12 +108,12 @@ public class EmailServiceImpl implements EmailService {
         return htmlMessage;
     }
 
-    private String generateEmailBodyHtml(String from, String body, String name) {
+    private String generateEmailBodyHtml(final String from, final String body, final String name) {
 
-        String htmlMessage = "\n" +
+        final String htmlMessage = "\n" +
                 "<html>\n" +
                 "<body>\n" +
-                "<h4>Se ha recibido un mensaje en la aplicación DGCAcademy con los siguientes datos:</h4>" +
+                "<h4>Se ha recibido un mensaje en la aplicación dgc-web con los siguientes datos:</h4>" +
                 "    <h5>Nombre del emisor: " + name + "</h5>\n" +
                 "    <h5>Contacto del emisor: <a title=\"" + from + "\" href=\"mailto:" + from + "\">" + from + "</a>\n" +
                 "  \t<h5>Mensaje:</h5>\n" +

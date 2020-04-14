@@ -4,10 +4,7 @@
 
 package com.dgc.dm.core.db.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.NaturalId;
 
@@ -34,4 +31,7 @@ public class Project implements Serializable {
     private String emailTemplate;
     @Column
     private String createDate;
+    @ToString.Exclude
+    @Column
+    private byte[] dmnFile;
 }

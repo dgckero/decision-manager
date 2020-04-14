@@ -4,10 +4,7 @@
 
 package com.dgc.dm.core.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -21,4 +18,6 @@ public class ProjectDto implements Serializable {
     private String commonDataTableName;
     private String emailTemplate;
     private String createDate;
+    @ToString.Exclude
+    private byte[] dmnFile;
 }

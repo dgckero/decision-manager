@@ -2,15 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
     <title>Información del proyecto</title>
     <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
+    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
 </head>
 
 <body>
 
 <form class="form-horizontal" method="post" th:action="@{/editProject}" th:object="${selectedProject}">
     <fieldset>
+        <input th:field="*{id}" type="hidden"/>
+        <input th:field="*{name}" type="hidden"/>
+        <input th:field="*{createDate}" type="hidden"/>
+        <input th:field="*{commonDataTableName}" type="hidden"/>
+
         <!-- Form Name -->
         <legend>Información del proyecto: ${selectedProject.name}</legend>
         <!-- Text input-->
@@ -60,15 +66,24 @@
 
         <!-- Button (Double) -->
         <div class="form-group">
-            <label class="col-md-4 control-label" for="viewDmn">Tabla de decisión</label>
+            <label class="col-md-4 control-label" for="getDmn">Tabla de decisión</label>
             <div class="col-md-8">
-                <button class="btn btn-success" id="viewDmn" name="action" type="submit"
-                        value="getDmn">Descargar
+                <button class="btn btn-success" download id="getDmn" name="action"
+                        type="submit" value="getDmn">Descargar DMN
                 </button>
-                <button class="btn btn-warning"
-                        id="editDmn" name="action" type="submit"
-                        value="editDmn">Editar
+                <button class="btn btn-success"
+                        id="viewDMNFilteredResults" name="action" type="submit"
+                        value="getDMNFilteredResults">Ver Registros Filtrados según DMN
                 </button>
+                <div class="col-md-4">
+                    <form action="editProject" class="form-horizontal" enctype="multipart/form-data" method="post">
+                        <input name="dmnFile" type="file"/>
+                        <button class="btn btn-success"
+                                id="editDmnButton" name="action" type="submit"
+                                value="editDmn">Editar DMN
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -78,7 +93,7 @@
             <div class="col-md-8">
                 <button class="btn btn-success"
                         id="viewFilteredResults" name="action" type="submit"
-                        value="getFilteredResults">Ejecutar filtros
+                        value="getFilteredResults">Ver Registros Filtrados
                 </button>
                 <button class="btn btn-warning"
                         id="editFilter" name="action" type="submit"

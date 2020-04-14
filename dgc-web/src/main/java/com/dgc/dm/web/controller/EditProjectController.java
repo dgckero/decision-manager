@@ -4,21 +4,26 @@
 
 package com.dgc.dm.web.controller;
 
+import com.dgc.dm.core.bpmn.BPMNServer;
 import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -26,15 +31,17 @@ public class EditProjectController implements HandlerExceptionResolver {
 
     @Autowired
     private DbServer dbServer;
+    @Autowired
+    private BPMNServer bpmnServer;
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editEmailTemplate")
-    public String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto project, @ModelAttribute("emailTemplate") final String emailTemplate) {
-        log.info("Edit email template (" + emailTemplate + ") for project " + project);
+    public String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") final String emailTemplate) {
+        log.info("Edit email template (" + emailTemplate + ") for project " + selectedProject);
 
-        project.setEmailTemplate(emailTemplate);
-        dbServer.updateProject(project);
+        selectedProject.setEmailTemplate(emailTemplate);
+        dbServer.updateProject(selectedProject);
 
-        log.info("Email template successfully updated for project" + project);
+        log.info("Email template successfully updated for project" + selectedProject);
         return "success";
     }
 
@@ -46,19 +53,69 @@ public class EditProjectController implements HandlerExceptionResolver {
         return "success";
     }
 
-    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDmn")
-    public String getDmn(@ModelAttribute("selectedProject") ProjectDto project) {
-        log.info("Getting dmn file for project " + project);
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDMNFilteredResults")
+    public ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") ProjectDto selectedProject) {
+        log.info("getting results filtering by DMN file");
+        ModelAndView modelAndView = new ModelAndView("result");
 
-        log.info("DMN file recovered successfully");
-        return "success";
+        log.debug("Getting updated project from database");
+        final ProjectDto updatedProject = this.dbServer.getProject(selectedProject.getId());
+
+        if (updatedProject.getDmnFile() == null || updatedProject.getDmnFile().length <= 0) {
+            log.error("DMN file NOT defined on project " + updatedProject);
+            modelAndView.setViewName("error");
+            modelAndView.getModel().put("message", "DMN file NOT defined, please define a DMN file on view Project view");
+        } else {
+            List<Map<String, Object>> result = this.bpmnServer.executeDmn(updatedProject);
+            modelAndView.addObject("form", result);
+
+            log.info("Results filtered by DMN file successfully processed");
+        }
+        return modelAndView;
     }
 
-    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editDmn")
-    public String editDmn(@ModelAttribute("selectedProject") ProjectDto project) {
-        log.info("Go to Edit DMN file for project " + project);
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDmn")
+    @ResponseBody
+    public FileSystemResource getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject) throws IOException {
+        log.info("Getting dmn file for project " + selectedProject);
 
-        return "editDmn";
+        ProjectDto projectDto = dbServer.getProject(selectedProject.getId());
+        log.info("DMN file recovered successfully for project " + projectDto);
+
+        return new FileSystemResource(this.generateDmnFile(projectDto));
+    }
+
+    private File generateDmnFile(ProjectDto project) throws IOException {
+        final File dmnFile = new File(project.getName() + "decision-manager.dm");
+        final OutputStream os = new FileOutputStream(dmnFile);
+        os.write(project.getDmnFile());
+        os.close();
+
+        return dmnFile;
+    }
+
+
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editDmn")
+    public ModelAndView editDmn(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("dmnFile") final MultipartFile dmnFile) {
+        final ModelAndView modelAndView = new ModelAndView("success");
+
+        try {
+            log.info("Validating DMN file " + dmnFile.getOriginalFilename() + " for project " + project);
+
+            this.bpmnServer.validateDmn(dmnFile.getBytes());
+
+            project.setDmnFile(dmnFile.getBytes());
+            this.dbServer.updateProject(project);
+
+            log.info("DMN File successfully processed");
+        } catch (final Exception e) {
+            log.error("Error validating DMN File " + e.getMessage());
+            e.printStackTrace();
+            modelAndView.setViewName("error");
+            modelAndView.addObject("message", "Project NOT found");
+        }
+
+        return modelAndView;
     }
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getFilteredResults")
