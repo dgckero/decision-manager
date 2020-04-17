@@ -29,14 +29,14 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param project
      */
     @Override
-    public final void createFilterTable(final Project project) {
+    public final void createFilterTable(Project project) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
-        final Iterable<String> filterTableStatements = new StringArrayList(project);
+        Iterable<String> filterTableStatements = new StringArrayList(project);
 
         filterTableStatements.forEach(sql -> {
             log.debug(sql);
-            this.getJdbcTemplate().execute(sql);
+            getJdbcTemplate().execute(sql);
         });
         log.info("FILTERS table successfully created");
     }
@@ -47,9 +47,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filterList
      */
     @Override
-    public final void persistFilterList(final List<Filter> filterList) {
+    public final void persistFilterList(List<Filter> filterList) {
         log.debug("Persisting filters got from Excel");
-        this.filterRepository.saveAll(filterList);
+        filterRepository.saveAll(filterList);
         log.debug("Persisted filters got from Excel");
     }
 
@@ -61,7 +61,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     public final List<Map<String, Object>> getFilters() {
         log.info("Getting Filters");
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS");
+        List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS");
         log.info("Got filters");
         return filters;
     }
@@ -73,9 +73,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return all project's filters
      */
     @Override
-    public final List<Map<String, Object>> getFilters(final Project project) {
+    public final List<Map<String, Object>> getFilters(Project project) {
         log.info("Getting Filters by project {}", project);
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
+        List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
         log.info("Got filters");
         return filters;
     }
@@ -86,9 +86,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filters
      */
     @Override
-    public final void updateFilters(final List<Filter> filters) {
+    public final void updateFilters(List<Filter> filters) {
         log.info("Updating filters ");
-        this.filterRepository.saveAll(filters);
+        filterRepository.saveAll(filters);
         log.info("Filters updated");
     }
 
@@ -99,12 +99,12 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return project's filter having contactFilter=true
      */
     @Override
-    public final Filter getContactFilter(final Project project) {
+    public final Filter getContactFilter(Project project) {
         log.info("Getting Filters having contactFilter active for project {}", project);
         Filter filter = null;
         try {
             final String sql = "Select * from FILTERS where contactFilter=? and project=?";
-            filter = this.getJdbcTemplate().queryForObject(sql, new Object[]{Integer.valueOf(1), project.getId()}, (rs, rowNum) ->
+            filter = getJdbcTemplate().queryForObject(sql, new Object[]{Integer.valueOf(1), project.getId()}, (rs, rowNum) ->
                     new Filter(
                             Integer.valueOf(rs.getInt("id")),
                             rs.getString("name"),
@@ -117,7 +117,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
 
             log.info("Got filter {}", filter);
 
-        } catch (final EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             log.info("No filter found having contactFilter active for project {}", project);
         }
         return filter;
@@ -126,8 +126,8 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     private static class StringArrayList extends ArrayList<String> {
         private static final long serialVersionUID = 5389826304558701396L;
 
-        public StringArrayList(Project project) {
-            this.add("CREATE TABLE IF NOT EXISTS FILTERS " +
+        public StringArrayList(final Project project) {
+            add("CREATE TABLE IF NOT EXISTS FILTERS " +
                     "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "name TEXT," +
                     "class TEXT, " +
@@ -137,7 +137,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
                     "project INTEGER NOT NULL," +
                     "FOREIGN KEY(project) REFERENCES PROJECTS(id)," +
                     "CONSTRAINT UQ_NAME_PROJ UNIQUE (name, project) )");
-            this.add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
+            add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
         }
     }
 }

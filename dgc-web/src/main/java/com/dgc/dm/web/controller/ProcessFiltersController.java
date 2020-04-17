@@ -36,16 +36,16 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     @Autowired
     BPMNServer bpmnServer;
 
-    private static boolean sendEmailToContact(final List<FilterDto> filters) {
-        boolean sendEmail = filters.stream()
+    private static boolean sendEmailToContact(List<FilterDto> filters) {
+        final boolean sendEmail = filters.stream()
                 .anyMatch(flt -> (null != flt.getContactFilter() && flt.getContactFilter().equals(Boolean.TRUE)));
 
         log.info("Send email enabled: {}", sendEmail);
         return sendEmail;
     }
 
-    private static List<FilterDto> getActiveFilters(final List<FilterDto> filters) {
-        final List<FilterDto> activeFilters = filters.stream()
+    private static List<FilterDto> getActiveFilters(List<FilterDto> filters) {
+        List<FilterDto> activeFilters = filters.stream()
                 .filter(flt -> (null != flt.getActive() && flt.getActive().equals(Boolean.TRUE)))
                 .collect(Collectors.toList());
 
@@ -59,34 +59,34 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     }
 
     @PostMapping("/process")
-    public final ModelAndView processFilters(@ModelAttribute final FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") final String emailTemplate) {
+    public final ModelAndView processFilters(@ModelAttribute FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") String emailTemplate) {
 
-        final ModelAndView modelAndView = new ModelAndView("result");
+        ModelAndView modelAndView = new ModelAndView("result");
 
         try {
-            final List<FilterDto> filters = form.getFilters();
+            List<FilterDto> filters = form.getFilters();
             log.info("Got filters {}", filters);
 
             if (filters.isEmpty()) {
                 log.warn("No filters found");
                 modelAndView.getModel().put("message", "No filters found");
             } else {
-                final List<FilterDto> activeFilters = getActiveFilters(filters);
+                List<FilterDto> activeFilters = getActiveFilters(filters);
 
                 if (activeFilters.isEmpty()) {
                     modelAndView.getModel().put("message", "No Active filters found");
                 } else {
-                    final ProjectDto project = filters.get(0).getProject();
+                    ProjectDto project = filters.get(0).getProject();
 
                     if (null != emailTemplate) {
                         log.info("Adding emailTemplate {} to project {}", emailTemplate, project);
                         project.setEmailTemplate(emailTemplate);
-                        dbServer.updateProject(project);
+                        this.dbServer.updateProject(project);
                     }
 
-                    this.dbServer.updateFilters(activeFilters);
+                    dbServer.updateFilters(activeFilters);
 
-                    final List<Map<String, Object>> result = this.bpmnServer.createBPMNModel(project, activeFilters, true, sendEmailToContact(filters));
+                    List<Map<String, Object>> result = bpmnServer.createBPMNModel(project, activeFilters, true, sendEmailToContact(filters));
 
                     if (result.isEmpty()) {
                         log.warn("No elements found that fit filters defined by user");
@@ -96,7 +96,7 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
                     }
                 }
             }
-        } catch (final Exception e) {
+        } catch (Exception e) {
             log.error("Error {}", e.getMessage());
             e.printStackTrace();
         }
@@ -105,10 +105,10 @@ public class ProcessFiltersController implements HandlerExceptionResolver {
     }
 
     @Override
-    public final ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
-                                               final Object object, final Exception exc) {
+    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                               Object object, Exception exc) {
 
-        final ModelAndView modelAndView = new ModelAndView("decision");
+        ModelAndView modelAndView = new ModelAndView("decision");
 
         modelAndView.getModel().put("message", exc.getMessage());
         return modelAndView;

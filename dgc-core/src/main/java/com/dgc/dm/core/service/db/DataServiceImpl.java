@@ -22,15 +22,15 @@ public class DataServiceImpl extends CommonServer implements DataService {
     private DataDao dataDao;
 
     @Override
-    public void createDataTable(Map<String, Class<?>> columns, ProjectDto project) {
+    public void createDataTable(final Map<String, Class<?>> columns, final ProjectDto project) {
 
-        dataDao.createDataTable(columns, getModelMapper().map(project, Project.class));
+        this.dataDao.createDataTable(columns, this.getModelMapper().map(project, Project.class));
     }
 
     @Override
-    public void persistData(String insertSentence, List<Object[]> infoToBePersisted) {
+    public void persistData(final String insertSentence, final List<Object[]> infoToBePersisted) {
         log.info("Persisting Excel rows");
-        dataDao.persistData(insertSentence, infoToBePersisted);
+        this.dataDao.persistData(insertSentence, infoToBePersisted);
         log.info("Persisted Excel rows");
     }
 }

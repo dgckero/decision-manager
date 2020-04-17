@@ -19,22 +19,22 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
     private static final Integer CONTACT_FILTER = 1;
 
-    private static List<FilterDto> getFilterListByModelMap(final Collection<Map<String, Object>> filterList, final ProjectDto project) {
+    private static List<FilterDto> getFilterListByModelMap(Collection<Map<String, Object>> filterList, ProjectDto project) {
         log.debug("Parsing List<Map<String,Object>> to List<FilterDto>");
 
-        final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
+        List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
 
-        final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
+        Iterator<Map<String, Object>> entryIterator = filterList.iterator();
         while (entryIterator.hasNext()) {
-            final Map<String, Object> filterIterator = entryIterator.next();
+            Map<String, Object> filterIterator = entryIterator.next();
 
-            final String filterName = (String) filterIterator.get("name");
+            String filterName = (String) filterIterator.get("name");
             if ("rowId".equals(filterName)) {
                 // Don't send rowId to decision view
                 entryIterator.remove();
                 log.debug("Removed filter rowId from filterList");
             } else {
-                final FilterDto filter = FilterDto.builder().
+                FilterDto filter = FilterDto.builder().
                         id((Integer) filterIterator.get("ID")).
                         name(filterName).
                         filterClass((String) filterIterator.get("class")).
@@ -50,25 +50,25 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    public final FilterCreationDto getFilterCreationDto(final ProjectDto project, final Collection<Map<String, Object>> filterList) {
+    public final FilterCreationDto getFilterCreationDto(ProjectDto project, Collection<Map<String, Object>> filterList) {
         log.info("Generating FilterCreationDto");
-        List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
+        final List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
         log.info("Adding {} filters to FilterCreationDto", filterDtoList.size());
-        final FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
+        FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
         log.info("FilterCreationDto successfully created");
         return filterCreationDto;
     }
 
     @Override
-    public final FilterDto getContactFilter(final ProjectDto project) {
+    public final FilterDto getContactFilter(ProjectDto project) {
         log.info("Getting contact filter for project {}", project);
-        return getFilterService().getContactFilter(project);
+        return this.getFilterService().getContactFilter(project);
     }
 
     @Override
-    public List<Map<String, Object>> getFilters(final ProjectDto project) {
+    public List<Map<String, Object>> getFilters(ProjectDto project) {
 
-        final List<Map<String, Object>> filterList = getFilterService().getFilters(project);
+        List<Map<String, Object>> filterList = this.getFilterService().getFilters(project);
 
         return filterList;
     }

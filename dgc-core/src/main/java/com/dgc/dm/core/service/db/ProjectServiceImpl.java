@@ -19,10 +19,10 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
     private ProjectDao projectDao;
 
     @Override
-    public ProjectDto createProject(String projectName) {
+    public ProjectDto createProject(final String projectName) {
         log.info("Creating project " + projectName);
-        Project projectEntity = projectDao.createProject(projectName);
-        ProjectDto project = getModelMapper().map(projectEntity, ProjectDto.class);
+        final Project projectEntity = this.projectDao.createProject(projectName);
+        final ProjectDto project = this.getModelMapper().map(projectEntity, ProjectDto.class);
         log.info("Project " + project + " successfully created");
         return project;
     }

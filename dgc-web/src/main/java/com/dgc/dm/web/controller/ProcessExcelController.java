@@ -34,9 +34,9 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     private ModelFacade modelFacade;
 
     @Override
-    public final ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
-                                               final Object object, final Exception exc) {
-        final ModelAndView modelAndView = new ModelAndView("file");
+    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                               Object object, Exception exc) {
+        ModelAndView modelAndView = new ModelAndView("file");
         if (exc instanceof MaxUploadSizeExceededException) {
             modelAndView.getModel().put("message", "File size exceeds limit!");
         }
@@ -44,13 +44,13 @@ public class ProcessExcelController implements HandlerExceptionResolver {
     }
 
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
-    public final ModelAndView uploadFile(@RequestParam("projectName") final String projectName, @RequestParam("file") final MultipartFile file) {
+    public final ModelAndView uploadFile(@RequestParam("projectName") String projectName, @RequestParam("file") MultipartFile file) {
 
         log.info("processing file {} for {}", file.getOriginalFilename(), projectName);
 
-        final ModelAndView modelAndView = new ModelAndView("decision");
+        ModelAndView modelAndView = new ModelAndView("decision");
 
-        ProjectDto project = excelFacade.processExcel(file, projectName);
+        final ProjectDto project = this.excelFacade.processExcel(file, projectName);
 
         if (null == project) {
             log.error("Error creating project");
@@ -59,29 +59,29 @@ public class ProcessExcelController implements HandlerExceptionResolver {
         } else {
             modelAndView.getModel().put("project", project);
             modelAndView.getModel().put("message", "File uploaded successfully!");
-            Map<String, List<Map<String, Object>>> filters = getFiltersModelMap(project);
+            final Map<String, List<Map<String, Object>>> filters = this.getFiltersModelMap(project);
             if (null == filters || filters.isEmpty()) {
                 log.error("No filters found");
                 modelAndView.setViewName("error");
                 modelAndView.getModel().put("message", "No filters found");
             } else {
                 modelAndView.addAllObjects(filters);
-                modelAndView.addObject("form", modelFacade.getFilterCreationDto(project, filters.get("filterList")));
-                modelAndView.addObject("contactFilter", modelFacade.getContactFilter(project));
+                modelAndView.addObject("form", this.modelFacade.getFilterCreationDto(project, filters.get("filterList")));
+                modelAndView.addObject("contactFilter", this.modelFacade.getContactFilter(project));
             }
         }
         return modelAndView;
     }
 
-    private Map<String, List<Map<String, Object>>> getFiltersModelMap(ProjectDto project) {
-        List<Map<String, Object>> filterList = modelFacade.getFilters(project);
+    private Map<String, List<Map<String, Object>>> getFiltersModelMap(final ProjectDto project) {
+        final List<Map<String, Object>> filterList = this.modelFacade.getFilters(project);
 
         if (null == filterList || filterList.isEmpty()) {
             log.error("No filters found");
             return null;
         } else {
             log.info("found {} filters", filterList.size());
-            final Map<String, List<Map<String, Object>>> modelMap = new HashMap<>();
+            Map<String, List<Map<String, Object>>> modelMap = new HashMap<>();
             modelMap.put("filterList", filterList);
             return modelMap;
         }

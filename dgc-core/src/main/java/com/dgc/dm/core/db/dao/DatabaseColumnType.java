@@ -12,12 +12,12 @@ public enum DatabaseColumnType {
 
     private final String simpleNameClass;
 
-    DatabaseColumnType(String simpleNameClass) {
+    DatabaseColumnType(final String simpleNameClass) {
         this.simpleNameClass = simpleNameClass;
     }
 
-    public static String getDBClassByColumnType(String columnClassName) {
-        DatabaseColumnType cl = valueOf(columnClassName.toUpperCase());
+    public static String getDBClassByColumnType(final String columnClassName) {
+        final DatabaseColumnType cl = valueOf(columnClassName.toUpperCase());
 
         switch (cl) {
             case INTEGER:

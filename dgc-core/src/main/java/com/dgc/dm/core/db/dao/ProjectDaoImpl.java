@@ -34,15 +34,15 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
                         "emailTemplate TEXT," +
                         "dmnFile BLOB)";
 
-        getJdbcTemplate().execute(createTableProject);
+        this.getJdbcTemplate().execute(createTableProject);
         log.debug("Table PROJECTS successfully created");
     }
 
     @Override
-    public Project createProject(String projectName) {
+    public Project createProject(final String projectName) {
         log.info("Creating project " + projectName);
-        this.createProjectTable();
-        final Project project = this.projectRepository.saveAndFlush(
+        createProjectTable();
+        Project project = projectRepository.saveAndFlush(
                 Project.builder()
                         .name(projectName)
                         .commonDataTableName("COMMONDATAS_" + projectName)
@@ -54,16 +54,16 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
-    public void updateProject(Project project) {
+    public void updateProject(final Project project) {
         log.info("Updating project " + project);
-        this.projectRepository.saveAndFlush(project);
+        projectRepository.saveAndFlush(project);
         log.info("Project " + project + " successfully updated");
     }
 
     @Override
     public List<Map<String, Object>> getProjects() {
         log.info("Getting projects ");
-        final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
+        List<Map<String, Object>> projects = this.getJdbcTemplate().queryForList("Select * from PROJECTS");
         if (projects == null || projects.isEmpty()) {
             log.info("No project founds");
             return null;
@@ -73,9 +73,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
-    public Project getProject(Integer selectedProjectId) {
+    public Project getProject(final Integer selectedProjectId) {
         log.debug("Getting project by id " + selectedProjectId);
-        final Optional<Project> optionalProject = this.projectRepository.findById(selectedProjectId);
+        Optional<Project> optionalProject = projectRepository.findById(selectedProjectId);
         if (optionalProject.isPresent()) {
             log.debug("project found " + optionalProject.get());
             return optionalProject.get();
@@ -86,9 +86,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
-    public void deleteProject(Project project) {
+    public void deleteProject(final Project project) {
         log.debug("deleting project " + project);
-        getJdbcTemplate().execute("DELETE FROM PROJECTS where id=" + project.getId());
+        this.getJdbcTemplate().execute("DELETE FROM PROJECTS where id=" + project.getId());
         log.debug("project successfully deleted");
     }
 }
