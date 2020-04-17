@@ -4,10 +4,11 @@
 
 package com.dgc.dm.web.controller;
 
-import com.dgc.dm.core.bpmn.BPMNServer;
 import com.dgc.dm.core.db.service.DbServer;
 import com.dgc.dm.core.dto.ProjectDto;
+import com.dgc.dm.core.service.bpmn.BPMNServer;
 import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.model.dmn.DmnModelException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Controller;
@@ -34,35 +35,55 @@ public class EditProjectController implements HandlerExceptionResolver {
     @Autowired
     private BPMNServer bpmnServer;
 
-    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editEmailTemplate")
-    public String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") final String emailTemplate) {
-        log.info("Edit email template (" + emailTemplate + ") for project " + selectedProject);
-
-        selectedProject.setEmailTemplate(emailTemplate);
-        dbServer.updateProject(selectedProject);
-
-        log.info("Email template successfully updated for project" + selectedProject);
-        return "success";
-    }
-
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=uploadFile")
-    public String uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") final MultipartFile uploadFile) {
-        log.info("processing file " + uploadFile.getOriginalFilename() + " for project " + project);
+    public static final String uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") final MultipartFile uploadFile) {
+        log.info("processing file {} for project {}", uploadFile.getOriginalFilename(), project);
 
         log.info("File successfully processed");
         return "success";
     }
 
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editFilters")
+    public static final String editFilters(@ModelAttribute("selectedProject") ProjectDto project) {
+        log.info("Go to edit filters for project {}", project);
+
+        final ModelAndView modelAndView = new ModelAndView("decision");
+        modelAndView.getModel().put("project", project);
+
+        log.info("File successfully processed");
+        return "success";
+    }
+
+    private static File generateDmnFile(ProjectDto project) throws IOException {
+        final File dmnFile = new File(project.getName() + "decision-manager.dm");
+        final OutputStream os = new FileOutputStream(dmnFile);
+        os.write(project.getDmnFile());
+        os.close();
+
+        return dmnFile;
+    }
+
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editEmailTemplate")
+    public final String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") final String emailTemplate) {
+        log.info("Edit email template ({}) for project {}", emailTemplate, selectedProject);
+
+        selectedProject.setEmailTemplate(emailTemplate);
+        dbServer.updateProject(selectedProject);
+
+        log.info("Email template successfully updated for project{}", selectedProject);
+        return "success";
+    }
+
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDMNFilteredResults")
-    public ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") ProjectDto selectedProject) {
+    public final ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") ProjectDto selectedProject) {
         log.info("getting results filtering by DMN file");
         ModelAndView modelAndView = new ModelAndView("result");
 
         log.debug("Getting updated project from database");
         final ProjectDto updatedProject = this.dbServer.getProject(selectedProject.getId());
 
-        if (updatedProject.getDmnFile() == null || updatedProject.getDmnFile().length <= 0) {
-            log.error("DMN file NOT defined on project " + updatedProject);
+        if (null == updatedProject.getDmnFile() || 0 >= updatedProject.getDmnFile().length) {
+            log.error("DMN file NOT defined on project {}", updatedProject);
             modelAndView.setViewName("error");
             modelAndView.getModel().put("message", "DMN file NOT defined, please define a DMN file on view Project view");
         } else {
@@ -76,40 +97,29 @@ public class EditProjectController implements HandlerExceptionResolver {
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDmn")
     @ResponseBody
-    public FileSystemResource getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject) throws IOException {
-        log.info("Getting dmn file for project " + selectedProject);
+    public final FileSystemResource getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject) throws IOException {
+        log.info("Getting dmn file for project {}", selectedProject);
 
         ProjectDto projectDto = dbServer.getProject(selectedProject.getId());
-        log.info("DMN file recovered successfully for project " + projectDto);
+        log.info("DMN file recovered successfully for project {}", projectDto);
 
-        return new FileSystemResource(this.generateDmnFile(projectDto));
+        return new FileSystemResource(generateDmnFile(projectDto));
     }
-
-    private File generateDmnFile(ProjectDto project) throws IOException {
-        final File dmnFile = new File(project.getName() + "decision-manager.dm");
-        final OutputStream os = new FileOutputStream(dmnFile);
-        os.write(project.getDmnFile());
-        os.close();
-
-        return dmnFile;
-    }
-
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editDmn")
-    public ModelAndView editDmn(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("dmnFile") final MultipartFile dmnFile) {
+    public final ModelAndView editDmn(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("dmnFile") final MultipartFile dmnFile) {
         final ModelAndView modelAndView = new ModelAndView("success");
 
         try {
-            log.info("Validating DMN file " + dmnFile.getOriginalFilename() + " for project " + project);
-
+            log.info("Validating DMN file {} for project {}", dmnFile.getOriginalFilename(), project);
             this.bpmnServer.validateDmn(dmnFile.getBytes());
-
             project.setDmnFile(dmnFile.getBytes());
             this.dbServer.updateProject(project);
-
             log.info("DMN File successfully processed");
+        } catch (final DmnModelException e) {
+            e.printStackTrace();
         } catch (final Exception e) {
-            log.error("Error validating DMN File " + e.getMessage());
+            log.error("Error validating DMN File {}", e.getMessage());
             e.printStackTrace();
             modelAndView.setViewName("error");
             modelAndView.addObject("message", "Project NOT found");
@@ -118,35 +128,52 @@ public class EditProjectController implements HandlerExceptionResolver {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getFilteredResults")
-    public String getFilteredResults(@ModelAttribute("selectedProject") ProjectDto project) {
-        log.info("Getting filtered results for project " + project);
-
-        return "result";
-    }
-
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getAllRegisters")
-    public String getAllRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
-        log.info("Get all Registers for project " + project);
+    public final ModelAndView getAllRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
+        log.info("Get all Registers for project {}", project);
 
-        return "result";
+        ModelAndView modelAndView = new ModelAndView("result");
+        List<Map<String, Object>> result = this.dbServer.getCommonData(project);
+        modelAndView.addObject("form", result);
+
+        log.info("Found {} registers for project {}", result.size(), project);
+        return modelAndView;
     }
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=deleteRegisters")
-    public String deleteRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
-        log.info("Delete all registers for project " + project);
+    public final ModelAndView deleteRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
+        log.info("Delete all registers for project {}", project);
 
-        return "success";
+        ModelAndView modelAndView = new ModelAndView("success");
+        dbServer.deleteCommonData(project);
+        modelAndView.addObject("message", "Registros borrados correctamente");
+
+        log.info("Deleted all registers for project {}", project);
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=deleteProject")
+    public final ModelAndView deleteProject(@ModelAttribute("selectedProject") ProjectDto project) {
+        log.info("Delete project {}", project);
+
+        ModelAndView modelAndView = new ModelAndView("success");
+        dbServer.deleteProject(project);
+        modelAndView.addObject("message", "Proyecto borrado correctamente");
+
+        log.info("Deleted project {}", project);
+
+        return modelAndView;
     }
 
     @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
-                                         Object object, Exception exc) {
+    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                               Object object, Exception exc) {
 
         ModelAndView modelAndView = new ModelAndView("home");
         modelAndView.getModel().put("message", exc.getMessage());
 
-        log.error("Error " + exc.getMessage());
+        log.error("Error {}", exc.getMessage());
         exc.printStackTrace();
 
         return modelAndView;
