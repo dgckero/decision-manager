@@ -20,23 +20,29 @@ public interface DbServer {
 
     void persistFilterList(List<Filter> filterList);
 
-    void persistExcelRows(String insertSentence, List<Object[]> infoToBePersisted);
-
     List<Map<String, Object>> getFilters();
 
     List<Map<String, Object>> getFilters(ProjectDto project);
 
     void updateFilters(List<FilterDto> activeFilters);
 
-    List<Map<String, Object>> getCommonData(ProjectDto project);
+    Filter getContactFilter(ProjectDto project);
 
     Project createProject(String projectName);
-
-    Filter getContactFilter(ProjectDto project);
 
     void updateProject(ProjectDto project);
 
     List<Map<String, Object>> getProjects();
 
     ProjectDto getProject(Integer selectedProjectId);
+
+    void deleteProject(ProjectDto project);
+
+    void persistExcelRows(String insertSentence, List<Object[]> infoToBePersisted);
+
+    List<Map<String, Object>> getCommonData(ProjectDto project);
+
+    void deleteCommonData(ProjectDto project);
+
+
 }

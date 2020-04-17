@@ -2,15 +2,14 @@
   @author david
  */
 
-package com.dgc.dm.core.email;
+package com.dgc.dm.core.service.email;
 
 import com.dgc.dm.core.dto.ProjectDto;
-import org.springframework.mail.MailException;
 
 import javax.mail.MessagingException;
 
 public interface EmailService {
-    void sendASynchronousMail(String toEmail, ProjectDto project) throws MailException;
+    void sendASynchronousMail(String toEmail, ProjectDto project);
 
     void sendMail(String from, String to, String subject, String body, String name) throws MessagingException;
 
