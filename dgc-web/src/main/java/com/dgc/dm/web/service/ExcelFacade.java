@@ -8,7 +8,5 @@ import com.dgc.dm.core.dto.ProjectDto;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ExcelFacade {
-
     ProjectDto processExcel(MultipartFile file, String project);
-
 }

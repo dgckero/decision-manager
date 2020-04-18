@@ -13,4 +13,8 @@ public interface DataService {
     void createDataTable(Map<String, Class<?>> columns, ProjectDto project);
 
     void persistData(String insertSentence, List<Object[]> infoToBePersisted);
+
+    List<Map<String, Object>> getCommonData(ProjectDto project);
+
+    void deleteCommonData(ProjectDto project);
 }

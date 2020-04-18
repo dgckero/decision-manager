@@ -33,4 +33,19 @@ public class DataServiceImpl extends CommonServer implements DataService {
         this.dataDao.persistData(insertSentence, infoToBePersisted);
         log.info("Persisted Excel rows");
     }
+
+    @Override
+    public List<Map<String, Object>> getCommonData(ProjectDto project) {
+        log.info("Getting all info from table: {}", project.getCommonDataTableName());
+        List<Map<String, Object>> entities = dataDao.getCommonData(getModelMapper().map(project, Project.class));
+        log.info("Got all info from table: {}", project.getCommonDataTableName());
+        return entities;
+    }
+
+    @Override
+    public void deleteCommonData(final ProjectDto project) {
+        log.debug("Deleting all registers for project {}", project);
+        dataDao.deleteCommonData(getModelMapper().map(project, Project.class));
+        log.debug("Registers successfully deleted for project {}", project);
+    }
 }

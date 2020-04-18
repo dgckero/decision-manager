@@ -18,4 +18,26 @@ public interface ModelFacade {
     FilterDto getContactFilter(ProjectDto project);
 
     List<Map<String, Object>> getFilters(ProjectDto project);
+
+    void updateProject(ProjectDto project);
+
+    void updateFilters(List<FilterDto> activeFilters);
+
+    List<Map<String, Object>> createBPMNModel(List<FilterDto> activeFilters, String emailTemplate) throws Exception;
+
+    List<FilterDto> getActiveFilters(List<FilterDto> filters);
+
+    List<Map<String, Object>> getProjects();
+
+    ProjectDto getProject(Integer selectedProjectId);
+
+    List<Map<String, Object>> executeDmn(ProjectDto updatedProject);
+
+    void validateDmn(ProjectDto project, byte[] bytes);
+
+    List<Map<String, Object>> getCommonData(ProjectDto project);
+
+    void deleteCommonData(ProjectDto project);
+
+    void deleteProject(ProjectDto project);
 }

@@ -7,10 +7,11 @@ package com.dgc.dm.web.service;
 import com.dgc.dm.core.service.db.DataService;
 import com.dgc.dm.core.service.db.FilterService;
 import com.dgc.dm.core.service.db.ProjectService;
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Getter
+@Getter(AccessLevel.PROTECTED)
 public class CommonFacade {
 
     @Autowired
