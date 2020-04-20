@@ -14,7 +14,7 @@ import org.hibernate.annotations.NaturalId;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Builder
+@Builder(toBuilder = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

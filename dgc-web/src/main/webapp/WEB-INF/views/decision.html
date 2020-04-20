@@ -10,12 +10,11 @@
           th:rel="stylesheet"/>
     <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
 
-
     <script>
         $(document).ready(function () {
-            $("div#emailDiv").hide();
+            initializeFormValues();
 
-            $('#toggleEmail').change(function () {
+            $('#sendEmail').change(function () {
                 if ( $(this).prop("checked") ){
                     $("div#emailDiv").show();
                 }else{
@@ -24,12 +23,17 @@
             });
         });
 
+        function initializeFormValues(){
+            var contactFilter = "[[${contactFilter}]]";
 
-
-
-
-
-
+            if ( contactFilter ){
+                $("div#emailDiv").show();
+                $("textarea#emailTemplate").val("[[${project.emailTemplate}]]");
+                $("#sendEmail").prop('checked', true);
+            }else{
+                $("div#emailDiv").hide();
+            }
+        }
 
     </script>
 
@@ -65,7 +69,7 @@
                             <input th:field="*{filters[__${itemStat.index}__].filterClass}"
                                    th:value="${item.class}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].contactFilter}"
-                                   th:value="${item.contactFilter}" type="hidden"/>
+                                   id="contactFilterInput" th:value="${item.contactFilter}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].name}"
                                    th:value="${item.name}" type="hidden"/>
                             <input th:field="*{filters[__${itemStat.index}__].active}"
@@ -110,7 +114,7 @@
 
                 <div id="contactFilterDiv" th:if="${contactFilter}">
                     <label class="checkbox-inline">
-                        <input data-toggle="toggle" id="toggleEmail" type="checkbox">Enviar Email</input>
+                        <input data-toggle="toggle" id="sendEmail" name="sendEmail" type="checkbox">Enviar Email</input>
                     </label>
                     <div class="col-md-4" id="emailDiv">
                         <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"

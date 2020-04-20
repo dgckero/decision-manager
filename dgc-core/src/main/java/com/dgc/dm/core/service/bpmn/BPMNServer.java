@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface BPMNServer {
-    List<Map<String, Object>> createAndRunDMN(ProjectDto project, List<FilterDto> activeFilters, boolean sendMail) throws Exception;
+    List<Map<String, Object>> createAndRunDMN(ProjectDto project, List<FilterDto> activeFilters, Boolean sendMail) throws Exception;
 
     void validateDmn(byte[] bytes);
 

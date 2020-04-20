@@ -25,9 +25,9 @@ import java.util.Map;
 @Controller
 public class EditProjectControllerImpl extends CommonController implements EditProjectController {
 
-    private static File generateDmnFile(final ProjectDto project) throws IOException {
-        File dmnFile = new File(project.getName() + "decision-manager.dm");
-        OutputStream os = new FileOutputStream(dmnFile);
+    private static File generateDmnFile(ProjectDto project) throws IOException {
+        final File dmnFile = new File(project.getName() + "decision-manager.dm");
+        final OutputStream os = new FileOutputStream(dmnFile);
         os.write(project.getDmnFile());
         os.close();
 
@@ -35,7 +35,7 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public String uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") MultipartFile uploadFile) {
+    public String uploadFile(@ModelAttribute("selectedProject") final ProjectDto project, @RequestParam("uploadFile") final MultipartFile uploadFile) {
         log.info("processing file {} for project {}", uploadFile.getOriginalFilename(), project);
 //TODO add new data to project
         log.info("File successfully processed");
@@ -43,42 +43,46 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public String editFilters(@ModelAttribute("selectedProject") ProjectDto project) {
+    public ModelAndView editFilters(@ModelAttribute("selectedProject") final ProjectDto project) {
         log.info("Go to edit filters for project {}", project);
-
-//TODO edit filters
-        ModelAndView modelAndView = new ModelAndView(CommonController.DECISION_VIEW);
-        modelAndView.getModel().put("project", project);
-
+        final ModelAndView modelAndView = new ModelAndView(CommonController.DECISION_VIEW);
+        if (null == project) {
+            log.error("Error creating project");
+            modelAndView.setViewName(CommonController.ERROR_VIEW);
+            modelAndView.getModel().put("message", "Error creating project");
+        } else {
+            modelAndView.getModel().put("project", project);
+            this.getModelFacade().addFilterInformationToModel(modelAndView, project);
+        }
         log.info("File successfully processed");
-        return CommonController.SUCCESS_VIEW;
+        return modelAndView;
     }
 
     @Override
-    public final String editEmailTemplate(@ModelAttribute("selectedProject") final ProjectDto selectedProject, @ModelAttribute("emailTemplate") String emailTemplate) {
+    public final String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") final String emailTemplate) {
         log.info("Edit email template ({}) for project {}", emailTemplate, selectedProject);
 
         selectedProject.setEmailTemplate(emailTemplate);
-        getModelFacade().updateProject(selectedProject);
+        this.getModelFacade().updateProject(selectedProject);
 
         log.info("Email template successfully updated for project{}", selectedProject);
         return "success";
     }
 
     @Override
-    public final ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") final ProjectDto selectedProject) {
+    public final ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") ProjectDto selectedProject) {
         log.info("getting results filtering by DMN file");
-        final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
+        ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
 
         log.debug("Getting updated project from database");
-        ProjectDto updatedProject = getModelFacade().getProject(selectedProject.getId());
+        final ProjectDto updatedProject = this.getModelFacade().getProject(selectedProject.getId());
 
         if (null == updatedProject.getDmnFile() || 0 >= updatedProject.getDmnFile().length) {
             log.error("DMN file NOT defined on project {}", updatedProject);
             modelAndView.setViewName(ERROR_VIEW);
             modelAndView.getModel().put("message", "DMN file NOT defined, please define a DMN file on view Project view");
         } else {
-            final List<Map<String, Object>> result = getModelFacade().executeDmn(updatedProject);
+            List<Map<String, Object>> result = this.getModelFacade().executeDmn(updatedProject);
             if (null == result) {
                 modelAndView.setViewName(ERROR_VIEW);
                 modelAndView.getModel().put("message", "\"No results found after running DMN for project" + updatedProject.getName());
@@ -91,23 +95,23 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public final FileSystemResource getDmn(@ModelAttribute("selectedProject") final ProjectDto selectedProject) throws IOException {
+    public final FileSystemResource getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject) throws IOException {
         log.info("Getting dmn file for project {}", selectedProject);
 
-        final ProjectDto projectDto = getModelFacade().getProject(selectedProject.getId());
+        ProjectDto projectDto = this.getModelFacade().getProject(selectedProject.getId());
         log.info("DMN file recovered successfully for project {}", projectDto);
 
         return new FileSystemResource(generateDmnFile(projectDto));
     }
 
     @Override
-    public final ModelAndView editDmn(@ModelAttribute("selectedProject") final ProjectDto project, @RequestParam("dmnFile") MultipartFile dmnFile) {
-        ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
+    public final ModelAndView editDmn(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("dmnFile") final MultipartFile dmnFile) {
+        final ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
         try {
             log.info("Validating DMN file {} for project {}", dmnFile.getOriginalFilename(), project);
-            getModelFacade().validateDmn(project, dmnFile.getBytes());
+            this.getModelFacade().validateDmn(project, dmnFile.getBytes());
             log.info("DMN File successfully processed");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error validating DMN File {}", e.getMessage());
             e.printStackTrace();
             modelAndView.setViewName(ERROR_VIEW);
@@ -117,16 +121,16 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public final ModelAndView getAllRegisters(@ModelAttribute("selectedProject") final ProjectDto project) {
+    public final ModelAndView getAllRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
         log.info("Get all Registers for project {}", project);
 
-        final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
+        ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
         if (null == project) {
             log.error("Selected project is null");
             modelAndView.setViewName(ERROR_VIEW);
             modelAndView.getModel().put("message", "Selected project is null");
         } else {
-            final List<Map<String, Object>> result = getModelFacade().getCommonData(project);
+            List<Map<String, Object>> result = this.getModelFacade().getCommonData(project);
             if (null == result) {
                 log.error("Not found data from project {}", project);
                 modelAndView.setViewName(ERROR_VIEW);
@@ -140,16 +144,16 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public final ModelAndView deleteRegisters(@ModelAttribute("selectedProject") final ProjectDto project) {
+    public final ModelAndView deleteRegisters(@ModelAttribute("selectedProject") ProjectDto project) {
         log.info("Delete all registers for project {}", project);
 
-        final ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
+        ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
         if (null == project) {
             log.error("Selected project is null");
             modelAndView.setViewName(ERROR_VIEW);
             modelAndView.getModel().put("message", "Selected project is null");
         } else {
-            getModelFacade().deleteCommonData(project);
+            this.getModelFacade().deleteCommonData(project);
             modelAndView.addObject("message", "Registros borrados correctamente");
 
             log.info("Deleted all registers for project {}", project);
@@ -158,16 +162,16 @@ public class EditProjectControllerImpl extends CommonController implements EditP
     }
 
     @Override
-    public final ModelAndView deleteProject(@ModelAttribute("selectedProject") final ProjectDto project) {
+    public final ModelAndView deleteProject(@ModelAttribute("selectedProject") ProjectDto project) {
         log.info("Delete project {}", project);
 
-        final ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
+        ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
         if (null == project) {
             log.error("Selected project is null");
             modelAndView.setViewName(ERROR_VIEW);
             modelAndView.getModel().put("message", "Selected project is null");
         } else {
-            getModelFacade().deleteProject(project);
+            this.getModelFacade().deleteProject(project);
             modelAndView.addObject("message", "Proyecto borrado correctamente");
             log.info("Deleted project {}", project);
         }

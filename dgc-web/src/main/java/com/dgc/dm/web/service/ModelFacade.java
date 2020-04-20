@@ -7,6 +7,7 @@ package com.dgc.dm.web.service;
 import com.dgc.dm.core.dto.FilterCreationDto;
 import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +24,7 @@ public interface ModelFacade {
 
     void updateFilters(List<FilterDto> activeFilters);
 
-    List<Map<String, Object>> createBPMNModel(List<FilterDto> activeFilters, String emailTemplate) throws Exception;
+    List<Map<String, Object>> createBPMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception;
 
     List<FilterDto> getActiveFilters(List<FilterDto> filters);
 
@@ -40,4 +41,6 @@ public interface ModelFacade {
     void deleteCommonData(ProjectDto project);
 
     void deleteProject(ProjectDto project);
+
+    void addFilterInformationToModel(ModelAndView modelAndView, ProjectDto project);
 }

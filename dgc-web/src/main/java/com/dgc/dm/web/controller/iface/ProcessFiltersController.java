@@ -13,5 +13,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 public interface ProcessFiltersController {
     @PostMapping("/process")
-    ModelAndView processFilters(@ModelAttribute FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") String emailTemplate);
+    ModelAndView processFilters(@ModelAttribute FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") String emailTemplate,
+                                @RequestParam(required = false, name = "sendEmail") Boolean sendEmail);
 }

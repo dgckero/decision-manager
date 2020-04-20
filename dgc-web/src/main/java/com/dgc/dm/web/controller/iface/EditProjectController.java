@@ -18,7 +18,7 @@ public interface EditProjectController extends HandlerExceptionResolver {
     String uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") MultipartFile uploadFile);
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editFilters")
-    String editFilters(@ModelAttribute("selectedProject") ProjectDto project);
+    ModelAndView editFilters(@ModelAttribute("selectedProject") ProjectDto project);
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editEmailTemplate")
     String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") String emailTemplate);
