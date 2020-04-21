@@ -34,34 +34,8 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     private static final int ROW_ZERO = 0;
     private static final int SHEET_ZERO = 0;
 
-    @Transactional
-    @Override
-    public ProjectDto processExcel(final MultipartFile file, final String projectName) {
-        log.info("Processing Excel file");
-        try {
-            final ProjectDto project = this.getProjectService().createProject(projectName);
 
-            final HSSFSheet worksheet = getWorkSheet(file);
-
-            Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
-
-            getDataService().createDataTable(colMapByName, project);
-
-            List<Object> excelObjs = new ArrayList<>();
-            processExcelRows(worksheet, colMapByName, excelObjs, project);
-            this.getFilterService().persistFilterList(this.generateFilterList(colMapByName, project), project);
-
-            log.info("processed (" + excelObjs.size() + ") rows");
-
-            return project;
-        } catch (Exception e) {
-            log.error("Error " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private List<FilterDto> generateFilterList(final Map<String, Class<?>> columns, final ProjectDto project) {
+    private static List<FilterDto> generateFilterList(Map<String, Class<?>> columns, ProjectDto project) {
         List<FilterDto> filterList = new ArrayList<>();
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
@@ -77,29 +51,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return filterList;
     }
 
-    private void processExcelRows(final HSSFSheet worksheet, final Map<String, Class<?>> columns, List<Object> excelObjs, final ProjectDto project) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        if (columns != null && columns.size() > 0) {
-            log.info("Generating dynamic class");
-
-            Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", columns);
-            log.info("Generated dynamic class: " + generatedObj.getName());
-
-            log.info("Populating generated dynamic class with Excel's row values");
-
-            List<Object[]> infoToBePersisted = new ArrayList<>();
-            for (int rowNumber = 1; rowNumber < worksheet.getPhysicalNumberOfRows(); rowNumber++) {
-                Object[] info = populateGeneratedObject(project, worksheet.getRow(rowNumber), generatedObj, columns, excelObjs, rowNumber);
-                if (info != null) {
-                    infoToBePersisted.add(info);
-                }
-            }
-            this.getDataService().persistData(getInsertSentence(columns, project.getCommonDataTableName()), infoToBePersisted);
-        } else {
-            log.error("No columns found on File");
-        }
-    }
-
-    private String getInsertSentence(final Map<String, Class<?>> columns, final String commonDataTableName) {
+    private static String getInsertSentence(Map<String, Class<?>> columns, String commonDataTableName) {
         StringBuilder insertQuery = new StringBuilder("insert into " + commonDataTableName + " (");
 
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
@@ -114,18 +66,177 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return insertQuery.toString();
     }
 
-    private Object[] populateGeneratedObject(final ProjectDto project, HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> columns,
-                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException, IllegalArgumentException,
-            SecurityException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    private static boolean isArrayEmpty(Object[] array) {
 
-        log.trace("populating dynamic class with Excel row number " + rowNumber);
+        for (Object ob : array) {
+            if (null != ob) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
+        ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
+        temp.add(newObj);
+        return temp.toArray();
+    }
+
+    private static HSSFSheet getWorkSheet(MultipartFile file) throws IOException {
+        log.info("Getting workSheet from file {}", file.getName());
+        HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
+        return workbook.getSheetAt(SHEET_ZERO);
+    }
+
+    private static String getColumnNameByCellValue(String value) {
+        StringBuilder sb = new StringBuilder();
+
+        boolean lower = true;
+        for (int charInd = 0; charInd < value.length(); ++charInd) {
+            char valueChar = value.charAt(charInd);
+            if (' ' == valueChar || '_' == valueChar) {
+                lower = false;
+            } else if (lower) {
+                sb.append(Character.toLowerCase(valueChar));
+            } else {
+                sb.append(Character.toUpperCase(valueChar));
+                lower = true;
+            }
+        }
+
+        return sb.toString().replaceAll("\\s+", "").replaceAll("_", "");
+    }
+
+    private static HSSFCell getNextCellNoNull(HSSFCell cell, HSSFSheet worksheet, int cellNumber, boolean goOverWorkSheet) {
+        HSSFCell cellToBeProcessed = cell;
+        if (null == cell) {
+            if (goOverWorkSheet) {
+                for (int i = 2; i < worksheet.getLastRowNum() && null == cellToBeProcessed; i++) {
+                    HSSFRow row = worksheet.getRow(i);
+                    cellToBeProcessed = row.getCell(cellNumber);
+                }
+            } else {
+                return null;
+            }
+        }
+        return cellToBeProcessed;
+    }
+
+    /**
+     * @param cell
+     * @return true if cellType is Date
+     */
+    private static boolean isDateCell(HSSFCell cell) {
+        try {
+            return DateUtil.isCellDateFormatted(cell);
+        } catch (java.lang.IllegalStateException e) {
+            //Nothing to do
+            return false;
+        }
+    }
+
+    private Map<String, Class<?>> compareExcelColumnNames(HSSFSheet worksheet, MultipartFile file, ProjectDto project) throws Exception {
+        Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
+        if (colMapByName.isEmpty()) {
+            log.warn("No columns found on file {}", file.getOriginalFilename());
+            throw new Exception("No columns found on file " + file.getOriginalFilename());
+        }
+        log.debug("Found {} filters on excel {}", colMapByName.size(), file.getOriginalFilename());
+        List<Map<String, Object>> projectFilters = getFilterService().getFilters(project);
+        if (null == projectFilters || projectFilters.isEmpty()) {
+            log.warn("No filters found for project {}", project);
+            throw new Exception("No filters found for project " + project);
+        } else if ((projectFilters.size() - 1) == colMapByName.size()) { // subtract 1 to project's filters because of the rowId column
+            log.info("Excel file has same number of columns ({}) than filters ({}) for project {}", colMapByName.size(), projectFilters.size() - 1, project);
+            return colMapByName;
+        } else {
+            log.warn("Excel file has NOT same number of columns ({}) than filters ({}) for project {}", colMapByName.size(), projectFilters.size(), project);
+            throw new Exception("Excel file has NOT same number of columns (" + colMapByName.size() + ") than filters (" + projectFilters.size() + ") for project " + project.getName());
+        }
+
+    }
+
+    @Transactional
+    @Override
+    public final void processExcel(MultipartFile file, ProjectDto project) throws Exception {
+        log.info("Processing Excel file");
+
+        HSSFSheet worksheet = getWorkSheet(file);
+        Map<String, Class<?>> colMapByName = compareExcelColumnNames(worksheet, file, project);
+        processExcelRows(worksheet, colMapByName, project, getDataService().getCommonDataSize(project) + 1);
+    }
+
+    @Transactional
+    @Override
+    public final ProjectDto processExcel(MultipartFile file, String projectName) {
+        log.info("Processing Excel file");
+        try {
+            HSSFSheet worksheet = getWorkSheet(file);
+            Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
+
+            ProjectDto project = createProjectModel(projectName, colMapByName);
+
+            processExcelRows(worksheet, colMapByName, project, 0);
+            getFilterService().persistFilterList(generateFilterList(colMapByName, project), project);
+
+            return project;
+        } catch (final Exception e) {
+            log.error("Error {}", e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Create Project and Data tables
+     * Add Project information on Project table
+     *
+     * @param projectName
+     * @param colMapByName
+     * @return new Project
+     */
+    private ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName) {
+        ProjectDto project = getProjectService().createProject(projectName);
+        getDataService().createDataTable(colMapByName, project);
+        return project;
+    }
+
+    private void processExcelRows(HSSFSheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (null != columns && !columns.isEmpty()) {
+            List<Object> excelObjs = new ArrayList<>();
+
+            log.info("Generating dynamic class");
+            Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", columns);
+            log.info("Generated dynamic class: {}", generatedObj.getName());
+
+            log.info("Populating generated dynamic class with Excel's row values");
+            List<Object[]> infoToBePersisted = new ArrayList<>();
+            for (int rowNumber = 1; rowNumber < worksheet.getPhysicalNumberOfRows(); rowNumber++, rowIdNumber++) {
+                Object[] info = populateGeneratedObject(project, worksheet.getRow(rowNumber), generatedObj, columns, excelObjs, rowIdNumber);
+                if (null != info) {
+                    infoToBePersisted.add(info);
+                }
+            }
+            getDataService().persistData(getInsertSentence(columns, project.getCommonDataTableName()), infoToBePersisted);
+
+            log.info("processed ({}) rows", excelObjs.size());
+        } else {
+            log.error("No columns found on File");
+        }
+    }
+
+    private Object[] populateGeneratedObject(ProjectDto project, HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> columns,
+                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
+            InstantiationException, NoSuchMethodException, InvocationTargetException {
+
+        log.trace("populating dynamic class with Excel row number {}", rowNumber);
 
         Object[] insertQueryValues = {};
 
         Iterator<Cell> excelRowIterator = row.cellIterator();
         while (excelRowIterator.hasNext()) {
 
-            CommonDto obj = generatedObj.newInstance();
+            CommonDto obj = generatedObj.getConstructor().newInstance();
             for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
                 insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
@@ -139,7 +250,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
                 obj.setProject(project);
                 excelObjs.add(obj);
 
-                log.trace("added object (" + obj + ") by row( " + rowNumber + ")");
+                log.trace("added object ({}) by row( {})", obj, rowNumber);
             }
         }
         if (isArrayEmpty(insertQueryValues)) {
@@ -148,34 +259,17 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return insertQueryValues;
     }
 
-    private boolean isArrayEmpty(Object[] array) {
-
-        for (Object ob : array) {
-            if (ob != null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    private Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
-        ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
-        temp.add(newObj);
-        return temp.toArray();
-    }
-
     private String populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
                                                 Iterator<Cell> excelRowIterator, CommonDto obj)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        log.trace("Populating property " + column.getKey() + " with value " + column.getValue());
+        log.trace("Populating property {} with value {}", column.getKey(), column.getValue());
         String setMethod = "set" + StringUtils.capitalize(column.getKey());
         if (excelRowIterator.hasNext()) {
             String cellValue = populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), obj);
-            log.trace("Populated property " + column.getKey() + " with value " + cellValue);
+            log.trace("Populated property {} with value {}", column.getKey(), cellValue);
             return cellValue;
         } else {
-            log.trace("Populated property " + column.getKey() + " with null value ");
+            log.trace("Populated property {} with null value ", column.getKey());
             return null;
         }
     }
@@ -183,13 +277,13 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     private String populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> columnClass, Cell cell, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         Class<?> cellClass = getCellClass((HSSFCell) cell);
-        if (cellClass == null) {
+        if (null == cellClass) {
             log.trace("cell is BLANK");
             return null;
         } else {
-            log.trace("Populating method: " + setMethod + ", class: " + cellClass.getName() + ", value: " + cell);
+            log.trace("Populating method: {}, class: {}, value: {}", setMethod, cellClass.getName(), cell);
 
-            final Class<?> colClass = columnClass.equals(Email.class) ? String.class : columnClass;
+            Class<?> colClass = columnClass.equals(Email.class) ? String.class : columnClass;
 
             if (cellClass.isAssignableFrom(Date.class)) {
                 generatedObj.getMethod(setMethod, colClass).invoke(obj,
@@ -207,62 +301,37 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         }
     }
 
-    private HSSFSheet getWorkSheet(final MultipartFile file) throws IOException {
-        log.info("Getting workSheet from file " + file.getName());
-        final HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
-        return workbook.getSheetAt(SHEET_ZERO);
-    }
-
-    private LinkedHashMap<String, Class<?>> getExcelColumnNames(final HSSFSheet worksheet) {
+    private LinkedHashMap<String, Class<?>> getExcelColumnNames(HSSFSheet worksheet) {
         log.info("Getting Excel's column names");
         HSSFRow firstRow = worksheet.getRow(ROW_ZERO);
         HSSFRow secondRow = worksheet.getRow(ROW_ONE);
 
         int columnsSize = firstRow.getPhysicalNumberOfCells();
-        log.info("Found " + columnsSize + " column(s) on Excel");
+        log.info("Found {} column(s) on Excel", columnsSize);
 
         LinkedHashMap<String, Class<?>> colMapByName = new LinkedHashMap<>();
         if (firstRow.cellIterator().hasNext()) {
             for (int j = 0; j < columnsSize; j++) {
                 HSSFCell cell = firstRow.getCell(j);
-                if (cell != null) {
+                if (null != cell) {
                     Class<?> cellClass = getCellClass(secondRow.getCell(j), worksheet, j, true);
                     colMapByName.put(getColumnNameByCellValue(cell.getStringCellValue()), cellClass);
-                    log.trace("Processed column(" + j + "), columnName " + cell.getStringCellValue() + ", class " + ((cellClass == null) ? "NULL" : cellClass.getName()));
+                    log.trace("Processed column({}), columnName {}, class {}", j, cell.getStringCellValue(), (null == cellClass) ? "NULL" : cellClass.getName());
                 }
             }
         }
         return colMapByName;
     }
 
-    private String getColumnNameByCellValue(String value) {
-        StringBuilder sb = new StringBuilder();
-
-        boolean lower = true;
-        for (int charInd = 0; charInd < value.length(); ++charInd) {
-            final char valueChar = value.charAt(charInd);
-            if (valueChar == ' ' || valueChar == '_') {
-                lower = false;
-            } else if (lower) {
-                sb.append(Character.toLowerCase(valueChar));
-            } else {
-                sb.append(Character.toUpperCase(valueChar));
-                lower = true;
-            }
-        }
-
-        return sb.toString().replaceAll("\\s+", "").replaceAll("_", "");
+    private Class<?> getCellClass(HSSFCell cell) {
+        return getCellClass(cell, null, 0, false);
     }
 
-    private Class<?> getCellClass(final HSSFCell cell) {
-        return this.getCellClass(cell, null, 0, false);
-    }
+    private Class<?> getCellClass(HSSFCell cell, HSSFSheet worksheet, int cellNumber, boolean goOverWorkSheet) {
+        HSSFCell cellToBeProcessed = getNextCellNoNull(cell, worksheet, cellNumber, goOverWorkSheet);
 
-    private Class<?> getCellClass(final HSSFCell cell, final HSSFSheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
-        HSSFCell cellToBeProcessed = this.getNextCellNoNull(cell, worksheet, cellNumber, goOverWorkSheet);
-
-        if (cellToBeProcessed == null) {
-            log.warn("cell " + cell.getStringCellValue() + " is null in all sheet");
+        if (null == cellToBeProcessed) {
+            log.warn("Column number {} is null in all sheet", cellNumber);
             return String.class;
         }
 
@@ -283,34 +352,6 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
                 return null;
             default:
                 return String.class;
-        }
-    }
-
-    private HSSFCell getNextCellNoNull(final HSSFCell cell, final HSSFSheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
-        HSSFCell cellToBeProcessed = cell;
-        if (cell == null) {
-            if (goOverWorkSheet) {
-                for (int i = 2; i < worksheet.getLastRowNum() && cellToBeProcessed == null; i++) {
-                    HSSFRow row = worksheet.getRow(i);
-                    cellToBeProcessed = row.getCell(cellNumber);
-                }
-            } else {
-                return null;
-            }
-        }
-        return cellToBeProcessed;
-    }
-
-    /**
-     * @param cell
-     * @return true if cellType is Date
-     */
-    private boolean isDateCell(HSSFCell cell) {
-        try {
-            return DateUtil.isCellDateFormatted(cell);
-        } catch (java.lang.IllegalStateException e) {
-            //Nothing to do
-            return false;
         }
     }
 }

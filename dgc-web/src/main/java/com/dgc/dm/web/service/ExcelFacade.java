@@ -9,4 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ExcelFacade {
     ProjectDto processExcel(MultipartFile file, String project);
+
+    void processExcel(MultipartFile file, ProjectDto project) throws Exception;
 }

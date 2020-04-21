@@ -10,7 +10,8 @@
 
 <body>
 
-<form class="form-horizontal" method="post" th:action="@{/editProject}" th:object="${selectedProject}">
+<form class="form-horizontal" enctype="multipart/form-data" method="post" th:action="@{/editProject}"
+      th:object="${selectedProject}">
     <fieldset>
         <input th:field="*{id}" type="hidden"/>
         <input th:field="*{name}" type="hidden"/>
@@ -18,7 +19,7 @@
         <input th:field="*{commonDataTableName}" type="hidden"/>
 
         <!-- Form Name -->
-        <legend>Información del proyecto: ${selectedProject.name}</legend>
+        <legend>Información del proyecto: [[${selectedProject.name}]]</legend>
         <!-- Text input-->
         <div class="form-group">
             <label class="col-md-4 control-label" for="projectName">Nombre</label>
@@ -55,8 +56,7 @@
         <div class="form-group">
             <label class="col-md-4 control-label" for="uploadFile">Añadir más registros</label>
             <div class="col-md-4">
-                <input class="input-file"
-                       id="uploadFile" name="uploadFile" type="file">
+                <input id="uploadFile" name="uploadFile" type="file">
                 <button class="btn btn-success"
                         id="uploadFileButton" name="action" type="submit"
                         value="uploadFile">Enviar
@@ -73,16 +73,14 @@
                 </button>
                 <button class="btn btn-success"
                         id="viewDMNFilteredResults" name="action" type="submit"
-                        value="getDMNFilteredResults">Ver Registros Filtrados según DMN
+                        value="getDMNFilteredResults">Ver Registros Filtrados
                 </button>
                 <div class="col-md-4">
-                    <form action="editProject" class="form-horizontal" enctype="multipart/form-data" method="post">
-                        <input name="dmnFile" type="file"/>
-                        <button class="btn btn-success"
-                                id="editDmnButton" name="action" type="submit"
-                                value="editDmn">Editar DMN
-                        </button>
-                    </form>
+                    <input name="dmnFile" type="file"/>
+                    <button class="btn btn-success"
+                            id="editDmnButton" name="action" type="submit"
+                            value="editDmn">Editar DMN
+                    </button>
                 </div>
                 <button class="btn btn-warning"
                         id="editFilter" name="action" type="submit"

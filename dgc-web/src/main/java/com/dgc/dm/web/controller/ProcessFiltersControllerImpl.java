@@ -23,31 +23,31 @@ import java.util.Map;
 @RequestMapping("/filterList")
 public class ProcessFiltersControllerImpl extends CommonController implements ProcessFiltersController {
 
-    public final ModelAndView processFilters(@ModelAttribute final FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") final String emailTemplate
-            , @RequestParam(required = false, name = "sendEmail") final Boolean sendEmail) {
+    public final ModelAndView processFilters(@ModelAttribute FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") String emailTemplate,
+                                             @RequestParam(required = false, name = "sendEmail") Boolean sendEmail) {
         log.info("Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
 
-        final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
-        final List<FilterDto> filters = form.getFilters();
+        ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
+        List<FilterDto> filters = form.getFilters();
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found");
             modelAndView.getModel().put("message", "No filters found");
             modelAndView.setViewName(ERROR_VIEW);
         } else {
             log.info("Got filters {}", filters);
-            if (null == filters || filters.isEmpty()) {
+            if (filters.isEmpty()) {
                 modelAndView.getModel().put("message", "No Filters found");
             } else {
                 try {
-                    final List<Map<String, Object>> result = Collections.unmodifiableList(this.getModelFacade().createBPMNModel(filters, (sendEmail != null && sendEmail ? emailTemplate : null), sendEmail));
-                    if (null == result || result.isEmpty()) {
+                    List<Map<String, Object>> result = Collections.unmodifiableList(getModelFacade().createBPMNModel(filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
+                    if (result.isEmpty()) {
                         log.warn("No elements found that fit filters defined by user");
                         modelAndView.getModel().put("message", "No elements found that fit filters defined by user");
                         modelAndView.setViewName(ERROR_VIEW);
                     } else {
                         modelAndView.addObject("form", result);
                     }
-                } catch (final Exception e) {
+                } catch (Exception e) {
                     modelAndView.getModel().put("message", e.getMessage());
                     modelAndView.setViewName(ERROR_VIEW);
 

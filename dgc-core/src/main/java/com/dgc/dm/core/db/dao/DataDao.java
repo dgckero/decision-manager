@@ -18,4 +18,6 @@ public interface DataDao {
     List<Map<String, Object>> getCommonData(Project project);
 
     void deleteCommonData(Project project);
+
+    Integer getCommonDataSize(Project map);
 }

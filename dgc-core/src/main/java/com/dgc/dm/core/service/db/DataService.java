@@ -17,4 +17,6 @@ public interface DataService {
     List<Map<String, Object>> getCommonData(ProjectDto project);
 
     void deleteCommonData(ProjectDto project);
+
+    Integer getCommonDataSize(ProjectDto project);
 }

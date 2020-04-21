@@ -22,20 +22,19 @@ public class DataServiceImpl extends CommonServer implements DataService {
     private DataDao dataDao;
 
     @Override
-    public void createDataTable(final Map<String, Class<?>> columns, final ProjectDto project) {
-
-        this.dataDao.createDataTable(columns, this.getModelMapper().map(project, Project.class));
+    public final void createDataTable(Map<String, Class<?>> columns, ProjectDto project) {
+        dataDao.createDataTable(columns, getModelMapper().map(project, Project.class));
     }
 
     @Override
-    public void persistData(final String insertSentence, final List<Object[]> infoToBePersisted) {
+    public final void persistData(String insertSentence, List<Object[]> infoToBePersisted) {
         log.info("Persisting Excel rows");
-        this.dataDao.persistData(insertSentence, infoToBePersisted);
+        dataDao.persistData(insertSentence, infoToBePersisted);
         log.info("Persisted Excel rows");
     }
 
     @Override
-    public List<Map<String, Object>> getCommonData(ProjectDto project) {
+    public final List<Map<String, Object>> getCommonData(ProjectDto project) {
         log.info("Getting all info from table: {}", project.getCommonDataTableName());
         List<Map<String, Object>> entities = dataDao.getCommonData(getModelMapper().map(project, Project.class));
         log.info("Got all info from table: {}", project.getCommonDataTableName());
@@ -43,9 +42,17 @@ public class DataServiceImpl extends CommonServer implements DataService {
     }
 
     @Override
-    public void deleteCommonData(final ProjectDto project) {
+    public final void deleteCommonData(ProjectDto project) {
         log.debug("Deleting all registers for project {}", project);
         dataDao.deleteCommonData(getModelMapper().map(project, Project.class));
         log.debug("Registers successfully deleted for project {}", project);
+    }
+
+    @Override
+    public final Integer getCommonDataSize(ProjectDto project) {
+        log.debug("Getting common data size for project {}", project);
+        Integer commonDataSize = dataDao.getCommonDataSize(getModelMapper().map(project, Project.class));
+        log.debug("common data size {} for project {}", commonDataSize, project);
+        return commonDataSize;
     }
 }

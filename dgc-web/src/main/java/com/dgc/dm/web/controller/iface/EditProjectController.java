@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public interface EditProjectController extends HandlerExceptionResolver {
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=uploadFile")
-    String uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") MultipartFile uploadFile);
+    ModelAndView uploadFile(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("uploadFile") MultipartFile file);
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editFilters")
     ModelAndView editFilters(@ModelAttribute("selectedProject") ProjectDto project);

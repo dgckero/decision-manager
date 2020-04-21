@@ -10,6 +10,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -35,16 +38,20 @@ public class CommonController implements HandlerExceptionResolver {
     private ModelFacade modelFacade;
 
     @Override
-    public ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
-                                         final Object object, final Exception exc) {
-
-        final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
+    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                               Object object, Exception exc) {
+        ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
         modelAndView.getModel().put("message", exc.getMessage());
 
-        log.error("Error " + exc.getMessage());
+        log.error("Error {}", exc.getMessage());
         exc.printStackTrace();
 
         return modelAndView;
+    }
 
+    @InitBinder
+    protected final void initBinder(ServletRequestDataBinder binder) {
+        log.debug("initBinder convert multipart object to byte[]");
+        binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
     }
 }
