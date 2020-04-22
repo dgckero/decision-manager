@@ -11,12 +11,7 @@ import com.dgc.dm.core.generator.PojoGenerator;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,10 +30,10 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     private static final int SHEET_ZERO = 0;
 
 
-    private static List<FilterDto> generateFilterList(Map<String, Class<?>> columns, ProjectDto project) {
-        List<FilterDto> filterList = new ArrayList<>();
+    private static List<FilterDto> generateFilterList(final Map<String, Class<?>> columns, final ProjectDto project) {
+        final List<FilterDto> filterList = new ArrayList<>();
 
-        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+        for (final Map.Entry<String, Class<?>> column : columns.entrySet()) {
             filterList.add(FilterDto.builder().
                     name(column.getKey()).
                     filterClass(column.getValue().getSimpleName()).
@@ -51,10 +46,10 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return filterList;
     }
 
-    private static String getInsertSentence(Map<String, Class<?>> columns, String commonDataTableName) {
+    private static String getInsertSentence(final Map<String, Class<?>> columns, final String commonDataTableName) {
         StringBuilder insertQuery = new StringBuilder("insert into " + commonDataTableName + " (");
 
-        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+        for (final Map.Entry<String, Class<?>> column : columns.entrySet()) {
             insertQuery.append(column.getKey()).append(",");
         }
         insertQuery = new StringBuilder(insertQuery.toString().replaceAll("[,]$", ", project, rowId) "));
@@ -66,9 +61,8 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return insertQuery.toString();
     }
 
-    private static boolean isArrayEmpty(Object[] array) {
-
-        for (Object ob : array) {
+    private static boolean isArrayEmpty(final Object[] array) {
+        for (final Object ob : array) {
             if (null != ob) {
                 return false;
             }
@@ -76,24 +70,24 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return true;
     }
 
-    private static Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
-        ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
+    private static Object[] appendValueToObjectArray(final Object[] obj, final Object newObj) {
+        final ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
         temp.add(newObj);
         return temp.toArray();
     }
 
-    private static HSSFSheet getWorkSheet(MultipartFile file) throws IOException {
+    private static Sheet getWorkSheet(final MultipartFile file) throws IOException {
         log.info("Getting workSheet from file {}", file.getName());
-        HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
+        final Workbook workbook = WorkbookFactory.create(file.getInputStream());
         return workbook.getSheetAt(SHEET_ZERO);
     }
 
-    private static String getColumnNameByCellValue(String value) {
-        StringBuilder sb = new StringBuilder();
+    private static String getColumnNameByCellValue(final String value) {
+        final StringBuilder sb = new StringBuilder();
 
         boolean lower = true;
         for (int charInd = 0; charInd < value.length(); ++charInd) {
-            char valueChar = value.charAt(charInd);
+            final char valueChar = value.charAt(charInd);
             if (' ' == valueChar || '_' == valueChar) {
                 lower = false;
             } else if (lower) {
@@ -107,12 +101,12 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return sb.toString().replaceAll("\\s+", "").replaceAll("_", "");
     }
 
-    private static HSSFCell getNextCellNoNull(HSSFCell cell, HSSFSheet worksheet, int cellNumber, boolean goOverWorkSheet) {
-        HSSFCell cellToBeProcessed = cell;
+    private static Cell getNextCellNoNull(final Cell cell, final Sheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
+        Cell cellToBeProcessed = cell;
         if (null == cell) {
             if (goOverWorkSheet) {
                 for (int i = 2; i < worksheet.getLastRowNum() && null == cellToBeProcessed; i++) {
-                    HSSFRow row = worksheet.getRow(i);
+                    final Row row = worksheet.getRow(i);
                     cellToBeProcessed = row.getCell(cellNumber);
                 }
             } else {
@@ -126,23 +120,23 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @param cell
      * @return true if cellType is Date
      */
-    private static boolean isDateCell(HSSFCell cell) {
+    private static boolean isDateCell(final Cell cell) {
         try {
             return DateUtil.isCellDateFormatted(cell);
-        } catch (java.lang.IllegalStateException e) {
+        } catch (final java.lang.IllegalStateException e) {
             //Nothing to do
             return false;
         }
     }
 
-    private Map<String, Class<?>> compareExcelColumnNames(HSSFSheet worksheet, MultipartFile file, ProjectDto project) throws Exception {
-        Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
+    private Map<String, Class<?>> compareExcelColumnNames(final Sheet worksheet, final MultipartFile file, final ProjectDto project) throws Exception {
+        final Map<String, Class<?>> colMapByName = this.getExcelColumnNames(worksheet);
         if (colMapByName.isEmpty()) {
             log.warn("No columns found on file {}", file.getOriginalFilename());
             throw new Exception("No columns found on file " + file.getOriginalFilename());
         }
         log.debug("Found {} filters on excel {}", colMapByName.size(), file.getOriginalFilename());
-        List<Map<String, Object>> projectFilters = getFilterService().getFilters(project);
+        final List<Map<String, Object>> projectFilters = this.getFilterService().getFilters(project);
         if (null == projectFilters || projectFilters.isEmpty()) {
             log.warn("No filters found for project {}", project);
             throw new Exception("No filters found for project " + project);
@@ -158,29 +152,29 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
 
     @Transactional
     @Override
-    public final void processExcel(MultipartFile file, ProjectDto project) throws Exception {
-        log.info("Processing Excel file");
+    public final void processExcel(final MultipartFile file, final ProjectDto project) throws Exception {
+        log.info("Processing Excel file " + file.getOriginalFilename());
 
-        HSSFSheet worksheet = getWorkSheet(file);
-        Map<String, Class<?>> colMapByName = compareExcelColumnNames(worksheet, file, project);
-        processExcelRows(worksheet, colMapByName, project, getDataService().getCommonDataSize(project) + 1);
+        final Sheet worksheet = getWorkSheet(file);
+        final Map<String, Class<?>> colMapByName = this.compareExcelColumnNames(worksheet, file, project);
+        this.processExcelRows(worksheet, colMapByName, project, this.getDataService().getCommonDataSize(project) + 1);
     }
 
     @Transactional
     @Override
-    public final ProjectDto processExcel(MultipartFile file, String projectName) {
+    public final ProjectDto processExcel(final MultipartFile file, final String projectName) {
         log.info("Processing Excel file");
         try {
-            HSSFSheet worksheet = getWorkSheet(file);
-            Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
+            final Sheet worksheet = getWorkSheet(file);
+            final Map<String, Class<?>> colMapByName = this.getExcelColumnNames(worksheet);
 
-            ProjectDto project = createProjectModel(projectName, colMapByName);
+            final ProjectDto project = this.createProjectModel(projectName, colMapByName);
 
-            processExcelRows(worksheet, colMapByName, project, 0);
-            getFilterService().persistFilterList(generateFilterList(colMapByName, project), project);
+            this.processExcelRows(worksheet, colMapByName, project, 0);
+            this.getFilterService().persistFilterList(generateFilterList(colMapByName, project), project);
 
             return project;
-        } catch (final Exception e) {
+        } catch (Exception e) {
             log.error("Error {}", e.getMessage());
             e.printStackTrace();
             return null;
@@ -195,29 +189,29 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @param colMapByName
      * @return new Project
      */
-    private ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName) {
-        ProjectDto project = getProjectService().createProject(projectName);
-        getDataService().createDataTable(colMapByName, project);
+    private ProjectDto createProjectModel(final String projectName, final Map<String, Class<?>> colMapByName) {
+        final ProjectDto project = this.getProjectService().createProject(projectName);
+        this.getDataService().createDataTable(colMapByName, project);
         return project;
     }
 
-    private void processExcelRows(HSSFSheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void processExcelRows(final Sheet worksheet, final Map<String, Class<?>> columns, final ProjectDto project, int rowIdNumber) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (null != columns && !columns.isEmpty()) {
-            List<Object> excelObjs = new ArrayList<>();
+            final List<Object> excelObjs = new ArrayList<>();
 
             log.info("Generating dynamic class");
-            Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", columns);
+            final Class<? extends CommonDto> generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo$Generated", columns);
             log.info("Generated dynamic class: {}", generatedObj.getName());
 
             log.info("Populating generated dynamic class with Excel's row values");
-            List<Object[]> infoToBePersisted = new ArrayList<>();
+            final List<Object[]> infoToBePersisted = new ArrayList<>();
             for (int rowNumber = 1; rowNumber < worksheet.getPhysicalNumberOfRows(); rowNumber++, rowIdNumber++) {
-                Object[] info = populateGeneratedObject(project, worksheet.getRow(rowNumber), generatedObj, columns, excelObjs, rowIdNumber);
+                final Object[] info = this.populateGeneratedObject(project, worksheet.getRow(rowNumber), generatedObj, columns, excelObjs, rowIdNumber);
                 if (null != info) {
                     infoToBePersisted.add(info);
                 }
             }
-            getDataService().persistData(getInsertSentence(columns, project.getCommonDataTableName()), infoToBePersisted);
+            this.getDataService().persistData(getInsertSentence(columns, project.getCommonDataTableName()), infoToBePersisted);
 
             log.info("processed ({}) rows", excelObjs.size());
         } else {
@@ -225,20 +219,20 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         }
     }
 
-    private Object[] populateGeneratedObject(ProjectDto project, HSSFRow row, Class<? extends CommonDto> generatedObj, Map<String, Class<?>> columns,
-                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
+    private Object[] populateGeneratedObject(final ProjectDto project, final Row row, final Class<? extends CommonDto> generatedObj, final Map<String, Class<?>> columns,
+                                             final List<Object> excelObjs, final int rowNumber) throws IllegalAccessException,
             InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         log.trace("populating dynamic class with Excel row number {}", rowNumber);
 
         Object[] insertQueryValues = {};
 
-        Iterator<Cell> excelRowIterator = row.cellIterator();
+        final Iterator<Cell> excelRowIterator = row.cellIterator();
         while (excelRowIterator.hasNext()) {
 
-            CommonDto obj = generatedObj.getConstructor().newInstance();
-            for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
+            final CommonDto obj = generatedObj.getConstructor().newInstance();
+            for (final Map.Entry<String, Class<?>> column : columns.entrySet()) {
+                insertQueryValues = appendValueToObjectArray(insertQueryValues, this.populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
             }
             //Add projectId
             insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
@@ -259,13 +253,13 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return insertQueryValues;
     }
 
-    private String populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
-                                                Iterator<Cell> excelRowIterator, CommonDto obj)
+    private String populateDynamicClassProperty(final Class<? extends CommonDto> generatedObj, final Map.Entry<String, Class<?>> column,
+                                                final Iterator<Cell> excelRowIterator, final CommonDto obj)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         log.trace("Populating property {} with value {}", column.getKey(), column.getValue());
-        String setMethod = "set" + StringUtils.capitalize(column.getKey());
+        final String setMethod = "set" + StringUtils.capitalize(column.getKey());
         if (excelRowIterator.hasNext()) {
-            String cellValue = populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), obj);
+            final String cellValue = this.populateMethodParameter(setMethod, generatedObj, column.getValue(), excelRowIterator.next(), obj);
             log.trace("Populated property {} with value {}", column.getKey(), cellValue);
             return cellValue;
         } else {
@@ -274,16 +268,16 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         }
     }
 
-    private String populateMethodParameter(String setMethod, Class<? extends CommonDto> generatedObj, Class<?> columnClass, Cell cell, CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private String populateMethodParameter(final String setMethod, final Class<? extends CommonDto> generatedObj, final Class<?> columnClass, final Cell cell, final CommonDto obj) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        Class<?> cellClass = getCellClass((HSSFCell) cell);
+        final Class<?> cellClass = this.getCellClass(cell);
         if (null == cellClass) {
             log.trace("cell is BLANK");
             return null;
         } else {
             log.trace("Populating method: {}, class: {}, value: {}", setMethod, cellClass.getName(), cell);
 
-            Class<?> colClass = columnClass.equals(Email.class) ? String.class : columnClass;
+            final Class<?> colClass = columnClass.equals(Email.class) ? String.class : columnClass;
 
             if (cellClass.isAssignableFrom(Date.class)) {
                 generatedObj.getMethod(setMethod, colClass).invoke(obj,
@@ -301,20 +295,21 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         }
     }
 
-    private LinkedHashMap<String, Class<?>> getExcelColumnNames(HSSFSheet worksheet) {
-        log.info("Getting Excel's column names");
-        HSSFRow firstRow = worksheet.getRow(ROW_ZERO);
-        HSSFRow secondRow = worksheet.getRow(ROW_ONE);
+    private LinkedHashMap<String, Class<?>> getExcelColumnNames(final Sheet worksheet) {
 
-        int columnsSize = firstRow.getPhysicalNumberOfCells();
+        log.info("Getting Excel's column names");
+        final Row firstRow = worksheet.getRow(ROW_ZERO);
+        final Row secondRow = worksheet.getRow(ROW_ONE);
+
+        final int columnsSize = firstRow.getPhysicalNumberOfCells();
         log.info("Found {} column(s) on Excel", columnsSize);
 
-        LinkedHashMap<String, Class<?>> colMapByName = new LinkedHashMap<>();
+        final LinkedHashMap<String, Class<?>> colMapByName = new LinkedHashMap<>();
         if (firstRow.cellIterator().hasNext()) {
             for (int j = 0; j < columnsSize; j++) {
-                HSSFCell cell = firstRow.getCell(j);
+                final Cell cell = firstRow.getCell(j);
                 if (null != cell) {
-                    Class<?> cellClass = getCellClass(secondRow.getCell(j), worksheet, j, true);
+                    final Class<?> cellClass = this.getCellClass(secondRow.getCell(j), worksheet, j, true);
                     colMapByName.put(getColumnNameByCellValue(cell.getStringCellValue()), cellClass);
                     log.trace("Processed column({}), columnName {}, class {}", j, cell.getStringCellValue(), (null == cellClass) ? "NULL" : cellClass.getName());
                 }
@@ -323,12 +318,12 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return colMapByName;
     }
 
-    private Class<?> getCellClass(HSSFCell cell) {
-        return getCellClass(cell, null, 0, false);
+    private Class<?> getCellClass(final Cell cell) {
+        return this.getCellClass(cell, null, 0, false);
     }
 
-    private Class<?> getCellClass(HSSFCell cell, HSSFSheet worksheet, int cellNumber, boolean goOverWorkSheet) {
-        HSSFCell cellToBeProcessed = getNextCellNoNull(cell, worksheet, cellNumber, goOverWorkSheet);
+    private Class<?> getCellClass(final Cell cell, final Sheet worksheet, final int cellNumber, final boolean goOverWorkSheet) {
+        final Cell cellToBeProcessed = getNextCellNoNull(cell, worksheet, cellNumber, goOverWorkSheet);
 
         if (null == cellToBeProcessed) {
             log.warn("Column number {} is null in all sheet", cellNumber);
