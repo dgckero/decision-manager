@@ -5,12 +5,12 @@
 package com.dgc.dm.web.controller.iface;
 
 import com.dgc.dm.core.dto.ProjectDto;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public interface EditProjectController extends HandlerExceptionResolver {
@@ -28,7 +28,7 @@ public interface EditProjectController extends HandlerExceptionResolver {
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDmn")
     @ResponseBody
-    FileSystemResource getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject) throws IOException;
+    void getDmn(@ModelAttribute("selectedProject") ProjectDto selectedProject, HttpServletResponse response) throws IOException;
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editDmn")
     ModelAndView editDmn(@ModelAttribute("selectedProject") ProjectDto project, @RequestParam("dmnFile") MultipartFile dmnFile);
