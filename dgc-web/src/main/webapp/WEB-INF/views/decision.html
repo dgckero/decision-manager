@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -90,7 +90,7 @@
                                     <label>
                                         <span th:text="${item.name}"/>
                                         <input th:field="*{filters[__${itemStat.index}__].value}" th:id="${item.name}"
-                                               type="number"/>
+                                               step="any" type="number"/>
                                     </label>
                                 </div>
                                 <div th:case="*">

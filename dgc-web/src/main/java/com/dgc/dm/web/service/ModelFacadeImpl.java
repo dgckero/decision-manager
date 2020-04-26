@@ -27,7 +27,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
     private static final Integer CONTACT_FILTER = 1;
 
-    private static List<FilterDto> getFilterListByModelMap(final Collection<Map<String, Object>> filterList, final ProjectDto project) {
+    private static List<FilterDto> getFilterListByModelMap(Collection<Map<String, Object>> filterList, ProjectDto project) {
         if (null == project) {
             log.warn("Project is NULL, not possible to parse List<Map<String,Object>> to List<FilterDto>");
             return null;
@@ -37,18 +37,18 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         } else {
             log.debug("Parsing List<Map<String,Object>> to List<FilterDto>");
 
-            final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
-            final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
+            List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
+            Iterator<Map<String, Object>> entryIterator = filterList.iterator();
             while (entryIterator.hasNext()) {
-                final Map<String, Object> filterIterator = entryIterator.next();
+                Map<String, Object> filterIterator = entryIterator.next();
 
-                final String filterName = (String) filterIterator.get("name");
+                String filterName = (String) filterIterator.get("name");
                 if ("rowId".equals(filterName)) {
                     // Don't send rowId to decision view
                     entryIterator.remove();
                     log.debug("Removed filter rowId from filterList");
                 } else {
-                    final FilterDto filter = FilterDto.builder().
+                    FilterDto filter = FilterDto.builder().
                             id((Integer) filterIterator.get("ID")).
                             name(filterName).
                             filterClass((String) filterIterator.get("class")).
@@ -67,7 +67,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    public final FilterCreationDto getFilterCreationDto(final ProjectDto project, final Collection<Map<String, Object>> filterList) {
+    public final FilterCreationDto getFilterCreationDto(ProjectDto project, Collection<Map<String, Object>> filterList) {
         if (null == project) {
             log.warn("Project is NULL, not possible to generate FilterCreationDto");
             return null;
@@ -76,43 +76,43 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             return null;
         } else {
             log.info("Generating FilterCreationDto");
-            final List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
+            List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
             log.info("Adding {} filters to FilterCreationDto", filterDtoList.size());
-            final FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
+            FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
             log.info("FilterCreationDto successfully created");
             return filterCreationDto;
         }
     }
 
     @Override
-    public final FilterDto getContactFilter(final ProjectDto project) {
+    public final FilterDto getContactFilter(ProjectDto project) {
         if (null == project) {
             log.warn("Project is NULL, not possible to get contact filter");
             return null;
         } else {
             log.info("Getting contact filter for project {}", project);
-            return this.getFilterService().getContactFilter(project);
+            return getFilterService().getContactFilter(project);
         }
     }
 
     @Override
-    public final List<Map<String, Object>> getFilters(final ProjectDto project) {
+    public final List<Map<String, Object>> getFilters(ProjectDto project) {
         if (null == project) {
             log.warn("Project is NULL, not possible to get filters");
             return null;
         } else {
             log.info("Getting filters for project {}", project);
-            return this.getFilterService().getFilters(project);
+            return getFilterService().getFilters(project);
         }
     }
 
     @Override
-    public final void updateProject(final ProjectDto project) {
+    public final void updateProject(ProjectDto project) {
         if (null == project) {
             log.warn("Project is NULL, it won't be updated");
         } else {
             log.info("Updating project {}", project);
-            this.getProjectService().updateProject(project);
+            getProjectService().updateProject(project);
         }
     }
 
@@ -122,45 +122,45 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      * @param filters
      */
     @Override
-    public final void updateFilters(final List<FilterDto> filters) {
+    public final void updateFilters(List<FilterDto> filters) {
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found to be updated");
         } else {
             log.info("Updating {} filters", filters.size());
-            this.getFilterService().updateFilters(filters);
+            getFilterService().updateFilters(filters);
             log.info("Updated {} filters successfully", filters.size());
         }
     }
 
     @Override
     @Transactional
-    public final List<Map<String, Object>> createBPMNModel(final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws Exception {
-        final ProjectDto project = filters.get(0).getProject();
+    public final List<Map<String, Object>> createBPMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception {
+        log.info("Creating and running Decision Table");
+
+        ProjectDto project = filters.get(0).getProject();
         if (null == project) {
             log.warn("No project found on filters ");
             return null;
         } else {
-            log.info("Creating and running Decision Table for project {}", project);
-
             log.info("Updating active filters on data base");
 
-            this.updateFilters(filters);
+            updateFilters(filters);
 
             log.debug("Send Email enabled? {}", sendEmail);
             project.setEmailTemplate(emailTemplate);
 
-            final List<Map<String, Object>> result = this.bpmnServer.createAndRunDMN(project, getActiveFilters(filters), sendEmail);
+            List<Map<String, Object>> result = bpmnServer.createAndRunDMN(project, this.getActiveFilters(filters), sendEmail);
 
             log.info("Adding DMN file for project {}", project);
-            this.updateProject(project);
+            updateProject(project);
 
             return result;
         }
     }
 
     @Override
-    public final List<FilterDto> getActiveFilters(final List<FilterDto> filters) {
-        final List<FilterDto> activeFilters = filters.stream()
+    public final List<FilterDto> getActiveFilters(List<FilterDto> filters) {
+        List<FilterDto> activeFilters = filters.stream()
                 .filter(flt -> (null != flt.getActive() && flt.getActive().equals(Boolean.TRUE)))
                 .collect(Collectors.toList());
 
@@ -176,7 +176,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     @Override
     public final List<Map<String, Object>> getProjects() {
         log.info("Getting projects ");
-        final List<Map<String, Object>> projects = this.getProjectService().getProjects();
+        List<Map<String, Object>> projects = getProjectService().getProjects();
         if (projects.isEmpty()) {
             log.info("No project founds");
             return null;
@@ -186,9 +186,9 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    public final ProjectDto getProject(final Integer selectedProjectId) {
+    public final ProjectDto getProject(Integer selectedProjectId) {
         log.info("Getting project by Id {}", selectedProjectId);
-        final ProjectDto project = this.getProjectService().getProject(selectedProjectId);
+        ProjectDto project = getProjectService().getProject(selectedProjectId);
         if (null == project) {
             log.warn("No project found by Id {}", selectedProjectId);
             return null;
@@ -199,9 +199,9 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    public final List<Map<String, Object>> executeDmn(final ProjectDto updatedProject) {
+    public final List<Map<String, Object>> executeDmn(ProjectDto updatedProject) {
         log.info("Executing DMN file for project {}", updatedProject);
-        final List<Map<String, Object>> result = this.bpmnServer.executeDmn(updatedProject);
+        List<Map<String, Object>> result = bpmnServer.executeDmn(updatedProject);
         if (null == result || result.isEmpty()) {
             log.warn("No results found after running DMN for project {}", updatedProject);
             return null;
@@ -213,25 +213,25 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
     @Transactional
     @Override
-    public final void validateDmn(final ProjectDto project, final byte[] bytes) {
+    public final void validateDmn(ProjectDto project, byte[] bytes) {
         log.info("Validating DMN file");
-        this.bpmnServer.validateDmn(bytes);
+        bpmnServer.validateDmn(bytes);
         log.info("Validated DMN file");
 
         project.setDmnFile(bytes);
         log.info("Added new DMN file, updating project");
-        this.getProjectService().updateProject(project);
+        getProjectService().updateProject(project);
         log.info("Successfully added DMN file for project {}", project);
     }
 
     @Override
-    public final List<Map<String, Object>> getCommonData(final ProjectDto project) {
+    public final List<Map<String, Object>> getCommonData(ProjectDto project) {
         if (null == project) {
             log.warn("Project is null");
             return null;
         } else {
             log.info("Getting all info from table: {}", project.getCommonDataTableName());
-            final List<Map<String, Object>> entities = this.getDataService().getCommonData(project);
+            List<Map<String, Object>> entities = getDataService().getCommonData(project);
             if (null == entities || entities.isEmpty()) {
                 log.info("Not found data from project {}", project);
                 return null;
@@ -243,30 +243,30 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    public final void deleteCommonData(final ProjectDto project) {
+    public final void deleteCommonData(ProjectDto project) {
         if (null == project) {
             log.warn("Project is null");
         } else {
             log.info("Deleting all registers for project {}", project);
-            this.getDataService().deleteCommonData(project);
+            getDataService().deleteCommonData(project);
             log.info("Registers successfully deleted for project {}", project);
         }
     }
 
     @Override
-    public final void deleteProject(final ProjectDto project) {
+    public final void deleteProject(ProjectDto project) {
         if (null == project) {
             log.warn("Project is null");
         } else {
             log.info("Deleting project {}", project);
-            this.getProjectService().deleteProject(project);
+            getProjectService().deleteProject(project);
             log.info("Deleted project {}", project);
         }
     }
 
     @Override
-    public final void addFilterInformationToModel(final ModelAndView modelAndView, final ProjectDto project) {
-        final Map<String, List<Map<String, Object>>> filters = this.getFiltersModelMap(project);
+    public final void addFilterInformationToModel(ModelAndView modelAndView, ProjectDto project) {
+        Map<String, List<Map<String, Object>>> filters = getFiltersModelMap(project);
 
         if (null == filters || filters.isEmpty()) {
             log.error("No filters found");
@@ -274,21 +274,21 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         } else {
             log.error("Found {} filters", filters.size());
             modelAndView.addAllObjects(filters);
-            modelAndView.addObject("form", this.getFilterCreationDto(project, filters.get("filterList")));
-            modelAndView.addObject("contactFilter", this.getContactFilter(project));
+            modelAndView.addObject("form", getFilterCreationDto(project, filters.get("filterList")));
+            modelAndView.addObject("contactFilter", getContactFilter(project));
         }
     }
 
-    private Map<String, List<Map<String, Object>>> getFiltersModelMap(final ProjectDto project) {
-        final Map<String, List<Map<String, Object>>> result;
-        final List<Map<String, Object>> filterList = this.getFilters(project);
+    private Map<String, List<Map<String, Object>>> getFiltersModelMap(ProjectDto project) {
+        Map<String, List<Map<String, Object>>> result;
+        List<Map<String, Object>> filterList = getFilters(project);
 
         if (null == filterList || filterList.isEmpty()) {
             log.error("No filters found");
             result = null;
         } else {
             log.info("found {} filters", filterList.size());
-            final Map<String, List<Map<String, Object>>> modelMap = new HashMap<>(1);
+            Map<String, List<Map<String, Object>>> modelMap = new HashMap<>(1);
             modelMap.put("filterList", filterList);
             result = modelMap;
         }

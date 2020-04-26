@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.dmn.engine.*;
+import org.camunda.bpm.dmn.engine.impl.DefaultDmnEngineConfiguration;
 import org.camunda.bpm.dmn.engine.impl.transform.DmnTransformException;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -39,6 +42,7 @@ public class BPMNServerImpl implements BPMNServer {
     private static final String DEFINITIONS_NAMESPACE = "http://camunda.org/schema/1.0/dmn";
     private static final String ACCEPTED_AND_SEND_EMAIL = "Accepted_sendEMail";
     private static final String ACCEPTED = "Accepted";
+    private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project").collect(Collectors.toList());
 
     @Autowired
     private EmailService emailService;
@@ -105,7 +109,7 @@ public class BPMNServerImpl implements BPMNServer {
 
     private static ModelElementInstance createInputExpression(final DmnModelInstance dmnModelInstance, final String name, final String filterClass) {
         final InputExpression inputExpression = dmnModelInstance.newInstance(InputExpression.class);
-        inputExpression.setTypeRef(filterClass.toLowerCase());
+        inputExpression.setTypeRef(getTypeRef(filterClass));
         inputExpression.setId("inputExpression_" + StringUtils.stripAccents(name));
 
         final Text text = dmnModelInstance.newInstance(Text.class);
@@ -115,14 +119,33 @@ public class BPMNServerImpl implements BPMNServer {
         return inputExpression;
     }
 
-    private static InputEntry createInputEntry(DmnModelInstance dmnModelInstance, String name, String val) {
-        final Text text = dmnModelInstance.newInstance(Text.class);
-        text.setTextContent("\"" + val + "\"");
+    private static String getTypeRef(final String filterClass) {
+        final String filterLowerClass = filterClass.toLowerCase();
+        if (filterLowerClass.equals("date")) {
+            return "string";
+        } else {
+            return filterLowerClass;
+        }
+    }
 
+    private static InputEntry createInputEntry(DmnModelInstance dmnModelInstance, final FilterDto filter) {
         final InputEntry inputEntry = dmnModelInstance.newInstance(InputEntry.class);
-        inputEntry.setLabel(name);
-        inputEntry.setText(text);
+        inputEntry.setLabel(filter.getName());
+        inputEntry.setText(createText(dmnModelInstance, filter));
         return inputEntry;
+    }
+
+    private static Text createText(DmnModelInstance dmnModelInstance, final FilterDto filter) {
+        final Text text = dmnModelInstance.newInstance(Text.class);
+        final String textContentValue;
+        if (Double.class.getSimpleName().equals(filter.getFilterClass())) {
+            textContentValue = filter.getValue();
+        } else {
+            textContentValue = "\"" + filter.getValue() + "\"";
+        }
+        text.setTextContent(textContentValue);
+
+        return text;
     }
 
     private static OutputEntry createOutputEntry(DmnModelInstance dmnModelInstance, String expression, String outputEntryId, String outputEntryLabel) {
@@ -136,30 +159,28 @@ public class BPMNServerImpl implements BPMNServer {
         return outputEntry;
     }
 
-    private static VariableMap parseEntityToVariableMap(Map<String, Object> entityMap) {
+    private static VariableMap parseEntityToVariableMap(Map<String, Object> commonEntityMap) {
         final VariableMap variableToBeValidated = Variables.createVariables();
 
-        final Iterator<Map.Entry<String, Object>> iterator = entityMap.entrySet().iterator();
+        final Iterator<Map.Entry<String, Object>> iterator = commonEntityMap.entrySet().iterator();
         while (iterator.hasNext()) {
-            final Map.Entry<String, Object> entity = iterator.next();
-            //Skip rowId
-            if (!"rowId".equals(entity.getKey())) {
-                variableToBeValidated.put(entity.getKey(), entity.getValue());
+            final Map.Entry<String, Object> commonEntity = iterator.next();
+
+            if (!skipCommonEntity(commonEntity.getKey())) {
+                variableToBeValidated.put(commonEntity.getKey(), commonEntity.getValue());
             }
         }
         log.trace("generated variableToBeValidated {}", variableToBeValidated);
         return variableToBeValidated;
     }
 
-    private static boolean isEntityAccepted(DmnEngine dmnEngine, VariableMap variableToBeValidated, DmnDecision decision) {
-        boolean isEntityAccepted = false;
-
-        final DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
-        if (1 <= result.size()) {
-            isEntityAccepted = true;
+    private static boolean skipCommonEntity(String commonEntityName) {
+        boolean skip = false;
+        if (OMITTED_DATA.contains(commonEntityName)) {
+            log.trace("Skipping entity " + commonEntityName);
+            skip = true;
         }
-
-        return isEntityAccepted;
+        return skip;
     }
 
     private static boolean sendEmail(DmnDecisionRuleResult firstResult) {
@@ -273,11 +294,24 @@ public class BPMNServerImpl implements BPMNServer {
         return inputs;
     }
 
+    private static DmnEngine getDmnEngine() {
+        DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) DmnEngineConfiguration
+                .createDefaultDmnEngineConfiguration();
+        // add the data type transformer,
+        // overriding the existing type "date":
+        configuration
+                .getTransformer()
+                .getDataTypeTransformerRegistry()
+                .addTransformer("date", new DecisionManagerDateDataTypeTransformer());
+
+        return configuration.buildEngine();
+    }
+
     private Rule createRule(DmnModelInstance dmnModelInstance, List<FilterDto> activeFilters, Boolean sendMail) {
         final Rule rule = dmnModelInstance.newInstance(Rule.class);
 
         for (final FilterDto filter : activeFilters) {
-            rule.getInputEntries().add(createInputEntry(dmnModelInstance, filter.getName(), filter.getValue()));
+            rule.getInputEntries().add(createInputEntry(dmnModelInstance, filter));
             log.debug("Added inputEntry by filter{}", filter);
         }
 
@@ -288,31 +322,6 @@ public class BPMNServerImpl implements BPMNServer {
         }
 
         return rule;
-    }
-
-    private List<Map<String, Object>> evaluateEntities(DmnEngine dmnEngine, DmnDecision decision, ProjectDto project) {
-        final List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
-
-        final List<Map<String, Object>> commonEntitiesToBeValidated = this.dataService.getCommonData(project);
-        log.info("Got {} entities to be validated", commonEntitiesToBeValidated.size());
-
-        final FilterDto contactFilter = this.filterService.getContactFilter(project);
-
-        for (final Map<String, Object> entityMap : commonEntitiesToBeValidated) {
-            final VariableMap variableToBeValidated = parseEntityToVariableMap(entityMap);
-
-            final DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
-
-            if (1 <= result.size()) {
-                commonEntitiesAccepted.add(variableToBeValidated);
-                if (sendEmail(result.getFirstResult())) {
-                    log.debug("Result found with email information");
-                    this.sendEmail(variableToBeValidated, contactFilter, project);
-                }
-            }
-        }
-
-        return commonEntitiesAccepted;
     }
 
     private void sendEmail(VariableMap variableToBeValidated, FilterDto contactFilter, ProjectDto project) {
@@ -333,14 +342,36 @@ public class BPMNServerImpl implements BPMNServer {
         }
     }
 
+    private List<Map<String, Object>> evaluateEntities(DmnEngine dmnEngine, DmnDecision decision, ProjectDto project) {
+        final List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
+
+        final List<Map<String, Object>> commonEntitiesToBeValidated = this.dataService.getCommonData(project);
+        log.info("Got {} entities to be validated", commonEntitiesToBeValidated.size());
+
+        final FilterDto contactFilter = this.filterService.getContactFilter(project);
+
+        for (final Map<String, Object> commonEntityMap : commonEntitiesToBeValidated) {
+            final VariableMap variableToBeValidated = parseEntityToVariableMap(commonEntityMap);
+
+            final DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);
+
+            if (1 <= result.size()) {
+                commonEntitiesAccepted.add(variableToBeValidated);
+                if (sendEmail(result.getFirstResult())) {
+                    log.debug("Result found with email information");
+                    this.sendEmail(variableToBeValidated, contactFilter, project);
+                }
+            }
+        }
+
+        return commonEntitiesAccepted;
+    }
+
     private List<Map<String, Object>> evaluateDecisionTable(DmnModelInstance modelInstance, String decisionId, ProjectDto project) {
 
         log.info("Evaluating decision table");
-        DmnEngine dmnEngine = DmnEngineConfiguration
-                .createDefaultDmnEngineConfiguration()
-                .buildEngine();
 
-        return this.evaluateDecisionTable(dmnEngine, modelInstance, decisionId, project);
+        return this.evaluateDecisionTable(getDmnEngine(), modelInstance, decisionId, project);
     }
 
     private List<Map<String, Object>> evaluateDecisionTable(DmnEngine dmnEngine, DmnModelInstance modelInstance, String decisionId, ProjectDto project) {
@@ -365,9 +396,7 @@ public class BPMNServerImpl implements BPMNServer {
     public final void validateDmn(final byte[] dmnFile) {
         log.info("Validating DMN file");
 
-        DmnEngine dmnEngine = DmnEngineConfiguration
-                .createDefaultDmnEngineConfiguration()
-                .buildEngine();
+        DmnEngine dmnEngine = getDmnEngine();
         log.debug("Created default DMN Engine configuration");
 
         DmnModelInstance dmnModelInstance = Dmn.readModelFromStream(new ByteArrayInputStream(dmnFile));
@@ -397,7 +426,7 @@ public class BPMNServerImpl implements BPMNServer {
     private List<Map<String, Object>> evaluateDmnDecision(DmnModelInstance dmnModelInstance, ProjectDto project) {
         List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
 
-        final DmnEngine dmnEngine = DmnEngineConfiguration.createDefaultDmnEngineConfiguration().buildEngine();
+        final DmnEngine dmnEngine = getDmnEngine();
         List<DmnDecision> decisions = dmnEngine.parseDecisions(new ByteArrayInputStream(project.getDmnFile()));
 
         for (DmnDecision decision : decisions) {

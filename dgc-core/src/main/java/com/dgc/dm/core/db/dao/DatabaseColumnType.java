@@ -10,10 +10,7 @@ public enum DatabaseColumnType {
     INTEGER(java.lang.Integer.class.getSimpleName()),
     EMAIL("Email");
 
-    private final String simpleNameClass;
-
     DatabaseColumnType(final String simpleNameClass) {
-        this.simpleNameClass = simpleNameClass;
     }
 
     public static String getDBClassByColumnType(final String columnClassName) {
@@ -22,9 +19,9 @@ public enum DatabaseColumnType {
         switch (cl) {
             case INTEGER:
                 return "INTEGER";
-            case DATE:
             case DOUBLE:
                 return "REAL";
+            case DATE:
             case STRING:
             case EMAIL:
             default:
