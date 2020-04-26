@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 @ControllerAdvice
-public class FileUploadExceptionAdvice {
+class FileUploadExceptionAdvice {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ModelAndView handleMaxSizeException(MaxUploadSizeExceededException exc, HttpServletRequest request, HttpServletResponse response) {

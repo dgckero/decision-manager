@@ -10,7 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter(AccessLevel.PROTECTED)
-public class CommonServer {
+class CommonServer {
     @Autowired
     private ModelMapper modelMapper;
 }

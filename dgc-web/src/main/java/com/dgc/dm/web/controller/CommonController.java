@@ -4,8 +4,8 @@
 
 package com.dgc.dm.web.controller;
 
-import com.dgc.dm.web.service.ExcelFacade;
-import com.dgc.dm.web.service.ModelFacade;
+import com.dgc.dm.web.facade.ExcelFacade;
+import com.dgc.dm.web.facade.ModelFacade;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +24,9 @@ import java.util.Date;
 
 @Slf4j
 @Getter(AccessLevel.PROTECTED)
-public class CommonController implements HandlerExceptionResolver {
+class CommonController implements HandlerExceptionResolver {
 
-    protected SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     protected static final String DECISION_VIEW = "decision";
     protected static final String PROJECT_VIEW = "project";
@@ -45,11 +45,10 @@ public class CommonController implements HandlerExceptionResolver {
     @Override
     public final ModelAndView resolveException(final HttpServletRequest request, final HttpServletResponse response,
                                                final Object object, final Exception exc) {
+
         final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
         modelAndView.getModel().put("message", exc.getMessage());
-
         log.error("Error {}", exc.getMessage());
-        exc.printStackTrace();
 
         return modelAndView;
     }

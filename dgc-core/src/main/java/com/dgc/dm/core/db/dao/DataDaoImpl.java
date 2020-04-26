@@ -7,6 +7,7 @@ package com.dgc.dm.core.db.dao;
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,14 @@ public class DataDaoImpl extends CommonDao implements DataDao {
 
         StringBuilder commonDataTableStatements = new StringBuilder("CREATE TABLE IF NOT EXISTS " + project.getCommonDataTableName() + " (rowId INTEGER, ");
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-            commonDataTableStatements.append(column.getKey()).append(" ").append(DatabaseColumnType.getDBClassByColumnType(column.getValue().getSimpleName())).append(",");
+            String columnName = column.getKey();
+            Class<?> columnClass = column.getValue();
+            if (!StringUtils.isEmpty(columnName) && (null != columnClass)) {
+                commonDataTableStatements.append(column.getKey());
+                commonDataTableStatements.append(" ");
+                commonDataTableStatements.append(DatabaseColumnType.getDBClassByColumnType(column.getValue().getSimpleName()));
+                commonDataTableStatements.append(",");
+            }
         }
         final String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id), " +
                 "PRIMARY KEY (rowId, project) )";

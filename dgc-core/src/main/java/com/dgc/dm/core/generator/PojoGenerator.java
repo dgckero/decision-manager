@@ -86,7 +86,7 @@ public class PojoGenerator {
         return CtMethod.make(sb, declaringClass);
     }
 
-    private static CtMethod generateToString(final CtClass declaringClass, final Set<Map.Entry<String, Class<?>>> props) throws CannotCompileException {
+    private static CtMethod generateToString(final CtClass declaringClass, final Set<? extends Map.Entry<String, Class<?>>> props) throws CannotCompileException {
 
         StringBuilder sb = new StringBuilder("public String toString() { return ");
 

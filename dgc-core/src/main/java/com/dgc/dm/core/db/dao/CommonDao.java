@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Getter(AccessLevel.PROTECTED)
-public class CommonDao {
+class CommonDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 }

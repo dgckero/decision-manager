@@ -12,8 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Slf4j
-public class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
-    protected SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     protected Date transformString(final String value) {
         try {

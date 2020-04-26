@@ -15,8 +15,8 @@
         <section class="span10" id="main">
             <div class="dgc-operation-ok">
                 <h1 align="center">Operación realizada con éxito</h1>
-                <div id="errorMessageDiv" th:if="${not empty message }">
-                    <h4>${message}</h4>
+                <div id="errorMessageDiv" th:if="${message}">
+                    <h4 th:text="${message}"></h4>
                 </div>
             </div>
         </section>

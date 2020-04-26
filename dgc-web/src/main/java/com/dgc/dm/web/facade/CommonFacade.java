@@ -2,7 +2,7 @@
   @author david
  */
 
-package com.dgc.dm.web.service;
+package com.dgc.dm.web.facade;
 
 import com.dgc.dm.core.service.db.DataService;
 import com.dgc.dm.core.service.db.FilterService;
@@ -12,7 +12,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter(AccessLevel.PROTECTED)
-public class CommonFacade {
+class CommonFacade {
 
     @Autowired
     private DataService dataService;

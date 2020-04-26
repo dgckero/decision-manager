@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.Email;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FilterServiceImpl extends CommonServer implements FilterService {
 
     @Autowired
+    private
     FilterDao filterDao;
 
     /**
@@ -33,6 +36,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @param project
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void persistFilterList(List<FilterDto> filterList, ProjectDto project) {
         log.info("Creating filters");
 

@@ -13,10 +13,7 @@ import org.jasypt.properties.PropertyValueEncryptionUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -30,6 +27,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -37,15 +35,17 @@ import java.util.Properties;
 
 @Slf4j
 @Configuration
-@EnableTransactionManagement
 @PropertySource({
         "classpath:application.properties",
         "classpath:persistence.properties",
         "classpath:smtp.properties"
 })
 @ComponentScan("com.dgc.dm.core")
-@EnableJpaRepositories(basePackages = "com.dgc.dm.core.db")
-public class ApplicationConfig {
+@EnableJpaRepositories(
+        basePackages = "com.dgc.dm.core.db",
+        entityManagerFactoryRef = "entityManagerFactoryBean")
+@EnableTransactionManagement
+public class ApplicationConfig implements TransactionManagementConfigurer {
 
     @Autowired
     private Environment env;
@@ -62,12 +62,11 @@ public class ApplicationConfig {
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
         log.debug("modelMapper successfully configured");
-
         return modelMapper;
     }
 
-    @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    @Bean(name = "entityManagerFactoryBean")
+    public EntityManagerFactory entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(this.dataSource());
         em.setPackagesToScan("com.dgc.dm.core");
@@ -75,8 +74,9 @@ public class ApplicationConfig {
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
         em.setJpaProperties(this.additionalProperties());
+        em.afterPropertiesSet();
 
-        return em;
+        return em.getObject();
     }
 
     @Bean
@@ -89,11 +89,21 @@ public class ApplicationConfig {
         return dataSource;
     }
 
+
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager transactionManager(final EntityManagerFactory entityManagerFactory) {
+        final JpaTransactionManager txManager = new JpaTransactionManager();
+        txManager.setEntityManagerFactory(entityManagerFactory);
+        return txManager;
+    }
+
+    @Override
     @Bean
-    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(emf);
-        return transactionManager;
+    @DependsOn("entityManagerFactoryBean")
+    public PlatformTransactionManager annotationDrivenTransactionManager() {
+        final JpaTransactionManager jpa = new JpaTransactionManager();
+        jpa.setEntityManagerFactory(this.entityManagerFactory());
+        return jpa;
     }
 
     @Bean

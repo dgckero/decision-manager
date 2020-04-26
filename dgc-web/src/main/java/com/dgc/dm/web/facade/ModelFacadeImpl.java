@@ -2,7 +2,7 @@
   @author david
  */
 
-package com.dgc.dm.web.service;
+package com.dgc.dm.web.facade;
 
 import com.dgc.dm.core.dto.FilterCreationDto;
 import com.dgc.dm.core.dto.FilterDto;
@@ -11,9 +11,10 @@ import com.dgc.dm.core.service.bpmn.BPMNServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -107,6 +108,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void updateProject(ProjectDto project) {
         if (null == project) {
             log.warn("Project is NULL, it won't be updated");
@@ -122,6 +124,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      * @param filters
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void updateFilters(List<FilterDto> filters) {
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found to be updated");
@@ -133,7 +136,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final List<Map<String, Object>> createBPMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception {
         log.info("Creating and running Decision Table");
 
@@ -211,8 +214,8 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         }
     }
 
-    @Transactional
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void validateDmn(ProjectDto project, byte[] bytes) {
         log.info("Validating DMN file");
         bpmnServer.validateDmn(bytes);

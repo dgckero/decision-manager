@@ -283,7 +283,7 @@ public class BPMNServerImpl implements BPMNServer {
         return modelInstance;
     }
 
-    private Collection<? extends Input> createInputs(final DmnModelInstance dmnModelInstance, final List<FilterDto> activeFilters) {
+    private Collection<? extends Input> createInputs(final DmnModelInstance dmnModelInstance, final List<? extends FilterDto> activeFilters) {
         final List<Input> inputs = new ArrayList<>(activeFilters.size());
 
         for (final FilterDto filter : activeFilters) {
@@ -307,7 +307,7 @@ public class BPMNServerImpl implements BPMNServer {
         return configuration.buildEngine();
     }
 
-    private Rule createRule(DmnModelInstance dmnModelInstance, List<FilterDto> activeFilters, Boolean sendMail) {
+    private Rule createRule(DmnModelInstance dmnModelInstance, List<? extends FilterDto> activeFilters, Boolean sendMail) {
         final Rule rule = dmnModelInstance.newInstance(Rule.class);
 
         for (final FilterDto filter : activeFilters) {

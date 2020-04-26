@@ -2,7 +2,7 @@
   @author david
  */
 
-package com.dgc.dm.web.service;
+package com.dgc.dm.web.facade;
 
 import com.dgc.dm.core.dto.CommonDto;
 import com.dgc.dm.core.dto.FilterDto;
@@ -13,15 +13,17 @@ import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
 import javax.validation.constraints.Email;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 
 @Slf4j
 @Service
@@ -72,7 +74,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     }
 
     private static Object[] appendValueToObjectArray(Object[] obj, Object newObj) {
-        ArrayList<Object> temp = new ArrayList<>(Arrays.asList(obj));
+        List<Object> temp = new ArrayList<>(Arrays.asList(obj));
         temp.add(newObj);
         return temp.toArray();
     }
@@ -151,7 +153,6 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
 
     }
 
-    @Transactional
     @Override
     public final void processExcel(MultipartFile file, ProjectDto project) throws Exception {
         log.info("Processing Excel file " + file.getOriginalFilename());
@@ -161,7 +162,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         processExcelRows(worksheet, colMapByName, project, getDataService().getCommonDataSize(project) + 1);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     @Override
     public final ProjectDto processExcel(MultipartFile file, String projectName) {
         log.info("Processing Excel file");
@@ -187,6 +188,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @param colMapByName
      * @return new Project
      */
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName) {
         ProjectDto project = getProjectService().createProject(projectName);
         getDataService().createDataTable(colMapByName, project);
@@ -194,6 +196,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         return project;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private void processExcelRows(Sheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) throws IOException, CannotCompileException, NotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (null != columns && !columns.isEmpty()) {
             List<Object> excelObjs = new ArrayList<>();
@@ -256,7 +259,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     }
 
     private String populateDynamicClassProperty(Class<? extends CommonDto> generatedObj, Map.Entry<String, Class<?>> column,
-                                                Iterator<Cell> excelRowIterator, CommonDto obj)
+                                                Iterator<? extends Cell> excelRowIterator, CommonDto obj)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         log.trace("Populating property {} with value {}", column.getKey(), column.getValue());
         String setMethod = "set" + StringUtils.capitalize(column.getKey());
@@ -295,7 +298,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         }
     }
 
-    private LinkedHashMap<String, Class<?>> getExcelColumnNames(Sheet worksheet) {
+    private Map<String, Class<?>> getExcelColumnNames(Sheet worksheet) {
 
         log.info("Getting Excel's column names");
         Row firstRow = worksheet.getRow(ROW_ZERO);

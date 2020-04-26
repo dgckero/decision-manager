@@ -2,7 +2,7 @@
   @author david
  */
 
-package com.dgc.dm.web.service;
+package com.dgc.dm.web.facade;
 
 import com.dgc.dm.core.dto.ProjectDto;
 import org.springframework.web.multipart.MultipartFile;

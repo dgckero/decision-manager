@@ -10,6 +10,8 @@ import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
     private ProjectDao projectDao;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ProjectDto createProject(final String projectName) {
         log.info("Creating project " + projectName);
         final Project projectEntity = this.projectDao.createProject(projectName);

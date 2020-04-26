@@ -10,6 +10,8 @@ import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,13 @@ public class DataServiceImpl extends CommonServer implements DataService {
     private DataDao dataDao;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void createDataTable(Map<String, Class<?>> columns, ProjectDto project) {
         dataDao.createDataTable(columns, getModelMapper().map(project, Project.class));
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void persistData(String insertSentence, List<Object[]> infoToBePersisted) {
         log.info("Persisting Excel rows");
         dataDao.persistData(insertSentence, infoToBePersisted);

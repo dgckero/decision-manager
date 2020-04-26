@@ -126,7 +126,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     private static class StringArrayList extends ArrayList<String> {
         private static final long serialVersionUID = 5389826304558701396L;
 
-        public StringArrayList(final Project project) {
+        StringArrayList(final Project project) {
             add("CREATE TABLE IF NOT EXISTS FILTERS " +
                     "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "name TEXT," +
