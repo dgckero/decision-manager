@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Home</title>
-    <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
-    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Home</title>
 </head>
 
 <body>
 <div class="container">
     <div class="row">
 
-        <div if="${message}">
-            <h2 text="${message}"/>
+        <div id="messageDiv" th:if="${message}">
+            <h4 th:text="${message}"></h4>
         </div>
 
         <div>
@@ -26,5 +22,6 @@
 
     </div>
 </div>
+<footer th:include="fragments/footer :: footerFragment"/>
 </body>
 </html>

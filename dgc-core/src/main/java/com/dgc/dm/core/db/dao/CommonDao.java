@@ -6,6 +6,7 @@ package com.dgc.dm.core.db.dao;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -13,4 +14,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class CommonDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    protected SessionFactory sessionFactory;
 }

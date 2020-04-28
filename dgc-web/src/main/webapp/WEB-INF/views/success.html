@@ -1,11 +1,8 @@
 <!DOCTYPE HTML>
 <html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Operación realizada con éxito</title>
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
-    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Operación realizada con éxito</title>
 </head>
 
 <body>
@@ -22,5 +19,6 @@
         </section>
     </div>
 </div>
+<footer th:include="fragments/footer :: footerFragment"/>
 </body>
 </html>

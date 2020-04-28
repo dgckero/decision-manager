@@ -188,6 +188,7 @@
         <servlet-api.version>4.0.1</servlet-api.version>
         <jsp-api.version>2.1</jsp-api.version>
         <thymeleaf-spring5.version>3.0.9.RELEASE</thymeleaf-spring5.version>
+        <thymeleaf-layout-dialect.version>2.4.1</thymeleaf-layout-dialect.version>
         <webjars-locator.version>0.39</webjars-locator.version>
         <webjars-taglib.version>0.3</webjars-taglib.version>
         <bootstrap.version>4.4.1-1</bootstrap.version>

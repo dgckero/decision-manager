@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-    <title>Información del proyecto</title>
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
-    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Información del proyecto</title>
 </head>
 
 <body>
@@ -109,6 +106,6 @@
         </div>
     </fieldset>
 </form>
-
+<footer th:include="fragments/footer :: footerFragment"/>
 </body>
 </html>

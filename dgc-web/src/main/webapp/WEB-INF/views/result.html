@@ -1,26 +1,8 @@
 <!DOCTYPE html>
 <html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Result</title>
-
-    <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
-    <script th:src="@{/webjars/popper.js/${popper.version}/umd/popper.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/${bootstrap.version}/js/bootstrap.min.js}"></script>
-    <script th:src="@{/webjars/datatables/${datatables.version}/js/dataTables.jqueryui.min.js}"></script>
-    <script th:src="@{/webjars/datatables/${datatables.version}/js/jquery.dataTables.min.js}"></script>
-    <script th:src="@{/webjars/datatables-buttons/${datatables-buttons.version}/js/dataTables.buttons.min.js}"></script>
-    <script th:src="@{/webjars/datatables-buttons/${datatables-buttons.version}/js/buttons.html5.min.js}"></script>
-    <script th:src="@{/webjars/jszip/${jszip.version}/jszip.min.js}"></script>
-    <script th:src="@{/webjars/pdfmake/${pdfmake.version}/build/pdfmake.min.js}"></script>
-    <script th:src="@{/webjars/pdfmake/${pdfmake.version}/build/vfs_fonts.js}"></script>
-
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
-    <link th:href="@{/webjars/datatables/${datatables.version}/css/jquery.dataTables.min.css} " th:rel="stylesheet"/>
-    <link th:href="@{/webjars/datatables/${datatables.version}/css/dataTables.jqueryui.min.css} " th:rel="stylesheet"/>
-    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
-
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Resultado</title>
     <script th:inline="javascript">
         $(document).ready(function() {
             $('#resultTable').DataTable( {
@@ -33,7 +15,6 @@
                 ]
             } );
         } );
-
     </script>
 
 </head>
@@ -67,5 +48,6 @@
         </div>
     </div>
 </div>
+<footer th:include="fragments/footer :: footerFragment"/>
 </body>
 </html>

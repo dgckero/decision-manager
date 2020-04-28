@@ -1,15 +1,8 @@
 <!DOCTYPE html>
 <html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Selección de filtros</title>
-    <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
-    <link th:href="@{/webjars/bootstrap/${bootstrap.version}/css/bootstrap.min.css} " th:rel="stylesheet"/>
-    <link th:href="@{/webjars/bootstrap4-toggle/${bootstrap4-toggle.version}/css/bootstrap4-toggle.min.css}"
-          th:rel="stylesheet"/>
-    <link media="all" rel="stylesheet" th:href="@{/css/dgcStyle.css}" type="text/css"/>
-
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Selección de filtros</title>
     <script>
         $(document).ready(function () {
             initializeFormValues();
@@ -129,5 +122,6 @@
         </form>
     </div>
 </div>
+<footer th:include="fragments/footer :: footerFragment"/>
 </body>
 </html>
