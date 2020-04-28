@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class ProjectDto implements Serializable {
     private Integer id;
     private String name;
-    private String commonDataTableName;
+    private String rowDataTableName;
     private String emailTemplate;
     private String createDate;
     @ToString.Exclude

@@ -6,8 +6,8 @@ package com.dgc.dm.core.service.bpmn;
 
 import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
-import com.dgc.dm.core.service.db.DataService;
 import com.dgc.dm.core.service.db.FilterService;
+import com.dgc.dm.core.service.db.RowDataService;
 import com.dgc.dm.core.service.email.EmailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -28,6 +28,7 @@ import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Service
+@Transactional
 public class BPMNServerImpl implements BPMNServer {
     private static final String DEFINITIONS_NAMESPACE = "http://camunda.org/schema/1.0/dmn";
     private static final String ACCEPTED_AND_SEND_EMAIL = "Accepted_sendEMail";
@@ -47,7 +49,7 @@ public class BPMNServerImpl implements BPMNServer {
     @Autowired
     private EmailService emailService;
     @Autowired
-    private DataService dataService;
+    private RowDataService rowDataService;
     @Autowired
     private FilterService filterService;
 
@@ -189,6 +191,19 @@ public class BPMNServerImpl implements BPMNServer {
         return sendEmail;
     }
 
+    private static DmnEngine getDmnEngine() {
+        DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) DmnEngineConfiguration
+                .createDefaultDmnEngineConfiguration();
+        // add the data type transformer,
+        // overriding the existing type "date":
+        configuration
+                .getTransformer()
+                .getDataTypeTransformerRegistry()
+                .addTransformer("date", new DecisionManagerDateDataTypeTransformer());
+
+        return configuration.buildEngine();
+    }
+
     /**
      * Create a instance of DecisionTable model
      *
@@ -294,19 +309,6 @@ public class BPMNServerImpl implements BPMNServer {
         return inputs;
     }
 
-    private static DmnEngine getDmnEngine() {
-        DefaultDmnEngineConfiguration configuration = (DefaultDmnEngineConfiguration) DmnEngineConfiguration
-                .createDefaultDmnEngineConfiguration();
-        // add the data type transformer,
-        // overriding the existing type "date":
-        configuration
-                .getTransformer()
-                .getDataTypeTransformerRegistry()
-                .addTransformer("date", new DecisionManagerDateDataTypeTransformer());
-
-        return configuration.buildEngine();
-    }
-
     private Rule createRule(DmnModelInstance dmnModelInstance, List<? extends FilterDto> activeFilters, Boolean sendMail) {
         final Rule rule = dmnModelInstance.newInstance(Rule.class);
 
@@ -345,7 +347,7 @@ public class BPMNServerImpl implements BPMNServer {
     private List<Map<String, Object>> evaluateEntities(DmnEngine dmnEngine, DmnDecision decision, ProjectDto project) {
         final List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
 
-        final List<Map<String, Object>> commonEntitiesToBeValidated = this.dataService.getCommonData(project);
+        final List<Map<String, Object>> commonEntitiesToBeValidated = this.rowDataService.getRowData(project);
         log.info("Got {} entities to be validated", commonEntitiesToBeValidated.size());
 
         final FilterDto contactFilter = this.filterService.getContactFilter(project);

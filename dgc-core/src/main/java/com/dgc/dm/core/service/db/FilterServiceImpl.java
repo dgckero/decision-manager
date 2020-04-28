@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
+@Transactional
 public class FilterServiceImpl extends CommonServer implements FilterService {
 
     @Autowired
@@ -114,6 +115,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @param filters
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateFilters(List<FilterDto> filters) {
         log.info("Updating " + filters.size() + " filters ");
         filterDao.updateFilters(getModelMapper().map(filters, (new TypeToken<List<Filter>>() {

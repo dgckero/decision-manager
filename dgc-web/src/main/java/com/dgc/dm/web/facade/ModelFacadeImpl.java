@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
+    private static final Integer CONTACT_FILTER = 1;
     @Autowired
     private BPMNServer bpmnServer;
-
-    private static final Integer CONTACT_FILTER = 1;
 
     private static List<FilterDto> getFilterListByModelMap(Collection<Map<String, Object>> filterList, ProjectDto project) {
         if (null == project) {
@@ -202,6 +202,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final List<Map<String, Object>> executeDmn(ProjectDto updatedProject) {
         log.info("Executing DMN file for project {}", updatedProject);
         List<Map<String, Object>> result = bpmnServer.executeDmn(updatedProject);
@@ -233,30 +234,32 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn("Project is null");
             return null;
         } else {
-            log.info("Getting all info from table: {}", project.getCommonDataTableName());
-            List<Map<String, Object>> entities = getDataService().getCommonData(project);
+            log.info("Getting all info from table: {}", project.getRowDataTableName());
+            List<Map<String, Object>> entities = getRowDataService().getRowData(project);
             if (null == entities || entities.isEmpty()) {
                 log.info("Not found data from project {}", project);
                 return null;
             } else {
-                log.info("Got all info from table: {}", project.getCommonDataTableName());
+                log.info("Got all info from table: {}", project.getRowDataTableName());
                 return entities;
             }
         }
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void deleteCommonData(ProjectDto project) {
         if (null == project) {
             log.warn("Project is null");
         } else {
             log.info("Deleting all registers for project {}", project);
-            getDataService().deleteCommonData(project);
+            getRowDataService().deleteRowData(project);
             log.info("Registers successfully deleted for project {}", project);
         }
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void deleteProject(ProjectDto project) {
         if (null == project) {
             log.warn("Project is null");

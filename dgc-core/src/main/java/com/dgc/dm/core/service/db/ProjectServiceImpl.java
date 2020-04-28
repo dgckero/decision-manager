@@ -18,6 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@Transactional
 public class ProjectServiceImpl extends CommonServer implements ProjectService {
 
     @Autowired
@@ -34,6 +35,7 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateProject(ProjectDto project) {
         log.info("Updating project {}", project);
         Project projectEntity = getModelMapper().map(project, Project.class);
@@ -67,6 +69,7 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteProject(final ProjectDto project) {
         log.info("deleting project " + project);
         projectDao.deleteProject(getModelMapper().map(project, Project.class));

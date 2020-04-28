@@ -3,7 +3,7 @@
  */
 package com.dgc.dm.core.generator;
 
-import com.dgc.dm.core.dto.CommonDto;
+import com.dgc.dm.core.dto.RowDataDto;
 import javassist.*;
 import org.springframework.util.StringUtils;
 
@@ -18,9 +18,7 @@ public class PojoGenerator {
             throws NotFoundException, CannotCompileException, IOException {
 
         final CtClass cc = getCtcClass(className);
-
         populateClass(cc, properties.entrySet());
-
         return cc.toClass();
     }
 
@@ -28,14 +26,27 @@ public class PojoGenerator {
         for (final Map.Entry<String, Class<?>> entry : props) {
             final Class<?> clazz = getPropertyClass(entry.getValue());
 
-            cc.addField(new CtField(resolveCtClass(clazz), entry.getKey(), cc));
+            String propertyName = getPropertyNameByColumnName(entry.getKey());
+
+            cc.addField(new CtField(resolveCtClass(clazz), propertyName, cc));
             // add getter
-            cc.addMethod(generateGetter(cc, entry.getKey(), clazz));
+            cc.addMethod(generateGetter(cc, propertyName, clazz));
             // add setter
-            cc.addMethod(generateSetter(cc, entry.getKey(), clazz));
+            cc.addMethod(generateSetter(cc, propertyName, clazz));
         }
         // add toString
         cc.addMethod(generateToString(cc, props));
+    }
+
+    /**
+     * Remove special characters in className
+     *
+     * @param className
+     * @return className without special characters
+     */
+    public static String getPropertyNameByColumnName(String className) {
+        className = org.apache.commons.lang3.StringUtils.stripAccents(className);
+        return className.replaceAll("[^\\p{Alpha}\\p{Digit}]+", "");
     }
 
     private static Class<?> getPropertyClass(final Class<?> columnClass) {
@@ -52,7 +63,7 @@ public class PojoGenerator {
         final ClassPool pool = ClassPool.getDefault();
 
         pool.importPackage("com.dgc.dm.core");
-        pool.appendClassPath(new LoaderClassPath(CommonDto.class.getClassLoader()));
+        pool.appendClassPath(new LoaderClassPath(RowDataDto.class.getClassLoader()));
 
         final CtClass cc = pool.makeClass(className);
         cc.writeFile();
@@ -60,7 +71,7 @@ public class PojoGenerator {
             cc.defrost();
         }
 
-        cc.setSuperclass(pool.get(CommonDto.class.getName()));
+        cc.setSuperclass(pool.get(RowDataDto.class.getName()));
 
         return cc;
     }
@@ -91,7 +102,7 @@ public class PojoGenerator {
         StringBuilder sb = new StringBuilder("public String toString() { return ");
 
         for (final Map.Entry<String, Class<?>> entry : props) {
-            sb.append("+\"").append(entry.getKey()).append(":\"+").append(entry.getKey()).append("\n ");
+            sb.append("+\"").append(getPropertyNameByColumnName(entry.getKey())).append(":\"+").append(getPropertyNameByColumnName(entry.getKey())).append("\n ");
         }
         sb.append(";}");
         sb = new StringBuilder(sb.toString().replaceFirst("\\+", ""));

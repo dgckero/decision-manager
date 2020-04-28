@@ -26,7 +26,7 @@ public class Project implements Serializable {
     @Column
     private String name;
     @Column
-    private String commonDataTableName;
+    private String rowDataTableName;
     @Column
     private String emailTemplate;
     @Column

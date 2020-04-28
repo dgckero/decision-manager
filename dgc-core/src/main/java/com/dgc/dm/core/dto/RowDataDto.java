@@ -9,7 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class CommonDto<T> implements Serializable {
+public class RowDataDto<T> implements Serializable {
 
     private T rowId;
     private ProjectDto project;

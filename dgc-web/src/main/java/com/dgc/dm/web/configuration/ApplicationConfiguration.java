@@ -127,4 +127,5 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
         log.debug("end multipartResolver");
         return multipartResolver;
     }
+
 }

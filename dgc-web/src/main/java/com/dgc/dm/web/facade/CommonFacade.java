@@ -4,9 +4,9 @@
 
 package com.dgc.dm.web.facade;
 
-import com.dgc.dm.core.service.db.DataService;
 import com.dgc.dm.core.service.db.FilterService;
 import com.dgc.dm.core.service.db.ProjectService;
+import com.dgc.dm.core.service.db.RowDataService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class CommonFacade {
 
     @Autowired
-    private DataService dataService;
+    private RowDataService rowDataService;
 
     @Autowired
     private ProjectService projectService;

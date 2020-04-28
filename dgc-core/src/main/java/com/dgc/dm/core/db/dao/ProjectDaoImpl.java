@@ -9,6 +9,8 @@ import com.dgc.dm.core.db.repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,13 +25,14 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     private void createProjectTable() {
         log.debug("Creating table PROJECTS if not exist");
         final String createTableProject =
                 "CREATE TABLE IF NOT EXISTS PROJECTS " +
                         "(ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "name TEXT NOT NULL," +
-                        "commonDataTableName TEXT NOT NULL," +
+                        "rowDataTableName TEXT NOT NULL," +
                         "createDate TEXT NOT NULL," +
                         "emailTemplate TEXT," +
                         "dmnFile BLOB)";
@@ -39,13 +42,14 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Project createProject(final String projectName) {
         log.info("Creating project " + projectName);
         createProjectTable();
         Project project = projectRepository.saveAndFlush(
                 Project.builder()
                         .name(projectName)
-                        .commonDataTableName("COMMONDATAS_" + projectName)
+                        .rowDataTableName("COMMONDATAS_" + projectName)
                         .createDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))
                         .build()
         );
@@ -54,6 +58,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateProject(final Project project) {
         log.info("Updating project " + project);
         projectRepository.saveAndFlush(project);
@@ -86,6 +91,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteProject(final Project project) {
         log.debug("deleting project " + project);
         this.getJdbcTemplate().execute("DELETE FROM PROJECTS where id=" + project.getId());

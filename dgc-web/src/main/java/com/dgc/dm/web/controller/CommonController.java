@@ -26,8 +26,6 @@ import java.util.Date;
 @Getter(AccessLevel.PROTECTED)
 class CommonController implements HandlerExceptionResolver {
 
-    protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
     protected static final String DECISION_VIEW = "decision";
     protected static final String PROJECT_VIEW = "project";
     protected static final String ERROR_VIEW = "error";
@@ -36,7 +34,7 @@ class CommonController implements HandlerExceptionResolver {
     protected static final String HOME_VIEW = "home";
     protected static final String SELECT_PROJECT_VIEW = "selectProject";
     protected static final String NEW_PROJECT_VIEW = "newProject";
-
+    protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     @Autowired
     private ExcelFacade excelFacade;
     @Autowired
@@ -48,7 +46,7 @@ class CommonController implements HandlerExceptionResolver {
 
         final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
         modelAndView.getModel().put("message", exc.getMessage());
-        log.error("Error {}", exc.getMessage());
+        log.error("Error {}", (exc.getCause() == null) ? exc.getMessage() : exc.getCause().getMessage());
 
         return modelAndView;
     }

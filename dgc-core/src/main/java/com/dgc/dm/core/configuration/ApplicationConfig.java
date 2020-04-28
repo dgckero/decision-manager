@@ -21,10 +21,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
@@ -43,7 +42,7 @@ import java.util.Properties;
 @ComponentScan("com.dgc.dm.core")
 @EnableJpaRepositories(
         basePackages = "com.dgc.dm.core.db",
-        entityManagerFactoryRef = "entityManagerFactoryBean")
+        entityManagerFactoryRef = "sessionFactory")
 @EnableTransactionManagement
 public class ApplicationConfig implements TransactionManagementConfigurer {
 
@@ -53,119 +52,208 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public ApplicationConfig() {
     }
 
+    /**
+     * Set configuration for modelMapper
+     * modelMapper is user to convert from DTO to Entity or vice-versa
+     *
+     * @return modelMapper
+     */
     @Bean
     public ModelMapper modelMapper() {
-        log.debug("Configuring modelMapper");
+        log.debug("[INIT] Configuring modelMapper");
 
-        final ModelMapper modelMapper = new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
-        log.debug("modelMapper successfully configured");
+        log.debug("[END] modelMapper successfully configured");
         return modelMapper;
     }
 
-    @Bean(name = "entityManagerFactoryBean")
-    public EntityManagerFactory entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(this.dataSource());
-        em.setPackagesToScan("com.dgc.dm.core");
+    /**
+     * Add hibernate properties
+     *
+     * @return hibernateProperties
+     */
+    final Properties getHibernateProperties() {
+        log.debug("[INIT] Configuring additionalProperties");
 
-        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
-        em.setJpaProperties(this.additionalProperties());
-        em.afterPropertiesSet();
+        final Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
+        hibernateProperties.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
 
-        return em.getObject();
-    }
-
-    @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Preconditions.checkNotNull(this.env.getProperty("jdbc.driverClassName")));
-        dataSource.setUrl(Preconditions.checkNotNull(this.env.getProperty("jdbc.url")));
-        dataSource.setUsername(Preconditions.checkNotNull(this.env.getProperty("jdbc.user")));
-        dataSource.setPassword(Preconditions.checkNotNull(this.env.getProperty("jdbc.pass")));
-        return dataSource;
-    }
-
-
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager(final EntityManagerFactory entityManagerFactory) {
-        final JpaTransactionManager txManager = new JpaTransactionManager();
-        txManager.setEntityManagerFactory(entityManagerFactory);
-        return txManager;
-    }
-
-    @Override
-    @Bean
-    @DependsOn("entityManagerFactoryBean")
-    public PlatformTransactionManager annotationDrivenTransactionManager() {
-        final JpaTransactionManager jpa = new JpaTransactionManager();
-        jpa.setEntityManagerFactory(this.entityManagerFactory());
-        return jpa;
-    }
-
-    @Bean
-    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
-        return new PersistenceExceptionTranslationPostProcessor();
-    }
-
-    final Properties additionalProperties() {
-        Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.dialect", this.env.getProperty("hibernate.dialect"));
-        hibernateProperties.setProperty("hibernate.show_sql", this.env.getProperty("hibernate.show_sql"));
-
+        log.debug("[END] Configuring additionalProperties");
         return hibernateProperties;
     }
 
+    /**
+     * Add data base information to dataSource
+     *
+     * @return dataSource
+     */
     @Bean
-    public JdbcTemplate jdbcTemplate() {
-        return new JdbcTemplate(this.dataSource());
+    public DataSource dataSource() {
+        log.debug("[INIT] Configuring dataSource");
+
+        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(Preconditions.checkNotNull(env.getProperty("jdbc.driverClassName")));
+        dataSource.setUrl(Preconditions.checkNotNull(env.getProperty("jdbc.url")));
+        dataSource.setUsername(Preconditions.checkNotNull(env.getProperty("jdbc.user")));
+        dataSource.setPassword(Preconditions.checkNotNull(env.getProperty("jdbc.pass")));
+
+        log.debug("[END] Configuring dataSource");
+        return dataSource;
     }
 
+    /**
+     * Return factory associated with the persistence context
+     *
+     * @return entityManagerFactory
+     */
+    @Bean
+    public LocalSessionFactoryBean sessionFactory() {
+        log.debug("[INIT] Configuring sessionFactory");
+
+        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource());
+        sessionFactory.setPackagesToScan("com.dgc.dm.core");
+        sessionFactory.setHibernateProperties(getHibernateProperties());
+
+        log.debug("[END] Configuring sessionFactory");
+        return sessionFactory;
+    }
+
+    /**
+     * Set the EntityManagerFactory that this instance should manage transactions for
+     *
+     * @param entityManagerFactory
+     * @return JpaTransactionManager
+     */
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        log.debug("[INIT] Configuring transactionManager for entityManagerFactory: " + entityManagerFactory);
+
+        HibernateTransactionManager txManager = new HibernateTransactionManager();
+        txManager.setDataSource(dataSource());
+        txManager.setSessionFactory(sessionFactory().getObject());
+
+        log.debug("[END] Configuring transactionManager");
+        return txManager;
+    }
+
+    /**
+     * Return the default transaction manager bean to use for annotation-driven database
+     * transaction management, i.e. when processing {@code @Transactional} methods.
+     */
+    @Override
+    @Bean
+    @DependsOn("sessionFactory")
+    public PlatformTransactionManager annotationDrivenTransactionManager() {
+        log.debug("[INIT] Configuring annotationDrivenTransactionManager");
+
+        JpaTransactionManager jpa = new JpaTransactionManager();
+        jpa.setEntityManagerFactory(sessionFactory().getObject());
+
+        log.debug("[END] Configuring annotationDrivenTransactionManager");
+        return jpa;
+    }
+
+    /**
+     * Applies persistence exception translation to any
+     * bean marked with Spring's @{@link org.springframework.stereotype.Repository Repository}
+     * annotation
+     *
+     * @return PersistenceExceptionTranslationPostProcessor
+     */
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+        log.debug("[INIT] Configuring exceptionTranslation");
+        PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor = new PersistenceExceptionTranslationPostProcessor();
+        log.debug("[END] Configuring exceptionTranslation");
+        return persistenceExceptionTranslationPostProcessor;
+    }
+
+    /**
+     * Return a new JdbcTemplate, given a DataSource to obtain connections from.
+     *
+     * @return JdbcTemplate
+     */
+    @Bean
+    public JdbcTemplate jdbcTemplate() {
+        log.debug("[INIT] Configuring jdbcTemplate");
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource());
+        log.debug("[END] Configuring jdbcTemplate");
+        return jdbcTemplate;
+    }
+
+    /**
+     * Set configuration for mail sender
+     *
+     * @return JavaMailSender
+     */
     @Bean
     public JavaMailSender getJavaMailSender() {
-        log.info("Configuring Mail Sender");
+        log.debug("[INIT] Configuring Mail Sender");
 
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(this.env.getProperty("mail.host"));
-        mailSender.setPort(Integer.parseInt(this.env.getProperty("mail.port")));
-        mailSender.setUsername(getEncryptedProperty(this.env.getProperty("mail.username")));
-        mailSender.setPassword(getEncryptedProperty(this.env.getProperty("mail.password")));
+        final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(env.getProperty("mail.host"));
+        mailSender.setPort(Integer.parseInt(env.getProperty("mail.port")));
+        mailSender.setUsername(this.getEncryptedProperty(env.getProperty("mail.username")));
+        mailSender.setPassword(this.getEncryptedProperty(env.getProperty("mail.password")));
 
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", this.env.getProperty("mail.transport.protocol"));
-        props.put("mail.smtp.auth", this.env.getProperty("mail.smtp.auth"));
-        props.put("mail.smtp.starttls.enable", this.env.getProperty("mail.smtp.auth"));
-        props.put("mail.debug", this.env.getProperty("mail.debug"));
+        final Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", env.getProperty("mail.transport.protocol"));
+        props.put("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
+        props.put("mail.smtp.starttls.enable", env.getProperty("mail.smtp.auth"));
+        props.put("mail.debug", env.getProperty("mail.debug"));
 
-        log.info("Mail Sender successfully configured ");
+        log.debug("[END] Mail Sender successfully configured ");
         return mailSender;
     }
 
-    private String getEncryptedProperty(String encryptedPropery) {
+    /**
+     * Decrypt encryptedPropery
+     *
+     * @param encryptedPropery
+     * @return decrypted propery
+     */
+    private String getEncryptedProperty(final String encryptedPropery) {
+        log.debug("[INIT] decrypting property {}", encryptedPropery);
         String decryptedProperty = null;
         try {
-            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, getEncryptor());
-        } catch (NullPointerException e) {
+            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, this.getEncryptor());
+        } catch (final NullPointerException e) {
             log.error("JASYPT ENVIRONMENT VARIABLE HAS NOT BEEN DEFINED");
         }
+        log.debug("[END] decrypting property ");
         return decryptedProperty;
     }
 
+    /**
+     * Get Encryptor
+     *
+     * @return encryptor
+     */
     private StandardPBEStringEncryptor getEncryptor() {
-        StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
-        standardPBEStringEncryptor.setConfig(getEnvironmentConfig());
+        log.debug("[INIT] getEncryptor");
+        final StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
+        standardPBEStringEncryptor.setConfig(this.getEnvironmentConfig());
+        log.debug("[END] getEncryptor");
 
         return standardPBEStringEncryptor;
     }
 
+    /**
+     * Get PBEConfig based on jasypt properties
+     *
+     * @return
+     */
     private PBEConfig getEnvironmentConfig() {
-        EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
-        config.setAlgorithm(this.env.getProperty("jasypt.environment.algorithm"));
-        config.setPasswordEnvName(this.env.getProperty("jasypt.environment.name"));
-
+        log.debug("[INIT] getEnvironmentConfig");
+        final EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
+        config.setAlgorithm(env.getProperty("jasypt.environment.algorithm"));
+        config.setPasswordEnvName(env.getProperty("jasypt.environment.name"));
+        log.debug("[END] getEnvironmentConfig");
         return config;
     }
 }

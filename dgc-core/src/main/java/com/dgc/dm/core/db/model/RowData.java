@@ -4,15 +4,16 @@
 
 package com.dgc.dm.core.db.model;
 
+
 import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Table(name = "commonDatas")
+@Table(name = "Data")
 @Entity
-public class CommonEntity implements Serializable {
+public class RowData implements Serializable {
     @Id
     @Column(name = "rowId")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

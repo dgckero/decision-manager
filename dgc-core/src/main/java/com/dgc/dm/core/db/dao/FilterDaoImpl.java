@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param project
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void createFilterTable(Project project) {
         log.info(String.format("****** Creating table: %s ******", "Filters"));
 
@@ -47,6 +50,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filterList
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void persistFilterList(List<Filter> filterList) {
         log.debug("Persisting filters got from Excel");
         filterRepository.saveAll(filterList);
@@ -86,6 +90,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filters
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void updateFilters(List<Filter> filters) {
         log.info("Updating filters ");
         filterRepository.saveAll(filters);
