@@ -15,12 +15,19 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class ProcessExcelControllerImpl extends CommonController implements ProcessExcelController {
 
+    /**
+     * Process Excel file and create project model
+     *
+     * @param projectName
+     * @param file
+     * @return decision view
+     */
     @Override
-    public ModelAndView uploadFile(String projectName, MultipartFile file) {
-        log.info("processing file {} for {}", file.getOriginalFilename(), projectName);
-        final ModelAndView modelAndView = new ModelAndView(CommonController.DECISION_VIEW);
+    public ModelAndView uploadFile(final String projectName, final MultipartFile file) {
+        log.info("[INIT] processing file {} for {}", file.getOriginalFilename(), projectName);
+        ModelAndView modelAndView = new ModelAndView(CommonController.DECISION_VIEW);
 
-        ProjectDto project = getExcelFacade().processExcel(file, projectName);
+        final ProjectDto project = this.getExcelFacade().processExcel(file, projectName);
 
         if (null == project) {
             log.error("Error creating project");
@@ -28,8 +35,9 @@ public class ProcessExcelControllerImpl extends CommonController implements Proc
             modelAndView.getModel().put("message", "Error creating project");
         } else {
             modelAndView.getModel().put("project", project);
-            this.getModelFacade().addFilterInformationToModel(modelAndView, project);
+            getModelFacade().addFilterInformationToModel(modelAndView, project);
         }
+        log.info("[END] processing file {} for {}", file.getOriginalFilename(), projectName);
         return modelAndView;
     }
 }

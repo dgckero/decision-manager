@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -37,94 +36,177 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      */
     private static final long MAX_UPLOAD_SIZE = 5242880L;
 
+    /**
+     * Spanish locale
+     */
     private static final Locale SPANISH_LOCALE = new Locale("es", "ES");
+    private static final String RESOURCES_PATH = "/resources/**";
+    private static final String RESOURCES_CLASSPATH = "classpath:/resources/";
+    private static final String WEBJARS_PATH = "/webjars/**";
+    private static final String WEBJARS_CLASSPATH = "classpath:/META-INF/resources/webjars/";
+    private static final String WEB_INF_VIEWS_PATH = "/WEB-INF/views/";
+    private static final String HTML_EXTENSION = ".html";
 
 
     @Autowired
     private ApplicationContext applicationContext;
 
+    /**
+     * configures a DefaultServletHttpRequestHandler with a URL mapping of /**
+     * and the lowest priority relative to other URL mappings.
+     *
+     * @param configurer
+     */
     @Override
-    public void configureDefaultServletHandling(final DefaultServletHandlerConfigurer configurer) {
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        log.debug("[INIT] configureDefaultServletHandling configurer: {}", configurer);
         configurer.enable();
+        log.debug("[END] configureDefaultServletHandling");
     }
 
+    /**
+     * Add a resource handler for serving static resources based on the specified URL path
+     *
+     * @param registry
+     */
     @Override
-    public void addResourceHandlers(final ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/resources/**")
-                .addResourceLocations("classpath:/resources/");
-        registry.addResourceHandler("/webjars/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        log.debug("[INIT] addResourceHandlers registry: {}", registry);
+        registry.addResourceHandler(RESOURCES_PATH)
+                .addResourceLocations(RESOURCES_CLASSPATH);
+        registry.addResourceHandler(WEBJARS_PATH)
+                .addResourceLocations(WEBJARS_CLASSPATH);
+        log.debug("[END] addResourceHandlers");
     }
 
+    /**
+     * Adds the provided interceptorRegistry
+     *
+     * @param registry
+     */
     @Override
-    public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(this.localeChangeInterceptor());
+    public void addInterceptors(InterceptorRegistry registry) {
+        log.debug("[INIT] addInterceptors registry: {}", registry);
+        registry.addInterceptor(localeChangeInterceptor());
+        log.debug("[END] addInterceptors");
     }
 
+    /**
+     * Interceptor that allows for changing the current locale on every request,
+     * via a configurable request parameter (default parameter name: "locale").
+     *
+     * @return LocaleChangeInterceptor
+     */
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
-        final LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+        log.debug("[INIT] localeChangeInterceptor");
+        LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
         lci.setParamName("lang");
+        log.debug("[END] localeChangeInterceptor");
         return lci;
     }
 
-    @Bean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME)
+    /**
+     * Interface for web-based locale resolution strategies that allows for both locale resolution via the request and locale modification via request and response.
+     *
+     * @return SessionLocaleResolver, default locale Spanish
+     */
+    @Bean
     public LocaleResolver localeResolver() {
-        final SessionLocaleResolver slr = new SessionLocaleResolver();
+        log.debug("[INIT] localeResolver");
+        SessionLocaleResolver slr = new SessionLocaleResolver();
         slr.setDefaultLocale(SPANISH_LOCALE);
+        log.debug("[END] localeResolver");
         return slr;
     }
 
-    @Bean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME)
+    /**
+     * Set default web-based theme
+     *
+     * @return ThemeResolver
+     */
+    @Bean
     public FixedThemeResolver themeResolver() {
-        final FixedThemeResolver resolver = new FixedThemeResolver();
+        log.debug("[INIT] themeResolver");
+        FixedThemeResolver resolver = new FixedThemeResolver();
         resolver.setDefaultThemeName("default-theme");
+        log.debug("[END] themeResolver");
         return resolver;
     }
 
+    /**
+     * Define MessageSource implementation that accesses resource bundles using specified basenames.
+     *
+     * @return ResourceBundleMessageSource
+     */
     @Bean
     public ResourceBundleMessageSource resourceBundleMessageSource() {
-        log.debug("init resourceBundleMessageSource");
-        final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        log.debug("[INIT] resourceBundleMessageSource");
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
-        log.debug("end resourceBundleMessageSource");
+        log.debug("[END] resourceBundleMessageSource");
         return messageSource;
     }
 
+    /**
+     * SpringResourceTemplateResolver automatically integrates with Spring's own
+     * resource resolution infrastructure
+     *
+     * @return SpringResourceTemplateResolver
+     */
     @Bean
     public SpringResourceTemplateResolver templateResolver() {
-        log.debug("init templateResolver");
+        log.debug("[INIT] templateResolver");
 
-        final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(this.applicationContext);
-        templateResolver.setPrefix("/WEB-INF/views/");
-        templateResolver.setSuffix(".html");
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(applicationContext);
+        templateResolver.setPrefix(WEB_INF_VIEWS_PATH);
+        templateResolver.setSuffix(HTML_EXTENSION);
 
-        log.debug("end templateResolver");
+        log.debug("[END] templateResolver");
         return templateResolver;
     }
 
+    /**
+     * applies SpringStandardDialect and enables Spring's own MessageSource message resolution mechanisms
+     *
+     * @return SpringTemplateEngine
+     */
     @Bean
     public SpringTemplateEngine templateEngine() {
-        final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(this.templateResolver());
+        log.debug("[INIT] templateEngine");
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
         templateEngine.setEnableSpringELCompiler(true);
+        log.debug("[END] templateEngine");
         return templateEngine;
     }
 
+    /**
+     * Configure view resolvers to translate String-based view names returned from controllers into concrete View implementations to perform rendering with.
+     *
+     * @param registry
+     */
     @Override
-    public void configureViewResolvers(final ViewResolverRegistry registry) {
-        final ThymeleafViewResolver resolver = new ThymeleafViewResolver();
-        resolver.setTemplateEngine(this.templateEngine());
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        log.debug("[INIT] configureViewResolvers registry: {}", registry);
+        ThymeleafViewResolver resolver = new ThymeleafViewResolver();
+        resolver.setTemplateEngine(templateEngine());
         registry.viewResolver(resolver);
+        log.debug("[END] configureViewResolvers");
     }
 
+    /**
+     * Set the maximum allowed size (in bytes) before an upload gets rejected.
+     *
+     * @return MultipartResolver
+     */
     @Bean
     public MultipartResolver multipartResolver() {
-        log.debug("init multipartResolver");
-        final CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        log.debug("[INIT] multipartResolver");
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
-        log.debug("end multipartResolver");
+        log.debug("[END] multipartResolver");
         return multipartResolver;
     }
 

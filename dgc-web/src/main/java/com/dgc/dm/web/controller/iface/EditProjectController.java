@@ -21,7 +21,7 @@ public interface EditProjectController extends HandlerExceptionResolver {
     ModelAndView editFilters(@ModelAttribute("selectedProject") ProjectDto project);
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=editEmailTemplate")
-    String editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") String emailTemplate);
+    ModelAndView editEmailTemplate(@ModelAttribute("selectedProject") ProjectDto selectedProject, @ModelAttribute("emailTemplate") String emailTemplate);
 
     @RequestMapping(value = "/editProject", method = RequestMethod.POST, params = "action=getDMNFilteredResults")
     ModelAndView getDMNFilteredResults(@ModelAttribute("selectedProject") ProjectDto selectedProject);

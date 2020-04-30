@@ -9,6 +9,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class HomeControllerImpl extends CommonController implements HomeController {
+
+    /**
+     * Go to home view
+     *
+     * @return home view
+     */
     public ModelAndView home() {
         return new ModelAndView(CommonController.HOME_VIEW);
     }

@@ -16,14 +16,21 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class ViewProjectControllerImpl extends CommonController implements ViewProjectController {
 
+    /**
+     * Go to view project based on selectedProjectId
+     *
+     * @param selectedProjectId
+     * @return view project
+     */
     @Override
-    public ModelAndView viewProject(@ModelAttribute("selectedProjectId") final Integer selectedProjectId) {
-        ModelAndView modelAndView = new ModelAndView("viewProject");
+    public ModelAndView viewProject(@ModelAttribute("selectedProjectId") Integer selectedProjectId) {
+        log.info("[INIT] viewProject by id: {}", selectedProjectId);
+        final ModelAndView modelAndView = new ModelAndView(VIEW_PROJECT);
         if (selectedProjectId == null) {
             log.error("SelectedProjectId is NULL");
         } else {
             log.info("SelectedProjectId " + selectedProjectId);
-            ProjectDto selectedProject = getModelFacade().getProject(selectedProjectId);
+            final ProjectDto selectedProject = this.getModelFacade().getProject(selectedProjectId);
 
             if (null == selectedProject) {
                 log.error("Project not found with ID " + selectedProjectId);
@@ -33,6 +40,7 @@ public class ViewProjectControllerImpl extends CommonController implements ViewP
                 modelAndView.addObject("selectedProject", selectedProject);
             }
         }
+        log.info("[END] viewProject by id: {}", selectedProjectId);
         return modelAndView;
     }
 

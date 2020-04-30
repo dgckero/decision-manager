@@ -24,7 +24,7 @@ public interface ModelFacade {
 
     void updateFilters(List<FilterDto> activeFilters);
 
-    List<Map<String, Object>> createBPMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception;
+    List<Map<String, Object>> createDMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception;
 
     List<FilterDto> getActiveFilters(List<FilterDto> filters);
 
@@ -36,11 +36,13 @@ public interface ModelFacade {
 
     void validateDmn(ProjectDto project, byte[] bytes);
 
-    List<Map<String, Object>> getCommonData(ProjectDto project);
+    List<Map<String, Object>> getRowData(ProjectDto project);
 
-    void deleteCommonData(ProjectDto project);
+    void deleteRowData(ProjectDto project);
 
     void deleteProject(ProjectDto project);
 
     void addFilterInformationToModel(ModelAndView modelAndView, ProjectDto project);
+
+    Map<String, List<Map<String, Object>>> getExistingProjects();
 }

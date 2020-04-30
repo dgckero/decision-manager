@@ -28,28 +28,35 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     @Autowired
     private BPMNServer bpmnServer;
 
-    private static List<FilterDto> getFilterListByModelMap(Collection<Map<String, Object>> filterList, ProjectDto project) {
+    /**
+     * Get list of FilterDto by filterList
+     *
+     * @param filterList
+     * @param project
+     * @return List of filterDto
+     */
+    private static List<FilterDto> getFilterListByModelMap(final Collection<Map<String, Object>> filterList, final ProjectDto project) {
+        List<FilterDto> result = null;
+        log.debug("[INIT] getFilterListByModelMap by project: {}", project);
         if (null == project) {
             log.warn("Project is NULL, not possible to parse List<Map<String,Object>> to List<FilterDto>");
-            return null;
         } else if (null == filterList || filterList.isEmpty()) {
             log.warn("FilterList is empty, not possible to parse List<Map<String,Object>> to List<FilterDto>");
-            return null;
         } else {
             log.debug("Parsing List<Map<String,Object>> to List<FilterDto>");
 
-            List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
-            Iterator<Map<String, Object>> entryIterator = filterList.iterator();
+            final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
+            final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
             while (entryIterator.hasNext()) {
-                Map<String, Object> filterIterator = entryIterator.next();
+                final Map<String, Object> filterIterator = entryIterator.next();
 
-                String filterName = (String) filterIterator.get("name");
+                final String filterName = (String) filterIterator.get("name");
                 if ("rowId".equals(filterName)) {
                     // Don't send rowId to decision view
                     entryIterator.remove();
                     log.debug("Removed filter rowId from filterList");
                 } else {
-                    FilterDto filter = FilterDto.builder().
+                    final FilterDto filter = FilterDto.builder().
                             id((Integer) filterIterator.get("ID")).
                             name(filterName).
                             filterClass((String) filterIterator.get("class")).
@@ -63,59 +70,94 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
                 }
             }
             log.debug("Generated List<filterDto>");
-            return filterDtoList;
+            result = filterDtoList;
         }
+        log.debug("[END] getFilterListByModelMap by project: {}", project);
+        return result;
     }
 
+    /**
+     * Generate a FilterCreationDto object based on parameters
+     *
+     * @param project
+     * @param filterList
+     * @return FilterCreationDto
+     */
     @Override
-    public final FilterCreationDto getFilterCreationDto(ProjectDto project, Collection<Map<String, Object>> filterList) {
+    public final FilterCreationDto getFilterCreationDto(final ProjectDto project, final Collection<Map<String, Object>> filterList) {
+        log.debug("[INIT] getFilterCreationDto by project: {}", project);
+        FilterCreationDto result = null;
         if (null == project) {
             log.warn("Project is NULL, not possible to generate FilterCreationDto");
-            return null;
         } else if (null == filterList || filterList.isEmpty()) {
             log.warn("FilterList is empty, not possible to generate FilterCreationDto");
-            return null;
         } else {
             log.info("Generating FilterCreationDto");
-            List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
+            final List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
             log.info("Adding {} filters to FilterCreationDto", filterDtoList.size());
-            FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
+            final FilterCreationDto filterCreationDto = new FilterCreationDto(filterDtoList);
             log.info("FilterCreationDto successfully created");
-            return filterCreationDto;
+            result = filterCreationDto;
         }
+        log.debug("[END] getFilterCreationDto by project: {}", project);
+        return result;
     }
 
+    /**
+     * Getting contact filter (contactFilter = true) by project
+     *
+     * @param project
+     * @return
+     */
     @Override
-    public final FilterDto getContactFilter(ProjectDto project) {
+    public final FilterDto getContactFilter(final ProjectDto project) {
+        log.info("[INIT] getContactFilter by project: {}", project);
+        final FilterDto result;
         if (null == project) {
             log.warn("Project is NULL, not possible to get contact filter");
-            return null;
+            result = null;
         } else {
-            log.info("Getting contact filter for project {}", project);
-            return getFilterService().getContactFilter(project);
+            result = this.getFilterService().getContactFilter(project);
         }
+        log.debug("[INIT] getContactFilter by project: {}, result: {}", project, result);
+        return result;
     }
 
+    /**
+     * Get project's filters
+     *
+     * @param project
+     * @return List of filters
+     */
     @Override
-    public final List<Map<String, Object>> getFilters(ProjectDto project) {
+    public final List<Map<String, Object>> getFilters(final ProjectDto project) {
+        log.info("[INIT] Getting filters for project {}", project);
+        final List<Map<String, Object>> result;
         if (null == project) {
             log.warn("Project is NULL, not possible to get filters");
-            return null;
+            result = null;
         } else {
-            log.info("Getting filters for project {}", project);
-            return getFilterService().getFilters(project);
+            result = this.getFilterService().getFilters(project);
         }
+        log.info("[END] Getting filters for project {}", project);
+        return result;
     }
 
+    /**
+     * Update project
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateProject(ProjectDto project) {
+    public final void updateProject(final ProjectDto project) {
+        log.info("[INIT] updateProject {}", project);
         if (null == project) {
             log.warn("Project is NULL, it won't be updated");
         } else {
-            log.info("Updating project {}", project);
-            getProjectService().updateProject(project);
+            this.getProjectService().updateProject(project);
         }
+        log.info("[end] updateProject {}", project);
     }
 
     /**
@@ -125,45 +167,65 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateFilters(List<FilterDto> filters) {
+    public final void updateFilters(final List<FilterDto> filters) {
+        log.info("[INIT] Updating filters");
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found to be updated");
         } else {
             log.info("Updating {} filters", filters.size());
-            getFilterService().updateFilters(filters);
+            this.getFilterService().updateFilters(filters);
             log.info("Updated {} filters successfully", filters.size());
         }
+        log.info("[END] Updating filters");
     }
 
+    /**
+     * Create and running decision table
+     *
+     * @param filters
+     * @param emailTemplate
+     * @param sendEmail
+     * @return list of rows that fits filters
+     * @throws Exception
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final List<Map<String, Object>> createBPMNModel(List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception {
-        log.info("Creating and running Decision Table");
+    public final List<Map<String, Object>> createDMNModel(final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws Exception {
+        final List<Map<String, Object>> res;
+        log.info("[INIT] Creating and running Decision Table");
 
-        ProjectDto project = filters.get(0).getProject();
+        final ProjectDto project = filters.get(0).getProject();
         if (null == project) {
             log.warn("No project found on filters ");
-            return null;
+            res = null;
         } else {
             log.info("Updating active filters on data base");
-
-            updateFilters(filters);
+            this.updateFilters(filters);
 
             log.debug("Send Email enabled? {}", sendEmail);
             project.setEmailTemplate(emailTemplate);
 
-            List<Map<String, Object>> result = bpmnServer.createAndRunDMN(project, this.getActiveFilters(filters), sendEmail);
+            final List<Map<String, Object>> result = this.bpmnServer.createAndRunDMN(project, getActiveFilters(filters), sendEmail);
 
             log.info("Adding DMN file for project {}", project);
-            updateProject(project);
+            this.updateProject(project);
 
-            return result;
+            res = result;
         }
+        log.info("[END] Creating and running Decision Table");
+        return res;
     }
 
+    /**
+     * Get active (active=true) filters
+     *
+     * @param filters
+     * @return list of active filters
+     */
     @Override
-    public final List<FilterDto> getActiveFilters(List<FilterDto> filters) {
-        List<FilterDto> activeFilters = filters.stream()
+    public final List<FilterDto> getActiveFilters(final List<FilterDto> filters) {
+        log.info("[INIT] getActiveFilters");
+        final List<FilterDto> activeFilters = filters.stream()
                 .filter(flt -> (null != flt.getActive() && flt.getActive().equals(Boolean.TRUE)))
                 .collect(Collectors.toList());
 
@@ -173,106 +235,166 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.info("Found {} active filters", activeFilters.size());
             log.info("Active filters {}", activeFilters);
         }
+        log.info("[END] getActiveFilters");
         return activeFilters;
     }
 
+    /**
+     * Get all projects
+     *
+     * @return list of projects
+     */
     @Override
     public final List<Map<String, Object>> getProjects() {
-        log.info("Getting projects ");
-        List<Map<String, Object>> projects = getProjectService().getProjects();
+        List<Map<String, Object>> result = null;
+        log.info("[INIT] Getting projects ");
+        final List<Map<String, Object>> projects = this.getProjectService().getProjects();
         if (projects.isEmpty()) {
             log.info("No project founds");
-            return null;
+        } else {
+            result = projects;
         }
-        log.info("Got {} projects", projects.size());
-        return projects;
+        log.info("[END] Got {} projects", projects.size());
+        return result;
     }
 
+    /**
+     * Get project by selectedProjectId
+     *
+     * @param selectedProjectId
+     * @return project
+     */
     @Override
-    public final ProjectDto getProject(Integer selectedProjectId) {
-        log.info("Getting project by Id {}", selectedProjectId);
-        ProjectDto project = getProjectService().getProject(selectedProjectId);
+    public final ProjectDto getProject(final Integer selectedProjectId) {
+        log.info("[INIT] Getting project by Id {}", selectedProjectId);
+        final ProjectDto result;
+        final ProjectDto project = this.getProjectService().getProject(selectedProjectId);
         if (null == project) {
             log.warn("No project found by Id {}", selectedProjectId);
-            return null;
+            result = null;
         } else {
             log.info("Found project {}", project);
-            return project;
+            result = project;
         }
+        log.info("[END] Getting project by Id {}", selectedProjectId);
+        return result;
     }
 
+    /**
+     * Run DMN for project
+     *
+     * @param updatedProject
+     * @return entities that fit filters defined on DMN file
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final List<Map<String, Object>> executeDmn(ProjectDto updatedProject) {
-        log.info("Executing DMN file for project {}", updatedProject);
-        List<Map<String, Object>> result = bpmnServer.executeDmn(updatedProject);
+    public final List<Map<String, Object>> executeDmn(final ProjectDto updatedProject) {
+        log.info("[INIT] Executing DMN file for project {}", updatedProject);
+        final List<Map<String, Object>> res;
+        final List<Map<String, Object>> result = this.bpmnServer.executeDmn(updatedProject);
         if (null == result || result.isEmpty()) {
             log.warn("No results found after running DMN for project {}", updatedProject);
-            return null;
+            res = null;
         } else {
             log.info("Found {} results after running DMN for project {}", result.size(), updatedProject);
-            return result;
+            res = result;
         }
+        log.info("[END] Executing DMN file for project {}", updatedProject);
+        return res;
     }
 
+    /**
+     * Validate DMN file
+     *
+     * @param project
+     * @param bytes
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void validateDmn(ProjectDto project, byte[] bytes) {
-        log.info("Validating DMN file");
-        bpmnServer.validateDmn(bytes);
+    public final void validateDmn(final ProjectDto project, final byte[] bytes) {
+        log.info("[INIT] Validating DMN file");
+        this.bpmnServer.validateDmn(bytes);
         log.info("Validated DMN file");
 
         project.setDmnFile(bytes);
         log.info("Added new DMN file, updating project");
-        getProjectService().updateProject(project);
-        log.info("Successfully added DMN file for project {}", project);
+        this.getProjectService().updateProject(project);
+        log.info("[END] Successfully added DMN file for project {}", project);
     }
 
+    /**
+     * Get project's row data
+     *
+     * @param project
+     * @return
+     */
     @Override
-    public final List<Map<String, Object>> getCommonData(ProjectDto project) {
+    public final List<Map<String, Object>> getRowData(final ProjectDto project) {
+        log.info("[INIT] get row data for project: {}", project);
+        List<Map<String, Object>> result = null;
         if (null == project) {
             log.warn("Project is null");
-            return null;
         } else {
             log.info("Getting all info from table: {}", project.getRowDataTableName());
-            List<Map<String, Object>> entities = getRowDataService().getRowData(project);
+            final List<Map<String, Object>> entities = this.getRowDataService().getRowData(project);
             if (null == entities || entities.isEmpty()) {
                 log.info("Not found data from project {}", project);
-                return null;
             } else {
                 log.info("Got all info from table: {}", project.getRowDataTableName());
-                return entities;
+                result = entities;
             }
         }
+        log.info("[END] get row data for project: {}", project);
+        return result;
     }
 
+    /**
+     * Delete all project's row data
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteCommonData(ProjectDto project) {
+    public final void deleteRowData(final ProjectDto project) {
+        log.info("[INIT] deleteRowData for project: {}", project);
         if (null == project) {
             log.warn("Project is null");
         } else {
             log.info("Deleting all registers for project {}", project);
-            getRowDataService().deleteRowData(project);
+            this.getRowDataService().deleteRowData(project);
             log.info("Registers successfully deleted for project {}", project);
         }
+        log.info("[END] deleteRowData for project: {}", project);
     }
 
+    /**
+     * Delete project
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteProject(ProjectDto project) {
+    public final void deleteProject(final ProjectDto project) {
+        log.info("[INIT] delete project :{}", project);
         if (null == project) {
             log.warn("Project is null");
         } else {
             log.info("Deleting project {}", project);
-            getProjectService().deleteProject(project);
-            log.info("Deleted project {}", project);
+            this.getProjectService().deleteProject(project);
         }
+        log.info("[END] delete project :{}", project);
     }
 
+    /**
+     * Add project's filters to modelAndView
+     *
+     * @param modelAndView
+     * @param project
+     */
     @Override
-    public final void addFilterInformationToModel(ModelAndView modelAndView, ProjectDto project) {
-        Map<String, List<Map<String, Object>>> filters = getFiltersModelMap(project);
+    public final void addFilterInformationToModel(final ModelAndView modelAndView, final ProjectDto project) {
+        log.debug("[INIT] addFilterInformationToModel for project: {}", project);
+        final Map<String, List<Map<String, Object>>> filters = this.getFiltersModelMap(project);
 
         if (null == filters || filters.isEmpty()) {
             log.error("No filters found");
@@ -280,24 +402,54 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         } else {
             log.error("Found {} filters", filters.size());
             modelAndView.addAllObjects(filters);
-            modelAndView.addObject("form", getFilterCreationDto(project, filters.get("filterList")));
-            modelAndView.addObject("contactFilter", getContactFilter(project));
+            modelAndView.addObject("form", this.getFilterCreationDto(project, filters.get("filterList")));
+            modelAndView.addObject("contactFilter", this.getContactFilter(project));
         }
+        log.debug("[END] addFilterInformationToModel for project: {}", project);
     }
 
-    private Map<String, List<Map<String, Object>>> getFiltersModelMap(ProjectDto project) {
-        Map<String, List<Map<String, Object>>> result;
-        List<Map<String, Object>> filterList = getFilters(project);
+    /**
+     * Get Project's filters Map
+     *
+     * @param project
+     * @return filters Map
+     */
+    private Map<String, List<Map<String, Object>>> getFiltersModelMap(final ProjectDto project) {
+        log.debug("[INIT] getFiltersModelMap for project: {}", project);
+        final Map<String, List<Map<String, Object>>> result;
+        final List<Map<String, Object>> filterList = this.getFilters(project);
 
         if (null == filterList || filterList.isEmpty()) {
             log.error("No filters found");
             result = null;
         } else {
             log.info("found {} filters", filterList.size());
-            Map<String, List<Map<String, Object>>> modelMap = new HashMap<>(1);
+            final Map<String, List<Map<String, Object>>> modelMap = new HashMap<>(1);
             modelMap.put("filterList", filterList);
             result = modelMap;
         }
+        log.debug("[END] getFiltersModelMap for project: {}", project);
         return result;
+    }
+
+    /**
+     * Get existing projects
+     *
+     * @return List of projects
+     */
+    @Override
+    public Map<String, List<Map<String, Object>>> getExistingProjects() {
+        log.info("[INIT] getExistingProjects");
+        Map<String, List<Map<String, Object>>> modelMap = null;
+        final List<Map<String, Object>> projects = this.getProjects();
+        if (projects == null) {
+            log.warn("No projects founds");
+        } else {
+            modelMap = new HashMap<>();
+            log.info("Found {} projects", projects.size());
+            modelMap.put("existingProjects", projects);
+        }
+        log.info("[END] getExistingProjects");
+        return modelMap;
     }
 }

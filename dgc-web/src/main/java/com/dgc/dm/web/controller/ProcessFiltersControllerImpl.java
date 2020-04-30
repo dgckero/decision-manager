@@ -23,12 +23,20 @@ import java.util.Map;
 @RequestMapping("/filterList")
 public class ProcessFiltersControllerImpl extends CommonController implements ProcessFiltersController {
 
-    public final ModelAndView processFilters(@ModelAttribute FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") String emailTemplate,
-                                             @RequestParam(required = false, name = "sendEmail") Boolean sendEmail) {
-        log.info("Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
+    /**
+     * process filters sent by user
+     *
+     * @param form
+     * @param emailTemplate
+     * @param sendEmail
+     * @return result view
+     */
+    public final ModelAndView processFilters(@ModelAttribute final FilterCreationDto form, @RequestParam(required = false, name = "emailTemplate") final String emailTemplate,
+                                             @RequestParam(required = false, name = "sendEmail") final Boolean sendEmail) {
+        log.info("[INIT] Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
 
-        ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
-        List<FilterDto> filters = form.getFilters();
+        final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
+        final List<FilterDto> filters = form.getFilters();
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found");
             modelAndView.getModel().put("message", "No filters found");
@@ -39,7 +47,7 @@ public class ProcessFiltersControllerImpl extends CommonController implements Pr
                 modelAndView.getModel().put("message", "No Filters found");
             } else {
                 try {
-                    List<Map<String, Object>> result = Collections.unmodifiableList(getModelFacade().createBPMNModel(filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
+                    final List<Map<String, Object>> result = Collections.unmodifiableList(this.getModelFacade().createDMNModel(filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
                     if (result.isEmpty()) {
                         log.warn("No elements found that fit filters defined by user");
                         modelAndView.getModel().put("message", "No elements found that fit filters defined by user");
@@ -47,7 +55,7 @@ public class ProcessFiltersControllerImpl extends CommonController implements Pr
                     } else {
                         modelAndView.addObject("form", result);
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     modelAndView.getModel().put("message", e.getMessage());
                     modelAndView.setViewName(ERROR_VIEW);
 
@@ -56,6 +64,7 @@ public class ProcessFiltersControllerImpl extends CommonController implements Pr
                 }
             }
         }
+        log.info("[END] Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
         return modelAndView;
     }
 }
