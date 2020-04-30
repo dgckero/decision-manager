@@ -18,10 +18,17 @@ import java.util.Map;
 @Service
 public class RowDataDaoImpl extends CommonDao implements RowDataDao {
 
+    /**
+     * Create table with name project.RowDataTableName
+     * based on columns
+     *
+     * @param columns columns of new table
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void createRowDataTable(Map<String, Class<?>> columns, Project project) {
-        log.info(String.format("****** Creating table: %s ******", project.getRowDataTableName()));
+        log.debug("[INIT] Creating table {}", project.getRowDataTableName());
 
         StringBuilder commonDataTableStatements = new StringBuilder("CREATE TABLE IF NOT EXISTS " + project.getRowDataTableName() + " (rowId INTEGER, ");
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
@@ -37,40 +44,64 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
         final String foreignKey = ", project INTEGER NOT NULL,FOREIGN KEY(project) REFERENCES PROJECTS(id), " +
                 "PRIMARY KEY (rowId, project) )";
         commonDataTableStatements = new StringBuilder(commonDataTableStatements.toString().replaceAll("[,]$", foreignKey));
+        log.debug("Executing script {}", commonDataTableStatements);
         getJdbcTemplate().execute(commonDataTableStatements.toString());
 
-        log.info("{} table successfully created", project.getRowDataTableName());
+        log.debug("[END] {} table successfully created", project.getRowDataTableName());
     }
 
+    /**
+     * Persist infoToBePersisted into rowData table
+     *
+     * @param insertSentence
+     * @param infoToBePersisted
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void persistRowData(String insertSentence, List<Object[]> infoToBePersisted) {
-        log.info("****** Persisting Excel rows into commonDatas table: %s ******");
+        log.debug("[INIT] Persisting Excel rows into commonDatas table");
         getJdbcTemplate().batchUpdate(insertSentence, infoToBePersisted);
-        log.info("****** Persisted Excel rows into commonDatas table: %s ******");
+        log.debug("[END] Persisted Excel rows into commonDatas table");
     }
 
+    /**
+     * Get all information from project.RowDataTableName
+     *
+     * @param project
+     * @return all information from project.RowDataTableName
+     */
     @Override
     public final List<Map<String, Object>> getRowData(Project project) {
-        log.info("Getting all info from table: {}", project.getRowDataTableName());
+        log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
         List<Map<String, Object>> entities = getJdbcTemplate().queryForList("Select * from " + project.getRowDataTableName() + " where project=" + project.getId());
-        log.info("Got all info from table: {}", project.getRowDataTableName());
+        log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }
 
+    /**
+     * Delete all information from project.RowDataTableName
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void deleteRowData(Project project) {
-        log.debug("Deleting all registers for project {}", project);
+        log.debug("[INIT] Deleting all registers for project {}", project);
         getJdbcTemplate().execute("DELETE FROM " + project.getRowDataTableName());
-        log.debug("Registers successfully deleted for project {}", project);
+        log.debug("[END] Registers successfully deleted for project {}", project);
     }
 
+    /**
+     * Get number of rows on table project.RowDataTableName
+     *
+     * @param project
+     * @return number of rows on table project.RowDataTableName
+     */
     @Override
     public final Integer getRowDataSize(Project project) {
-        log.debug("Getting common data size for project {}", project);
+        log.debug("[INIT] Getting common data size for project {}", project);
         Integer count = getJdbcTemplate().queryForObject("SELECT count(*) FROM " + project.getRowDataTableName(), Integer.class);
-        log.debug("common data size {} for project {}", count, project);
+        log.debug("[END] common data size {} for project {}", count, project);
 
         return count;
     }

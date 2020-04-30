@@ -3,7 +3,13 @@
 
 <head th:fragment="headerFragment">
     <meta charset="UTF-8">
+    <meta content="decision-manager" name="description">
+    <meta content="DGC" name="author">
+
+    <link rel="icon" th:href="@{/images/icon/favicon.ico}" type="image/png">
+
     <title th:include=":: #pageTitle">Home</title>
+
     <script th:src="@{/webjars/jquery/${jquery.version}/jquery.min.js}"></script>
     <script th:src="@{/webjars/popper.js/${popper.version}/umd/popper.min.js}"></script>
     <script th:src="@{/webjars/datatables/${datatables.version}/js/dataTables.jqueryui.min.js}"></script>

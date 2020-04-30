@@ -20,4 +20,5 @@ public interface RowDataDao {
     void deleteRowData(Project project);
 
     Integer getRowDataSize(Project map);
+
 }

@@ -38,21 +38,21 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void persistFilterList(List<FilterDto> filterList, ProjectDto project) {
-        log.info("Creating filters");
+    public void persistFilterList(final List<FilterDto> filterList, final ProjectDto project) {
+        log.info("[INIT] persistFilterList filterList: {}, project: {}", filterList, project);
 
-        filterDao.createFilterTable(getModelMapper().map(project, Project.class));
-
+        this.filterDao.createFilterTable(this.getModelMapper().map(project, Project.class));
         log.debug("Mapping filterDto list to FilterEntity list");
-        List<Filter> filterEntityList = getModelMapper().map(
+        List<Filter> filterEntityList = this.getModelMapper().map(
                 filterList,
                 (new TypeToken<List<Filter>>() {
                 }.getType())
         );
         log.debug("Setting true on contact filter that contains Email information");
-        filterEntityList = markContactFilter(filterEntityList);
+        filterEntityList = this.markContactFilter(filterEntityList);
+        this.filterDao.persistFilterList(filterEntityList);
 
-        filterDao.persistFilterList(filterEntityList);
+        log.info("[END] persistFilterList");
     }
 
     /**
@@ -61,11 +61,12 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @param filterList
      * @return filterList having contact filter updated
      */
-    private List<Filter> markContactFilter(List<Filter> filterList) {
-        AtomicInteger itemNumber = new AtomicInteger();
+    private List<Filter> markContactFilter(final List<Filter> filterList) {
+        log.debug("[INIT] markContactFilter filterList: {}", filterList);
+        final AtomicInteger itemNumber = new AtomicInteger();
         filterList.stream()
                 .filter(flt -> {
-                    String filterClass = flt.getFilterClass();
+                    final String filterClass = flt.getFilterClass();
                     itemNumber.getAndIncrement();
                     return filterClass.equals(Email.class.getSimpleName());
                 })
@@ -79,6 +80,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
                                                 build()
                                 )
                 );
+        log.debug("[END] markContactFilter filterList: {}", filterList);
         return filterList;
     }
 
@@ -89,9 +91,9 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      */
     @Override
     public List<Map<String, Object>> getFilters() {
-        log.info("Getting All filters");
-        List<Map<String, Object>> filters = filterDao.getFilters();
-        log.info("Found " + filters.size() + " filters");
+        log.debug("[INIT] Getting All filters");
+        final List<Map<String, Object>> filters = this.filterDao.getFilters();
+        log.debug("[END] Found " + filters.size() + " filters");
         return filters;
     }
 
@@ -102,10 +104,10 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return project's filters
      */
     @Override
-    public List<Map<String, Object>> getFilters(ProjectDto project) {
-        log.info("Getting filters for project " + project);
-        List<Map<String, Object>> filters = filterDao.getFilters(getModelMapper().map(project, Project.class));
-        log.info("Found " + filters.size() + " filters for project " + project);
+    public List<Map<String, Object>> getFilters(final ProjectDto project) {
+        log.debug("[INIT] Getting filters for project " + project);
+        final List<Map<String, Object>> filters = this.filterDao.getFilters(this.getModelMapper().map(project, Project.class));
+        log.debug("[END] Found " + filters.size() + " filters for project " + project);
         return filters;
     }
 
@@ -116,11 +118,11 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateFilters(List<FilterDto> filters) {
-        log.info("Updating " + filters.size() + " filters ");
-        filterDao.updateFilters(getModelMapper().map(filters, (new TypeToken<List<Filter>>() {
+    public void updateFilters(final List<FilterDto> filters) {
+        log.debug("[INIT] Updating " + filters.size() + " filters ");
+        this.filterDao.updateFilters(this.getModelMapper().map(filters, (new TypeToken<List<Filter>>() {
         }.getType())));
-        log.info("Filters successfully updated ");
+        log.debug("[END] Filters successfully updated ");
     }
 
     /**
@@ -130,19 +132,20 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return
      */
     @Override
-    public FilterDto getContactFilter(ProjectDto project) {
-        FilterDto result;
-        log.info("Getting contact filter for project " + project);
+    public FilterDto getContactFilter(final ProjectDto project) {
+        log.debug("[INIT] getContactFilter for project " + project);
+        final FilterDto result;
 
-        Filter filterEntity = filterDao.getContactFilter(getModelMapper().map(project, Project.class));
+        final Filter filterEntity = this.filterDao.getContactFilter(this.getModelMapper().map(project, Project.class));
         if (filterEntity == null) {
-            log.info("No contact filter found for project " + project);
+            log.debug("No contact filter found for project " + project);
             result = null;
         } else {
-            FilterDto filterDto = getModelMapper().map(filterEntity, FilterDto.class);
-            log.info("Found contact filter " + filterDto + " for project " + project);
+            final FilterDto filterDto = this.getModelMapper().map(filterEntity, FilterDto.class);
+            log.debug("Found contact filter " + filterDto + " for project " + project);
             result = filterDto;
         }
+        log.debug("[END] getContactFilter for project " + project);
         return result;
     }
 }

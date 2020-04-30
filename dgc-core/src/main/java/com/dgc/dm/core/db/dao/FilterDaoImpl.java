@@ -33,15 +33,14 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void createFilterTable(Project project) {
-        log.info(String.format("****** Creating table: %s ******", "Filters"));
+        log.debug("[INIT] Creating table: Filters");
 
         Iterable<String> filterTableStatements = new StringArrayList(project);
-
         filterTableStatements.forEach(sql -> {
             log.debug(sql);
             getJdbcTemplate().execute(sql);
         });
-        log.info("FILTERS table successfully created");
+        log.debug("[END] FILTERS table successfully created");
     }
 
     /**
@@ -52,9 +51,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void persistFilterList(List<Filter> filterList) {
-        log.debug("Persisting filters got from Excel");
+        log.debug("[INIT] Persisting filters got from Excel");
         filterRepository.saveAll(filterList);
-        log.debug("Persisted filters got from Excel");
+        log.debug("[END] Persisted filters got from Excel");
     }
 
     /**
@@ -64,9 +63,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     public final List<Map<String, Object>> getFilters() {
-        log.info("Getting Filters");
+        log.debug("[INIT] Getting Filters");
         List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS");
-        log.info("Got filters");
+        log.debug("[END] Got filters");
         return filters;
     }
 
@@ -78,9 +77,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     public final List<Map<String, Object>> getFilters(Project project) {
-        log.info("Getting Filters by project {}", project);
+        log.debug("[INIT] Getting Filters by project {}", project);
         List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
-        log.info("Got filters");
+        log.debug("[END] Got filters");
         return filters;
     }
 
@@ -92,9 +91,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final void updateFilters(List<Filter> filters) {
-        log.info("Updating filters ");
+        log.debug("[INIT] Updating filters ");
         filterRepository.saveAll(filters);
-        log.info("Filters updated");
+        log.debug("[END] Filters updated");
     }
 
     /**
@@ -105,7 +104,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     public final Filter getContactFilter(Project project) {
-        log.info("Getting Filters having contactFilter active for project {}", project);
+        log.debug("[INIT] Getting Filters having contactFilter active for project {}", project);
         Filter filter = null;
         try {
             final String sql = "Select * from FILTERS where contactFilter=? and project=?";
@@ -120,10 +119,10 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
                             Project.builder().id(Integer.valueOf(rs.getInt("project"))).build()
                     ));
 
-            log.info("Got filter {}", filter);
+            log.debug("[END] Got filter {}", filter);
 
         } catch (EmptyResultDataAccessException e) {
-            log.info("No filter found having contactFilter active for project {}", project);
+            log.warn("No filter found having contactFilter active for project {}", project);
         }
         return filter;
     }
@@ -131,6 +130,11 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     private static class StringArrayList extends ArrayList<String> {
         private static final long serialVersionUID = 5389826304558701396L;
 
+        /**
+         * Generate create table script by project
+         *
+         * @param project
+         */
         StringArrayList(final Project project) {
             add("CREATE TABLE IF NOT EXISTS FILTERS " +
                     "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +

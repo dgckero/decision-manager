@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface FilterDao {
+
     void createFilterTable(Project project);
 
     void persistFilterList(List<Filter> filterList);
@@ -22,4 +23,5 @@ public interface FilterDao {
     void updateFilters(List<Filter> activeFilters);
 
     Filter getContactFilter(Project project);
+
 }

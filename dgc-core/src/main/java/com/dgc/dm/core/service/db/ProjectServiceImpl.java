@@ -24,55 +24,82 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
     @Autowired
     private ProjectDao projectDao;
 
+    /**
+     * Create project based on projectName
+     *
+     * @param projectName
+     * @return project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public ProjectDto createProject(final String projectName) {
-        log.info("Creating project " + projectName);
-        final Project projectEntity = this.projectDao.createProject(projectName);
-        final ProjectDto project = this.getModelMapper().map(projectEntity, ProjectDto.class);
-        log.info("Project " + project + " successfully created");
+    public ProjectDto createProject(String projectName) {
+        log.debug("[INIT] createProject " + projectName);
+        Project projectEntity = projectDao.createProject(projectName);
+        ProjectDto project = getModelMapper().map(projectEntity, ProjectDto.class);
+        log.debug("[END] Project " + project + " successfully created");
         return project;
     }
 
+    /**
+     * Update project
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateProject(ProjectDto project) {
-        log.info("Updating project {}", project);
-        Project projectEntity = getModelMapper().map(project, Project.class);
-        projectDao.updateProject(projectEntity);
-        log.info("Project {} successfully updated", project);
+    public void updateProject(final ProjectDto project) {
+        log.debug("[INIT] Updating project {}", project);
+        final Project projectEntity = this.getModelMapper().map(project, Project.class);
+        this.projectDao.updateProject(projectEntity);
+        log.debug("[END] Project {} successfully updated", project);
     }
 
+    /**
+     * Get all projects
+     *
+     * @return list of projects
+     */
     @Override
     public final List<Map<String, Object>> getProjects() {
-        log.info("Getting projects ");
-        List<Map<String, Object>> projects = projectDao.getProjects();
+        log.debug("[INIT] Getting projects ");
+        final List<Map<String, Object>> projects = this.projectDao.getProjects();
         if (projects.isEmpty()) {
-            log.info("No project founds");
+            log.warn("No project founds");
             return null;
         }
-        log.info("Got {} projects", projects.size());
+        log.debug("[END] Got {} projects", projects.size());
         return projects;
     }
 
+    /**
+     * Get project by selectedProjectId
+     *
+     * @param selectedProjectId
+     * @return
+     */
     @Override
-    public ProjectDto getProject(final Integer selectedProjectId) {
-        log.info("Getting project by Id {}", selectedProjectId);
-        Project project = projectDao.getProject(selectedProjectId);
+    public ProjectDto getProject(Integer selectedProjectId) {
+        log.debug("[INIT] Getting project by Id {}", selectedProjectId);
+        final Project project = this.projectDao.getProject(selectedProjectId);
         if (null == project) {
             log.warn("No project found by Id {}", selectedProjectId);
             return null;
         } else {
-            log.info("Found project {}", project);
-            return getModelMapper().map(project, ProjectDto.class);
+            log.debug("[END] Found project {}", project);
+            return this.getModelMapper().map(project, ProjectDto.class);
         }
     }
 
+    /**
+     * Delete project
+     *
+     * @param project
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteProject(final ProjectDto project) {
-        log.info("deleting project " + project);
-        projectDao.deleteProject(getModelMapper().map(project, Project.class));
-        log.info("project {} successfully deleted", project);
+    public void deleteProject(ProjectDto project) {
+        log.debug("[INIT] deleting project " + project);
+        this.projectDao.deleteProject(this.getModelMapper().map(project, Project.class));
+        log.info("[END] project {} successfully deleted", project);
     }
 }

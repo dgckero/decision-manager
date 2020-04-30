@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProjectDao {
+
     Project createProject(String projectName);
 
     void updateProject(Project project);
@@ -19,4 +20,5 @@ public interface ProjectDao {
     Project getProject(Integer selectedProjectId);
 
     void deleteProject(Project project);
+
 }
