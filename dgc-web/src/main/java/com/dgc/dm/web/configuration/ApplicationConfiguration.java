@@ -34,7 +34,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     /**
      * Maximum allowed size (in bytes) before an upload gets rejected.
      */
-    private static final long MAX_UPLOAD_SIZE = 5242880L;
+    public static final long MAX_UPLOAD_SIZE = 5242880L;
 
     /**
      * Spanish locale
@@ -58,7 +58,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param configurer
      */
     @Override
-    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+    public void configureDefaultServletHandling (final DefaultServletHandlerConfigurer configurer) {
         log.debug("[INIT] configureDefaultServletHandling configurer: {}", configurer);
         configurer.enable();
         log.debug("[END] configureDefaultServletHandling");
@@ -70,7 +70,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers (final ResourceHandlerRegistry registry) {
         log.debug("[INIT] addResourceHandlers registry: {}", registry);
         registry.addResourceHandler(RESOURCES_PATH)
                 .addResourceLocations(RESOURCES_CLASSPATH);
@@ -85,9 +85,9 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors (final InterceptorRegistry registry) {
         log.debug("[INIT] addInterceptors registry: {}", registry);
-        registry.addInterceptor(localeChangeInterceptor());
+        registry.addInterceptor(this.localeChangeInterceptor());
         log.debug("[END] addInterceptors");
     }
 
@@ -100,7 +100,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
         log.debug("[INIT] localeChangeInterceptor");
-        LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+        final LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
         lci.setParamName("lang");
         log.debug("[END] localeChangeInterceptor");
         return lci;
@@ -114,7 +114,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public LocaleResolver localeResolver() {
         log.debug("[INIT] localeResolver");
-        SessionLocaleResolver slr = new SessionLocaleResolver();
+        final SessionLocaleResolver slr = new SessionLocaleResolver();
         slr.setDefaultLocale(SPANISH_LOCALE);
         log.debug("[END] localeResolver");
         return slr;
@@ -128,7 +128,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public FixedThemeResolver themeResolver() {
         log.debug("[INIT] themeResolver");
-        FixedThemeResolver resolver = new FixedThemeResolver();
+        final FixedThemeResolver resolver = new FixedThemeResolver();
         resolver.setDefaultThemeName("default-theme");
         log.debug("[END] themeResolver");
         return resolver;
@@ -142,7 +142,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public ResourceBundleMessageSource resourceBundleMessageSource() {
         log.debug("[INIT] resourceBundleMessageSource");
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         log.debug("[END] resourceBundleMessageSource");
         return messageSource;
@@ -158,8 +158,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     public SpringResourceTemplateResolver templateResolver() {
         log.debug("[INIT] templateResolver");
 
-        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(applicationContext);
+        final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(this.applicationContext);
         templateResolver.setPrefix(WEB_INF_VIEWS_PATH);
         templateResolver.setSuffix(HTML_EXTENSION);
 
@@ -175,8 +175,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public SpringTemplateEngine templateEngine() {
         log.debug("[INIT] templateEngine");
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver());
+        final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(this.templateResolver());
         templateEngine.setEnableSpringELCompiler(true);
         log.debug("[END] templateEngine");
         return templateEngine;
@@ -188,10 +188,10 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void configureViewResolvers(ViewResolverRegistry registry) {
+    public void configureViewResolvers (final ViewResolverRegistry registry) {
         log.debug("[INIT] configureViewResolvers registry: {}", registry);
-        ThymeleafViewResolver resolver = new ThymeleafViewResolver();
-        resolver.setTemplateEngine(templateEngine());
+        final ThymeleafViewResolver resolver = new ThymeleafViewResolver();
+        resolver.setTemplateEngine(this.templateEngine());
         registry.viewResolver(resolver);
         log.debug("[END] configureViewResolvers");
     }
@@ -204,7 +204,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public MultipartResolver multipartResolver() {
         log.debug("[INIT] multipartResolver");
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        final CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
         log.debug("[END] multipartResolver");
         return multipartResolver;
