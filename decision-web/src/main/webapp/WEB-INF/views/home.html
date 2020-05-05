@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Home</title>
+</head>
+
+<body>
+<script type="text/javascript">
+        $(document).ready(function() {
+            document.getElementById("goToNewProject").onclick = function () {
+                location.href = "newProject";
+            };
+        } );
+
+
+
+</script>
+<div class="container">
+    <div class="row">
+
+        <div id="messageDiv" th:if="${message}">
+            <h4 th:text="${message}"></h4>
+        </div>
+
+        <div>
+            <button class="float-left submit-button" id="goToNewProject" type="submit">Crear Nuevo Proyecto</button>
+            <form method="post" th:action="@{/projects/get/all}">
+                <button id="action" type="submit">Ir a Proyecto</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+<footer th:include="fragments/footer :: footerFragment"/>
+</body>
+</html>

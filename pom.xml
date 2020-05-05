@@ -10,12 +10,12 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <modules>
-        <module>dgc-core</module>
-        <module>dgc-web</module>
+        <module>decision-core</module>
+        <module>decision-web</module>
     </modules>
 
     <name>Decision Manager</name>
-    <url>http://localhost:8080/dgc-web/</url>
+    <url>http://localhost:8080/decision-web/</url>
 
     <dependencies>
         <dependency>

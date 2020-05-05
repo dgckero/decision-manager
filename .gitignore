@@ -5,10 +5,10 @@
 # eclipse files
 .classpath
 .project
-/dgc-core/.project
-/dgc-core/.classpath
-/dgc-web/.project
-/dgc-web/.classpath
+/decision-core/.project
+/decision-core/.classpath
+/decision-web/.project
+/decision-web/.classpath
 
 # idea files
 /.idea/
@@ -19,10 +19,10 @@
 # common files
 /.metadata/
 /.settings/
-/dgc-core/.settings/
-/dgc-core/target/
-/dgc-web/.settings/
-/dgc-web/target/
+/decision-core/.settings/
+/decision-core/target/
+/decision-web/.settings/
+/decision-web/target/
 /target/
 /lib/
 /${tomcat_home}/
