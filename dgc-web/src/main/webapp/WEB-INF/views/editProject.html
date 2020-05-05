@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
+
+<head th:include="fragments/header :: headerFragment">
+    <title id="pageTitle">Información del proyecto</title>
+</head>
+
+<body>
+
+<fieldset>
+    <input id="projectId" th:value="${selectedProject.id}" type="hidden">
+    <!-- Form Name -->
+    <legend>Información del proyecto: [[${selectedProject.name}]]</legend>
+    <!-- Text input-->
+    <div class="form-group">
+        <label class="col-md-4 control-label" for="projectName">Nombre</label>
+        <div class="col-md-5">
+            <input class="form-control input-md" disabled id="projectName" name="name"
+                   th:value="${selectedProject.name}" type="text">
+        </div>
+    </div>
+
+    <!-- Text input-->
+    <div class="form-group">
+        <label class="col-md-4 control-label" for="projectCreationDate">Fecha de creación</label>
+        <div class="col-md-4">
+            <input class="form-control input-md" disabled id="projectCreationDate" name="createDate"
+                   th:value="${selectedProject.createDate}" type="date">
+        </div>
+    </div>
+
+    <form method="post" th:action="@{/projects/edit/__${selectedProject.id}__/emailTemplate}">
+        <!-- Textarea -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="projectEmailTemplate">Plantilla email</label>
+            <div class="col-md-4">
+                <textarea class="form-control" id="projectEmailTemplate" name="emailTemplate" th:inline="text">[[${selectedProject.emailTemplate}]]</textarea>
+                <button class="btn btn-warning" id="editEmailTemplate" type="submit">
+                    Editar plantilla
+                </button>
+            </div>
+        </div>
+    </form>
+    <form class="form-horizontal" enctype="multipart/form-data" method="post"
+          th:action="@{/projects/edit/__${selectedProject.id}__/results}">
+        <!-- File Button -->
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="file">Añadir más registros</label>
+            <div class="col-md-4">
+                <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                       id="file" name="file"
+                       type="file"/>
+                <button class="btn btn-success"
+                        id="uploadFileButton" type="submit">Enviar
+                </button>
+            </div>
+        </div>
+    </form>
+    <!-- Button (Double) -->
+    <div class="form-group">
+        <label class="col-md-4 control-label" for="getDmn">Tabla de decisión</label>
+        <div class="col-md-8">
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/get/__${selectedProject.id}__/dmnFile}">
+                <button class="btn btn-success" download id="getDmn"
+                        type="submit" value="getDmn">Descargar DMN
+                </button>
+            </form>
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/get/__${selectedProject.id}__/results}">
+                <button class="btn btn-success"
+                        id="viewDMNFilteredResults" name="filtered" type="submit"
+                        value="true">Ver Registros Filtrados
+                </button>
+            </form>
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/edit/__${selectedProject.id}__/dmnFile}">
+                <div class="col-md-4">
+                    <input accept=".dm, .dmn" name="dmnFile" type="file"/>
+                    <button class="btn btn-success"
+                            id="editDmnButton" type="submit">Editar DMN
+                    </button>
+                </div>
+            </form>
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/get/__${selectedProject.id}__/filters}">
+                <button class="btn btn-warning"
+                        id="editFilter" type="submit">Editar Filtros
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Button (Double) -->
+    <div class="form-group">
+        <label class="col-md-4 control-label" for="ViewAll">Registros</label>
+        <div class="col-md-8">
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/get/__${selectedProject.id}__/results}">
+                <button class="btn btn-success"
+                        id="ViewAll" name="filtered" type="submit"
+                        value="false">Ver
+                </button>
+            </form>
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/delete/__${selectedProject.id}__/results}">
+                <button class="btn btn-warning"
+                        id="deleteCommonData" type="submit">Borrar registros
+                </button>
+            </form>
+            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                  th:action="@{/projects/delete/__${selectedProject.id}__/}">
+                <button class="btn btn-danger"
+                        id="deleteProject" type="submit">Borrar proyecto
+                </button>
+            </form>
+        </div>
+    </div>
+</fieldset>
+<footer th:include="fragments/footer :: footerFragment"/>
+</body>
+</html>

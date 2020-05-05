@@ -6,6 +6,15 @@
 </head>
 
 <body>
+<script type="text/javascript">
+        $(document).ready(function() {
+            document.getElementById("goToNewProject").onclick = function () {
+                location.href = "newProject";
+            };
+        } );
+
+
+</script>
 <div class="container">
     <div class="row">
 
@@ -14,9 +23,9 @@
         </div>
 
         <div>
-            <form action="#" data-th-action="@{/project}" method="post">
-                <button name="action" type="submit" value="newProject">Crear Nuevo Proyecto</button>
-                <button name="action" type="submit" value="selectProject">Ir a Proyecto</button>
+            <button class="float-left submit-button" id="goToNewProject" type="submit">Crear Nuevo Proyecto</button>
+            <form method="post" th:action="@{/projects/get/all}">
+                <button id="action" type="submit">Ir a Proyecto</button>
             </form>
         </div>
 

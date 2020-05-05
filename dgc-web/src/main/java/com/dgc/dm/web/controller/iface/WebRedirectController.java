@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
-public interface HomeController extends HandlerExceptionResolver {
+public interface WebRedirectController extends HandlerExceptionResolver {
     @RequestMapping("/")
-    ModelAndView home();
+    ModelAndView home ( );
+
+    @RequestMapping("/newProject")
+    ModelAndView newProject ( );
 }

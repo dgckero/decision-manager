@@ -26,15 +26,15 @@ import java.util.Date;
 @Getter(AccessLevel.PROTECTED)
 class CommonController implements HandlerExceptionResolver {
 
-    protected static final String DECISION_VIEW = "decision";
-    protected static final String PROJECT_VIEW = "project";
-    protected static final String VIEW_PROJECT = "viewProject";
+    protected static final String FILTERS_VIEW = "filters";
+    protected static final String EDIT_PROJECT = "editProject";
     protected static final String ERROR_VIEW = "error";
     protected static final String SUCCESS_VIEW = "success";
     protected static final String RESULT_VIEW = "result";
     protected static final String HOME_VIEW = "home";
     protected static final String SELECT_PROJECT_VIEW = "selectProject";
     protected static final String NEW_PROJECT_VIEW = "newProject";
+    protected static final String MODEL_MESSAGE = "message";
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -53,10 +53,10 @@ class CommonController implements HandlerExceptionResolver {
      * @return ModelAndView
      */
     @Override
-    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
-                                               Object object, Exception exc) {
+    public final ModelAndView resolveException (final HttpServletRequest request, final HttpServletResponse response,
+                                                final Object object, final Exception exc) {
         log.debug("[INIT] resolveException");
-        ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
+        final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
         modelAndView.getModel().put("message", exc.getMessage());
         log.error("Error {}", (exc.getCause() == null) ? exc.getMessage() : exc.getCause().getMessage());
         log.debug("[END] resolveException");
@@ -71,10 +71,10 @@ class CommonController implements HandlerExceptionResolver {
      * @param binder
      */
     @InitBinder
-    protected final void initBinder(ServletRequestDataBinder binder) {
+    protected final void initBinder (final ServletRequestDataBinder binder) {
         log.debug("[INIT] initBinder registering custom property editor for byte[] and Date");
         binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(format, true));
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(this.format, true));
         log.debug("[END] initBinder ");
     }
 }

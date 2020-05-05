@@ -6,27 +6,26 @@
 </head>
 
 <body>
+
 <div class="container">
     <div class="row">
 
         <div if="${message}">
             <h2 text="${message}"/>
         </div>
-
-        <div>
-            <form action="viewProject" enctype="application/json" method="post">
-
+        <form th:action="@{/projects/get}" th:method="post">
+            <div>
                 <label for="selectedProject">Selecciona un Proyecto:</label>
-                <select id="selectedProject" name="selectedProjectId">
+                <select id="selectedProject" name="id">
                     <option th:each="item : ${existingProjects}"
                             th:selected="false"
                             th:text="${item.name}"
                             th:value="${item.id}"
                     />
                 </select>
-                <p><input type="submit" value="Enviar"/></p>
-            </form>
-        </div>
+                <p><input id="goToSelectedProject" type="submit" value="Enviar"/></p>
+            </div>
+        </form>
     </div>
 </div>
 <footer th:include="fragments/footer :: footerFragment"/>

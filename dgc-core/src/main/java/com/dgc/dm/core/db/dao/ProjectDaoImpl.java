@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,7 +29,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * Create table Projects if not exist
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private void createProjectTable() {
+    private void createProjectTable ( ) {
         log.debug("[INIT] Creating table PROJECTS if not exist");
         final String createTableProject =
                 "CREATE TABLE IF NOT EXISTS PROJECTS " +
@@ -41,7 +40,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
                         "emailTemplate TEXT," +
                         "dmnFile BLOB)";
 
-        getJdbcTemplate().execute(createTableProject);
+        this.sessionFactory.getCurrentSession().createSQLQuery(createTableProject).executeUpdate();
         log.debug("[END] Table PROJECTS successfully created");
     }
 
@@ -53,16 +52,16 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Project createProject(String projectName) {
+    public Project createProject (final String projectName) {
         log.debug("[INIT] Creating project " + projectName);
-        this.createProjectTable();
-        final Project project = this.projectRepository.saveAndFlush(
+        createProjectTable();
+        final Project project =
                 Project.builder()
                         .name(projectName)
                         .rowDataTableName("COMMONDATAS_" + projectName)
                         .createDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()))
-                        .build()
-        );
+                        .build();
+        this.sessionFactory.getCurrentSession().persist(project);
         log.debug("[END] Project " + project + " successfully created");
         return project;
     }
@@ -74,9 +73,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateProject(Project project) {
+    public void updateProject (final Project project) {
         log.debug("[INIT] Updating project " + project);
-        this.projectRepository.saveAndFlush(project);
+        this.sessionFactory.getCurrentSession().merge(project);
         log.debug("[END] Project " + project + " successfully updated");
     }
 
@@ -86,15 +85,17 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return all projects
      */
     @Override
-    public List<Map<String, Object>> getProjects() {
+    public List<Map<String, Object>> getProjects ( ) {
+        List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
-        final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
+        List<Map<String, Object>> projects = this.getJdbcTemplate().queryForList("Select * from PROJECTS");
         if (projects == null || projects.isEmpty()) {
             log.warn("[END] No project founds");
-            return null;
+        } else {
+            log.debug("[INIT] Got " + projects.size() + " projects");
+            result = projects;
         }
-        log.debug("[INIT] Got " + projects.size() + " projects");
-        return projects;
+        return result;
     }
 
     /**
@@ -104,16 +105,13 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return project with id = selectedProjectId
      */
     @Override
-    public Project getProject(Integer selectedProjectId) {
+    public Project getProject (final Integer selectedProjectId) {
+        final Project result;
         log.debug("[INIT] Getting project by id " + selectedProjectId);
-        final Optional<Project> optionalProject = this.projectRepository.findById(selectedProjectId);
-        if (optionalProject.isPresent()) {
-            log.debug("[END] project found " + optionalProject.get());
-            return optionalProject.get();
-        } else {
-            log.warn("[END] No project found for id " + selectedProjectId);
-            return null;
-        }
+
+        result = this.sessionFactory.getCurrentSession().find(Project.class, selectedProjectId);
+        log.debug("[END] project found " + result);
+        return result;
     }
 
     /**
@@ -123,9 +121,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteProject(Project project) {
+    public void deleteProject (final Project project) {
         log.debug("[INIT] deleting project " + project);
-        getJdbcTemplate().execute("DELETE FROM PROJECTS where id=" + project.getId());
+        this.sessionFactory.getCurrentSession().delete(project);
         log.debug("[END] project successfully deleted");
     }
 }

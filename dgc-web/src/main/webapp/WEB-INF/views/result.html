@@ -3,7 +3,10 @@
 
 <head th:include="fragments/header :: headerFragment">
     <title id="pageTitle">Resultado</title>
-    <script th:inline="javascript">
+</head>
+
+<body>
+<script type="text/javascript">
         $(document).ready(function() {
             $('#resultTable').DataTable( {
                 dom: 'Bfrtip',
@@ -15,11 +18,8 @@
                 ]
             } );
         } );
-    </script>
 
-</head>
-<body>
-
+</script>
 <div class="container-fluid">
     <div class="row">
         <div class="span12">

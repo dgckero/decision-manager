@@ -15,11 +15,13 @@
         </div>
 
         <div>
-            <form action="uploadFile" enctype="multipart/form-data" method="post">
-                <input name="projectName" placeholder="Nombre del proyecto" required="required" type="text">
+            <form action="projects/create" enctype="multipart/form-data" method="post">
+                <input name="name" placeholder="Nombre del proyecto" required="required" type="text">
                 <br/>
-                <input name="file" required="required" type="file">
-                <input type="submit" value="importar"/>
+                <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                       name="file" required="required"
+                       type="file">
+                <input type="submit" value="Crear Proyecto"/>
             </form>
         </div>
 
