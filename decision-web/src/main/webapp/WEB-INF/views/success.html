@@ -1,24 +1,30 @@
 <!DOCTYPE HTML>
-<html lang=”es” xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head th:include="fragments/header :: headerFragment">
+<head th:insert="fragments/header :: headerFragment">
     <title id="pageTitle">Operación realizada con éxito</title>
 </head>
 
 <body>
 <div class="container-fluid" id="generalContainer">
+    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
     <div class="row" id="internalContainer">
+        <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
+        </aside>
         <section class="span10" id="main">
             <div class="dgc-operation-ok">
                 <h1 align="center">Operación realizada con éxito</h1>
+                <img alt="Success" src="/decision-web/images/toolbar/success.jpg">
                 <div id="errorMessageDiv" th:if="${message}">
                     <h4 th:text="${message}"></h4>
                 </div>
             </div>
         </section>
+
     </div>
 </div>
-<footer th:include="fragments/footer :: footerFragment"/>
+
+<footer th:insert="fragments/footer :: footerFragment"/>
 </body>
 </html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div class="wrapper" th:fragment="menuFragment">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3>Menú</h3>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li>
+                <a href="/decision-web/information">Información</a>
+            </li>
+            <li>
+                <a href="/decision-web/newProject" id="goToNewProject">Crear Proyecto</a>
+            </li>
+            <li>
+                <form id="goToExistingProjectsForm" method="post" th:action="@{/projects/get/all}">
+                    <a href="javascript:;" onclick="document.getElementById('goToExistingProjectsForm').submit();">Ver
+                        Proyectos</a>
+                </form>
+            </li>
+        </ul>
+    </nav>
+</div>
+</html>

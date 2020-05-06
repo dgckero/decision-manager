@@ -1,33 +1,41 @@
 <!DOCTYPE html>
-<html lang=”es” xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head th:include="fragments/header :: headerFragment">
+<head th:insert="fragments/header :: headerFragment">
     <title id="pageTitle">Seleccionar Proyecto Existente</title>
 </head>
 
 <body>
 
-<div class="container">
-    <div class="row">
+<div class="container-fluid" id="generalContainer">
+    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
-        <div if="${message}">
-            <h2 text="${message}"/>
-        </div>
-        <form th:action="@{/projects/get}" th:method="post">
-            <div>
-                <label for="selectedProject">Selecciona un Proyecto:</label>
-                <select id="selectedProject" name="id">
-                    <option th:each="item : ${existingProjects}"
-                            th:selected="false"
-                            th:text="${item.name}"
-                            th:value="${item.id}"
-                    />
-                </select>
-                <p><input id="goToSelectedProject" type="submit" value="Enviar"/></p>
+    <div class="row" id="internalContainer">
+        <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
+        </aside>
+        <section class="span12 ml-5" id="main">
+            <div align="center" class="dgc-inner-main mt-4">
+                <div if="${message}">
+                    <h2 text="${message}"/>
+                </div>
+                <form th:action="@{/projects/get}" th:method="post">
+                    <div>
+                        <label for="selectedProject">Selecciona un Proyecto:</label>
+                        <select id="selectedProject" name="id">
+                            <option th:each="item : ${existingProjects}"
+                                    th:selected="false"
+                                    th:text="${item.name}"
+                                    th:value="${item.id}"
+                            />
+                        </select>
+                        <p><input id="goToSelectedProject" type="submit" value="Enviar"/></p>
+                    </div>
+                </form>
             </div>
-        </form>
+        </section>
     </div>
 </div>
-<footer th:include="fragments/footer :: footerFragment"/>
+
+<footer th:insert="fragments/footer :: footerFragment"/>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang=”es” xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
-<head th:include="fragments/header :: headerFragment">
+<head th:insert="fragments/header :: headerFragment">
     <title id="pageTitle">Selección de filtros</title>
     <script>
         $(document).ready(function () {
@@ -30,101 +30,114 @@
 
 
 
+
     </script>
 
 </head>
 <body>
-<p><strong>Selecciona los filtros de la decisión</strong></p>
 
-<div class="container">
-    <div class="row">
-        <form method="post" th:action="@{/projects/edit/filters}" th:object="${form}">
-            <fieldset>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Nombre del filtro</th>
-                        <th>Valor</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="item, itemStat : ${filterList}">
-                        <td>
-                            <input th:field="*{filters[__${itemStat.index}__].project.id}"
-                                   type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].project.name}"
-                                   type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].project.createDate}"
-                                   type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].project.rowDataTableName}"
-                                   type="hidden"/>
+<div class="container-fluid" id="generalContainer">
+    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
-                            <input th:field="*{filters[__${itemStat.index}__].id}"
-                                   th:value="${item.id}" type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].filterClass}"
-                                   th:value="${item.class}" type="hidden"/>
-                            <input id="contactFilterInput"
-                                   th:field="*{filters[__${itemStat.index}__].contactFilter}"
-                                   th:value="${item.contactFilter}" type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].name}"
-                                   th:value="${item.name}" type="hidden"/>
-                            <input th:field="*{filters[__${itemStat.index}__].active}"
-                                   th:id="${item.name} + '_checkbox'"
-                                   th:name="${item.name} + '_checkbox'" type="checkbox"/>
+    <div class="row" id="internalContainer">
+        <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
+        </aside>
+        <section class="span12 ml-5" id="main">
+            <div align="center" class="dgc-inner-main mt-4">
+                <p><strong>Selecciona los filtros de la decisión</strong></p>
 
-                            <div th:switch="${item.class}">
 
-                                <div th:case="'Date'">
-                                    <label>
-                                        <span th:text="${item.name}"/>
-                                        <input placeholder="Seleccione la fecha por la que filtrar"
-                                               th:field="*{filters[__${itemStat.index}__].value}"
-                                               th:id="${item.name}" type="date"/>
-                                    </label>
-                                </div>
-                                <div th:case="'Double'">
-                                    <label>
-                                        <span th:text="${item.name}"/>
-                                        <input step="any" th:field="*{filters[__${itemStat.index}__].value}"
-                                               th:id="${item.name}" type="number"/>
-                                    </label>
-                                </div>
-                                <div th:case="*">
-                                    <label>
-                                        <span th:text="${item.name}"/>
-                                        <input placeholder="Seleccione el valor por la que filtrar"
-                                               th:field="*{filters[__${itemStat.index}__].value}"
-                                               th:id="${item.name}" type="text"/>
-                                    </label>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <errors cssClass="error" path="filter"/>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                <form method="post" th:action="@{/projects/edit/filters}" th:object="${form}">
+                    <fieldset>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Nombre del filtro</th>
+                                <th>Valor</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item, itemStat : ${filterList}">
+                                <td>
+                                    <input th:field="*{filters[__${itemStat.index}__].project.id}"
+                                           type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].project.name}"
+                                           type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].project.createDate}"
+                                           type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].project.rowDataTableName}"
+                                           type="hidden"/>
 
-                <div id="contactFilterDiv" th:if="${contactFilter}">
-                    <label class="checkbox-inline">
-                        <input data-toggle="toggle" id="sendEmail" name="sendEmail" type="checkbox">Enviar Email</input>
-                    </label>
-                    <div class="col-md-4" id="emailDiv">
+                                    <input th:field="*{filters[__${itemStat.index}__].id}"
+                                           th:value="${item.id}" type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].filterClass}"
+                                           th:value="${item.class}" type="hidden"/>
+                                    <input id="contactFilterInput"
+                                           th:field="*{filters[__${itemStat.index}__].contactFilter}"
+                                           th:value="${item.contactFilter}" type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].name}"
+                                           th:value="${item.name}" type="hidden"/>
+                                    <input th:field="*{filters[__${itemStat.index}__].active}"
+                                           th:id="${item.name} + '_checkbox'"
+                                           th:name="${item.name} + '_checkbox'" type="checkbox"/>
+
+                                    <div th:switch="${item.class}">
+
+                                        <div th:case="'Date'">
+                                            <label>
+                                                <span th:text="${item.name}"/>
+                                                <input placeholder="Seleccione la fecha por la que filtrar"
+                                                       th:field="*{filters[__${itemStat.index}__].value}"
+                                                       th:id="${item.name}" type="date"/>
+                                            </label>
+                                        </div>
+                                        <div th:case="'Double'">
+                                            <label>
+                                                <span th:text="${item.name}"/>
+                                                <input step="any" th:field="*{filters[__${itemStat.index}__].value}"
+                                                       th:id="${item.name}" type="number"/>
+                                            </label>
+                                        </div>
+                                        <div th:case="*">
+                                            <label>
+                                                <span th:text="${item.name}"/>
+                                                <input placeholder="Seleccione el valor por la que filtrar"
+                                                       th:field="*{filters[__${itemStat.index}__].value}"
+                                                       th:id="${item.name}" type="text"/>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <errors cssClass="error" path="filter"/>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <div id="contactFilterDiv" th:if="${contactFilter}">
+                            <label class="checkbox-inline">
+                                <input data-toggle="toggle" id="sendEmail" name="sendEmail" type="checkbox">Enviar
+                                Email</input>
+                            </label>
+                            <div class="col-md-4" id="emailDiv">
                         <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"
                                   placeholder="Defina el Texto que será enviado a la información de contacto de los registros que pasen las validaciones que defina en esta página"
                                   rows="5"></textarea>
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
-                <input id="submitButton" th:value="Enviar" type="submit">
-                <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
-            </fieldset>
-        </form>
+                        <input id="submitButton" th:value="Enviar" type="submit">
+                        <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
+                    </fieldset>
+                </form>
+            </div>
+        </section>
     </div>
 </div>
-<footer th:include="fragments/footer :: footerFragment"/>
+
+<footer th:insert="fragments/footer :: footerFragment"/>
 </body>
 </html>

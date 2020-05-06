@@ -13,12 +13,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,6 +40,7 @@ class CommonController implements HandlerExceptionResolver {
     protected static final String SELECT_PROJECT_VIEW = "selectProject";
     protected static final String NEW_PROJECT_VIEW = "newProject";
     protected static final String MODEL_MESSAGE = "message";
+    protected static final String INFORMATION_VIEW = "information";
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -54,10 +57,10 @@ class CommonController implements HandlerExceptionResolver {
      * @param binder
      */
     @InitBinder
-    protected final void initBinder (final ServletRequestDataBinder binder) {
+    protected final void initBinder (ServletRequestDataBinder binder) {
         log.debug("[INIT] initBinder registering custom property editor for byte[] and Date");
         binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(this.format, true));
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(format, true));
         log.debug("[END] initBinder ");
     }
 
@@ -71,14 +74,18 @@ class CommonController implements HandlerExceptionResolver {
      * @return error view
      */
     @Override
-    public final ModelAndView resolveException (final HttpServletRequest request, final HttpServletResponse response,
-                                                final Object object, final Exception exception) {
+    public final ModelAndView resolveException (HttpServletRequest request, HttpServletResponse response,
+                                                Object object, Exception exception) {
         log.debug("[INIT] handleError exception: {}", exception);
-        final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
+        ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
 
         log.error("Error {}", (exception.getCause() == null) ? exception.getMessage() : exception.getCause().getMessage());
         if (exception instanceof MaxUploadSizeExceededException) {
             modelAndView.getModel().put(MODEL_MESSAGE, "El fichero a procesar es demasiado grande, el tamaño máximo es: " + ApplicationConfiguration.MAX_UPLOAD_SIZE);
+        } else if (exception instanceof HttpRequestMethodNotSupportedException) {
+            modelAndView.setViewName(HOME_VIEW);
+        } else if (exception instanceof NoHandlerFoundException) {
+            modelAndView.setViewName(HOME_VIEW);
         } else {
             if (!(exception instanceof DecisionException)) {
                 log.error("Uncontrolled Exception: {}", exception);

@@ -13,4 +13,7 @@ public interface WebRedirectController {
 
     @RequestMapping("/newProject")
     ModelAndView newProject ( );
+
+    @RequestMapping("/information")
+    ModelAndView information ( );
 }

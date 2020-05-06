@@ -28,4 +28,14 @@ public class WebRedirectController extends CommonController implements com.dgc.d
     public ModelAndView newProject ( ) {
         return new ModelAndView(CommonController.NEW_PROJECT_VIEW);
     }
+
+    /**
+     * Go to information view
+     *
+     * @return information view
+     */
+    @Override
+    public ModelAndView information ( ) {
+        return new ModelAndView(CommonController.INFORMATION_VIEW);
+    }
 }

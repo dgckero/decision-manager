@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:insert="fragments/header :: headerFragment">
+    <title id="pageTitle">Información</title>
+</head>
+
+<body>
+<div class="container-fluid" id="generalContainer">
+    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
+
+    <div class="row" id="internalContainer">
+        <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
+        </aside>
+        <section class="span9 ml-3" id="main">
+            <div align="center" class="dgc-inner-main">
+                <p class="page_title">
+                <h1>Información</h1>
+                <div class="ml-5">
+                    <h4>A cerca del proyecto</h4>
+                    <p>Este website se ha desarrollado como trabajo obligatorio de las asignaturas desarrollo de
+                        Aplicaciones Web I y II del Curso de Adaptacin al Grado en Ingeniera de Sistemas de la
+                        Informacin.</p>
+                    <p>Consiste en el diseo e implementacin de un sistema capaz de gestionar una academia de clases
+                        particulares</p>
+                    <p><a class="dgc-brand" href="/decision-web">Decision-Manager</a> está desarrollado
+                        por <a href="mailto:dgckero@gmail.com">David Gómez Castellanos</a></p>
+                </div>
+            </div>
+            <div align="center" class="row-fluid">
+                <h2 align="center">Esta Web ha sido desarrollada utilizando </h2>
+                <section id="topbarInfoBuilt">
+                    <aside>
+                        <a href="http://www.java.com" id="topInfoJava" rel="nofollow" target="_blank"
+                           title="Java">Java</a>
+                        <a href="http://www.hibernate.org" id="toptInfoHibernate" rel="nofollow" target="_blank"
+                           title="Hibernate">Hibernate</a>
+                        <a href="http://maven.apache.org" id="topInfoMaven" rel="nofollow" target="_blank"
+                           title="Maven">Maven</a>
+                        <a href="https://spring.io/" id="topInfoSpring" rel="nofollow" target="_blank" title="Spring">Spring</a>
+                        <a href="https://getbootstrap.com/" id="topInfoBootstrap" target="_blank" title="Bootstrap">Bootstrap</a>
+                    </aside>
+                </section>
+            </div>
+        </section>
+        <div align="center" class="mb44">
+            <p class="font-weight-bold ml-3">También estoy en las principales redes sociales</p>
+            <div align="center">
+                <section class="ml-4" id="topbarInfo">
+                    <aside>
+                        <a href="http://www.facebook.com/DavidGzazG" id="topInfofacebook" rel="nofollow"
+                           target="_blank" title="Facebook">Facebook</a>
+                        <a href="http://twitter.com/DavidGzazG" id="toptInfowitter" rel="nofollow" target="_blank"
+                           title="Twitter">Twitter</a>
+                        <a href="https://plus.google.com/103081947162358255015" id="topInfogoogleplus" rel="nofollow"
+                           target="_blank" title="Google+">Google+</a>
+                        <a href="https://www.linkedin.com/in/david-g%C3%B3mez-castellanos-9b200635/"
+                           id="topInfolinkedin"
+                           target="_blank" title="LinkedIn">LinkedIn</a>
+                    </aside>
+                </section>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer th:insert="fragments/footer :: footerFragment"/>
+</body>
+</html>
