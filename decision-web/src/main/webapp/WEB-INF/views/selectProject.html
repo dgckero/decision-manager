@@ -13,23 +13,43 @@
     <div class="row" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
-        <section class="span12 ml-5" id="main">
+        <section class="span700 ml-5" id="main">
             <div align="center" class="dgc-inner-main mt-4">
                 <div if="${message}">
                     <h2 text="${message}"/>
                 </div>
-                <form th:action="@{/projects/get}" th:method="post">
-                    <div>
-                        <label for="selectedProject">Selecciona un Proyecto:</label>
-                        <select id="selectedProject" name="id">
-                            <option th:each="item : ${existingProjects}"
-                                    th:selected="false"
-                                    th:text="${item.name}"
-                                    th:value="${item.id}"
-                            />
-                        </select>
-                        <p><input id="goToSelectedProject" type="submit" value="Enviar"/></p>
-                    </div>
+
+                <form class="form-horizontal" th:action="@{/projects/get}" th:method="post">
+                    <fieldset>
+
+                        <!-- Form Name -->
+                        <legend>Crear Nuevo Proyecto</legend>
+
+                        <!-- Select Basic -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="selectedProject">Selecciona un Proyecto</label>
+                            <div class="col-md-6">
+                                <select id="selectedProject" name="id">
+                                    <option th:each="item : ${existingProjects}"
+                                            th:selected="false"
+                                            th:text="${item.name}"
+                                            th:value="${item.id}"
+                                    />
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Button -->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="goToSelectedProject"></label>
+                            <div class="col-md-4">
+                                <button class="btn btn-success" id="goToSelectedProject" name="goToSelectedProject">Ver
+                                    Proyecto
+                                </button>
+                            </div>
+                        </div>
+
+                    </fieldset>
                 </form>
             </div>
         </section>

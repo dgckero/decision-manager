@@ -31,6 +31,9 @@
 
 
 
+
+
+
     </script>
 
 </head>
@@ -44,19 +47,12 @@
         </aside>
         <section class="span12 ml-5" id="main">
             <div align="center" class="dgc-inner-main mt-4">
-                <p><strong>Selecciona los filtros de la decisión</strong></p>
-
-
                 <form method="post" th:action="@{/projects/edit/filters}" th:object="${form}">
                     <fieldset>
+                        <!-- Form Name -->
+                        <legend>Seleccione los filtros de la decisión</legend>
+
                         <table>
-                            <thead>
-                            <tr>
-                                <th>Nombre del filtro</th>
-                                <th>Valor</th>
-                            </tr>
-                            </thead>
-                            <tbody>
                             <tr th:each="item, itemStat : ${filterList}">
                                 <td>
                                     <input th:field="*{filters[__${itemStat.index}__].project.id}"
@@ -67,7 +63,6 @@
                                            type="hidden"/>
                                     <input th:field="*{filters[__${itemStat.index}__].project.rowDataTableName}"
                                            type="hidden"/>
-
                                     <input th:field="*{filters[__${itemStat.index}__].id}"
                                            th:value="${item.id}" type="hidden"/>
                                     <input th:field="*{filters[__${itemStat.index}__].filterClass}"
@@ -77,44 +72,45 @@
                                            th:value="${item.contactFilter}" type="hidden"/>
                                     <input th:field="*{filters[__${itemStat.index}__].name}"
                                            th:value="${item.name}" type="hidden"/>
-                                    <input th:field="*{filters[__${itemStat.index}__].active}"
-                                           th:id="${item.name} + '_checkbox'"
-                                           th:name="${item.name} + '_checkbox'" type="checkbox"/>
 
-                                    <div th:switch="${item.class}">
 
-                                        <div th:case="'Date'">
-                                            <label>
-                                                <span th:text="${item.name}"/>
-                                                <input placeholder="Seleccione la fecha por la que filtrar"
-                                                       th:field="*{filters[__${itemStat.index}__].value}"
-                                                       th:id="${item.name}" type="date"/>
-                                            </label>
-                                        </div>
-                                        <div th:case="'Double'">
-                                            <label>
-                                                <span th:text="${item.name}"/>
-                                                <input step="any" th:field="*{filters[__${itemStat.index}__].value}"
-                                                       th:id="${item.name}" type="number"/>
-                                            </label>
-                                        </div>
-                                        <div th:case="*">
-                                            <label>
-                                                <span th:text="${item.name}"/>
-                                                <input placeholder="Seleccione el valor por la que filtrar"
-                                                       th:field="*{filters[__${itemStat.index}__].value}"
-                                                       th:id="${item.name}" type="text"/>
-                                            </label>
+                                    <!-- Prepended checkbox -->
+                                    <div class="input-group mb-3">
+                                        <legend>[[${item.name}]]&nbsp;</legend>
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                                <input th:field="*{filters[__${itemStat.index}__].active}"
+                                                       th:id="${item.name} + '_checkbox'"
+                                                       th:name="${item.name} + '_checkbox'" type="checkbox"/>
+                                            </div>
+
+                                            <div th:switch="${item.class}">
+
+                                                <div th:case="'Date'">
+                                                    <input class="form-control"
+                                                           placeholder="Seleccione la fecha por la que filtrar"
+                                                           th:field="*{filters[__${itemStat.index}__].value}"
+                                                           th:id="${item.name}" type="date"/>
+                                                </div>
+                                                <div th:case="'Double'">
+                                                    <input class="form-control"
+                                                           step="any"
+                                                           th:field="*{filters[__${itemStat.index}__].value}"
+                                                           th:id="${item.name}" type="number"/>
+                                                </div>
+                                                <div th:case="*">
+                                                    <input class="form-control"
+                                                           placeholder="Seleccione el valor por el que filtrar"
+                                                           th:field="*{filters[__${itemStat.index}__].value}"
+                                                           th:id="${item.name}" type="text"/>
+                                                </div>
+                                            </div>
+                                            <p class="help-block">activa para filtrar por esta opción</p>
                                         </div>
                                     </div>
+
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <errors cssClass="error" path="filter"/>
-                                </td>
-                            </tr>
-                            </tbody>
                         </table>
 
                         <div id="contactFilterDiv" th:if="${contactFilter}">

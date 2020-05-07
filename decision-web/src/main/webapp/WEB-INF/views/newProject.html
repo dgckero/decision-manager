@@ -13,32 +13,48 @@
     <div class="row" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
-        <section class="span12 ml-5" id="main">
+        <section class="span700 ml-5" id="main">
             <div align="center" class="dgc-inner-main mt-4">
-
-                <div if="${message}">
-                    <h2 text="${message}"/>
-                </div>
-
                 <div>
-                    <form action="projects/create" enctype="multipart/form-data" method="post">
-                        <input name="name" placeholder="Nombre del proyecto" required="required" type="text">
-                        <br/>
-                        <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                               name="file" required="required"
-                               type="file">
-                        <input type="submit" value="Crear Proyecto"/>
+                    <div if="${message}">
+                        <h2 text="${message}"/>
+                    </div>
+                    <form action="projects/create" class="form-horizontal" enctype="multipart/form-data" method="post">
+                        <fieldset>
+                            <!-- Form Name -->
+                            <legend>Crear Nuevo Proyecto</legend>
+
+                            <!-- Text input-->
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="name">Nombre del proyecto</label>
+                                <div class="col-md-5">
+                                    <input class="form-control input-md" id="name" name="name"
+                                           placeholder="Nombre del nuevo proyecto"
+                                           required="required" type="text">
+
+                                </div>
+                            </div>
+
+                            <!-- File Button -->
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="file">Fichero Excel</label>
+                                <div class="col-md-4">
+                                    <input class="input-file" id="file" name="file" type="file">
+                                </div>
+                            </div>
+
+                            <!-- Button -->
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for=""></label>
+                                <div class="col-md-4">
+                                    <button class="btn btn-success" id="" name="">Crear Proyecto</button>
+                                </div>
+                            </div>
+
+                        </fieldset>
                     </form>
-                </div>
 
-                <div>
-                    <ul>
-                        <li each="file : ${files}">
-                            <a href="${file}" text="${file}"/>
-                        </li>
-                    </ul>
                 </div>
-
             </div>
         </section>
     </div>
