@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head th:insert="fragments/header :: headerFragment">
+<head th:replace="fragments/header :: headerFragment">
     <title id="pageTitle">Información</title>
 </head>
 
@@ -24,11 +24,11 @@
                     <p>Consiste en el diseo e implementacin de un sistema capaz de gestionar una academia de clases
                         particulares</p>
                     <p><a class="dgc-brand" href="/decision-web">Decision-Manager</a> está desarrollado
-                        por <a href="mailto:dgckero@gmail.com">David Gómez Castellanos</a></p>
+                        por <a class="developed-by" href="mailto:dgckero@gmail.com">David Gómez Castellanos</a></p>
                 </div>
             </div>
             <div align="center" class="row-fluid">
-                <h2 align="center">Esta Web ha sido desarrollada utilizando </h2>
+                <h2 align="center" class="h2-frameworks">Esta Web ha sido desarrollada utilizando </h2>
                 <section id="topbarInfoBuilt">
                     <aside>
                         <a href="http://www.java.com" id="topInfoJava" rel="nofollow" target="_blank"
@@ -43,8 +43,8 @@
                 </section>
             </div>
         </section>
-        <div align="center" class="mb44">
-            <p class="font-weight-bold ml-3">También estoy en las principales redes sociales</p>
+        <div align="center" class="mb25">
+            <p class="social-network font-weight-bold ml-3">También estoy en las principales redes sociales</p>
             <div align="center">
                 <section class="ml-4" id="topbarInfo">
                     <aside>
@@ -65,6 +65,6 @@
     </div>
 </div>
 
-<footer th:insert="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"/>
 </body>
 </html>

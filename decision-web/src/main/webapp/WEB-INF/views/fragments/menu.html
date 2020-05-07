@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
 <div class="wrapper" th:fragment="menuFragment">
     <!-- Sidebar -->
     <nav id="sidebar">
@@ -16,7 +16,7 @@
             </li>
             <li>
                 <form id="goToExistingProjectsForm" method="post" th:action="@{/projects/get/all}">
-                    <a href="javascript:;" onclick="document.getElementById('goToExistingProjectsForm').submit();">Ver
+                    <a href="#" onclick="document.getElementById('goToExistingProjectsForm').submit();">Ver
                         Proyectos</a>
                 </form>
             </li>

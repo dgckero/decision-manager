@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang=”es” xmlns:th="http://www.thymeleaf.org">
 
-<head th:insert="fragments/header :: headerFragment">
+<head th:replace="fragments/header :: headerFragment">
     <title id="pageTitle">Resultado</title>
 </head>
 
@@ -61,6 +61,6 @@
 </div>
 
 
-<footer th:insert="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"/>
 </body>
 </html>

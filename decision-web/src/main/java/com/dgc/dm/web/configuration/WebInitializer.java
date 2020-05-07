@@ -5,6 +5,8 @@ package com.dgc.dm.web.configuration;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
+import javax.servlet.ServletRegistration;
+
 public class WebInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     /**
@@ -37,4 +39,15 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
         return new String[]{"/"};
     }
 
+    /**
+     * Set throwExceptionIfNoHandlerFound = true to throw a NoHandlerFoundException when no Handler was found for this request
+     *
+     * @param registration
+     */
+    @Override
+    protected void customizeRegistration (final ServletRegistration.Dynamic registration) {
+        final boolean done = registration.setInitParameter("throwExceptionIfNoHandlerFound", "true"); // -> true
+
+        if (!done) throw new RuntimeException();
+    }
 }

@@ -16,4 +16,7 @@ public interface WebRedirectController {
 
     @RequestMapping("/information")
     ModelAndView information ( );
+
+//    @RequestMapping(value = "/**")
+//    ModelAndView Error ( );
 }

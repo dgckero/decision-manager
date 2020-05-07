@@ -136,8 +136,8 @@ footer{
     padding-right: 20px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 30px rgba(255, 255, 255, 0.125);
     transition: all 0.2s linear 0s;
-    text-decoration: auto;
     font-size: x-large;
+    text-decoration: solid;
 }
 
 /* Options drop down */
@@ -158,7 +158,6 @@ a .dgc-dropdown-options{
     padding-right: 20px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 30px rgba(255, 255, 255, 0.125);
     transition: all 0.2s linear 0s;
-    text-decoration: auto;
     background-color: #343a40;
 	font-size: large;
 }
@@ -172,12 +171,8 @@ a .dgc-dropdown-options{
     background: url("/decision-web/images/toolbar/socialNSprite.png") no-repeat ;
     display: block;
     float: left;
-    height: 18px;
-    margin-top: 8px;
-    padding: 0;
+    margin-top: -5px;
     text-indent: -9999em;
-    transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, , 0.44, 1) 0s;
-    width: 18px;
 }
 aside a#topfacebook {
     background-position: 0 0; width: 30px; height: 25px;
@@ -205,6 +200,11 @@ aside a#toplinkedin:hover {
     background-position: 0 -191px; width: 30px; height: 25px;
 }
 
+p.social-network {
+    color: rgba(238, 238, 238, 0.7);
+    text-shadow: 0.1em 0.1em 0.05em #880;
+}
+
 #topbarInfo {
     background: none repeat scroll 0 0;
 }
@@ -213,7 +213,7 @@ aside a#toplinkedin:hover {
     display: block;
     float: none;
     height: 18px;
-    margin-top: 8px;
+    margin-top: -5px;
     padding: 0;
     text-indent: -9999em;
     transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, , 0.44, 1) 0s;
@@ -305,7 +305,6 @@ tr.dgc-row-inactive{
  flex-direction: column;
 }
 
-
 .dgc-buttons-div {
     margin: 35px 100px 0 0;
 	width:100%;
@@ -346,7 +345,7 @@ div #leftMenu{
 
 #sidebar ul.components {
     padding: 20px 0;
-    border-bottom: 1px solid #47748b;
+    border-bottom: 1px solid wheat;
 }
 
 #sidebar ul p {
@@ -363,6 +362,15 @@ div #leftMenu{
 #sidebar ul li a:hover {
     color: wheat;
     background: #ff713cde;
+}
+
+h2.h2-frameworks {
+    color: rgba(238, 238, 238, 0.7);
+    text-shadow: 0.1em 0.1em 0.05em #880;
+}
+
+a.developed-by {
+    text-shadow: 0.1em 0.1em 0.05em #880;
 }
 
 #sidebar ul li.active > a, a[aria-expanded="true"] {
@@ -480,6 +488,10 @@ a[data-toggle="collapse"] {
 
 .mb44 {
   margin-bottom: 44px;
+}
+
+.mb25 {
+  margin-bottom: 25px;
 }
 
 /*  Select  struts tag label */
