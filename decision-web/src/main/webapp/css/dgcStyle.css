@@ -162,7 +162,53 @@ a .dgc-dropdown-options{
 	font-size: large;
 }
 
-/* Página de información */
+/* Filters */
+input.filter-input {
+    height: 30px;
+}
+div.filter-checkbox{
+    height: 30px;
+}
+span.filter-span{
+    font-size: 1.1rem;
+    font-weight: 10;
+    line-height: 1;
+    color: darkslategray;
+}
+
+/* result */
+section.section-main-result{
+    margin-left: 200px;
+    margin-top: -4px;
+}
+.dgc-mt-m4{
+    margin-top: -4px;
+}
+
+.dgc-ml-m16{
+    margin-left: -16px;
+}
+
+.dgc-mt-m16{
+    margin-top: -16px;
+}
+/* Edit project */
+
+.fieldset-border{
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+}
+
+.legend-border {
+    width:inherit;
+    padding:0 10px;
+    border-bottom:none;
+}
+
+/* Información */
 
 #topbar {
     background: none repeat scroll 0 0 #282828;
@@ -174,6 +220,15 @@ a .dgc-dropdown-options{
     margin-top: -5px;
     text-indent: -9999em;
 }
+
+.ml-m1 {
+    margin-left: -1px;
+}
+
+.dgc-h-280 {
+    height: 280px;
+}
+
 aside a#topfacebook {
     background-position: 0 0; width: 30px; height: 25px;
 }

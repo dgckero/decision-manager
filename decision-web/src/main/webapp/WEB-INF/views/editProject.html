@@ -10,123 +10,122 @@
 <div class="container-fluid" id="generalContainer">
     <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
-    <div class="row" id="internalContainer">
+    <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
         <section class="span12 ml-5" id="main">
-            <div align="center" class="dgc-inner-main mt-4">
-                <fieldset>
-                    <input id="projectId" th:value="${selectedProject.id}" type="hidden">
-                    <!-- Form Name -->
+            <div class="dgc-inner-main mt-1 d-flex justify-content-center">
+                <fieldset class="fieldset-border col-md-12">
                     <legend>Información del proyecto: [[${selectedProject.name}]]</legend>
-                    <!-- Text input-->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="projectName">Nombre</label>
-                        <div class="col-md-5">
-                            <input class="form-control input-md" disabled id="projectName" name="name"
-                                   th:value="${selectedProject.name}" type="text">
-                        </div>
-                    </div>
+                    <input id="projectId" th:value="${selectedProject.id}" type="hidden">
 
-                    <!-- Text input-->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="projectCreationDate">Fecha de creación</label>
-                        <div class="col-md-4">
-                            <input class="form-control input-md" disabled id="projectCreationDate" name="createDate"
-                                   th:value="${selectedProject.createDate}" type="date">
-                        </div>
-                    </div>
+                    <fieldset class="fieldset-border">
+                        <legend class="legend-border">Detalles</legend>
 
-                    <form method="post" th:action="@{/projects/edit/__${selectedProject.id}__/emailTemplate}">
-                        <!-- Textarea -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="projectEmailTemplate">Plantilla email</label>
+                        <div class="form-group row">
+                            <label class="col-md-4 control-label" for="projectName">Nombre</label>
+                            <div class="col-md-5">
+                                <input class="form-control input-md" disabled id="projectName" name="name"
+                                       th:value="${selectedProject.name}" type="text">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-md-4 control-label" for="projectCreationDate">Fecha de creación</label>
                             <div class="col-md-4">
+                                <input class="form-control input-md" disabled id="projectCreationDate" name="createDate"
+                                       th:value="${selectedProject.createDate}" type="date">
+                            </div>
+                        </div>
+                        <form method="post" th:action="@{/projects/edit/__${selectedProject.id}__/emailTemplate}">
+                            <div class="form-group row">
+                                <label class="col-md-4 control-label" for="projectEmailTemplate">Plantilla email</label>
+                                <div class="col-md-4">
                                 <textarea class="form-control" id="projectEmailTemplate" name="emailTemplate"
                                           th:inline="text">[[${selectedProject.emailTemplate}]]</textarea>
-                                <button class="btn btn-warning" id="editEmailTemplate" type="submit">
-                                    Editar plantilla
-                                </button>
+                                    <button class="btn btn-warning" id="editEmailTemplate" type="submit">
+                                        Editar plantilla
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                    <form class="form-horizontal" enctype="multipart/form-data" method="post"
-                          th:action="@{/projects/edit/__${selectedProject.id}__/results}">
-                        <!-- File Button -->
-                        <div class="form-group">
-                            <label class="col-md-4 control-label" for="file">Añadir más registros</label>
-                            <div class="col-md-4">
-                                <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                       id="file" name="file"
-                                       type="file"/>
-                                <button class="btn btn-success"
-                                        id="uploadFileButton" type="submit">Enviar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <!-- Button (Double) -->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="getDmn">Tabla de decisión</label>
-                        <div class="col-md-8">
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
-                                  th:action="@{/projects/get/__${selectedProject.id}__/dmnFile}">
-                                <button class="btn btn-success" download id="getDmn"
-                                        type="submit" value="getDmn">Descargar DMN
+                        </form>
+                        <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                              th:action="@{/projects/delete/__${selectedProject.id}__/}">
+                            <button class="btn btn-danger"
+                                    id="deleteProject" type="submit">Borrar proyecto
+                            </button>
+                        </form>
+                    </fieldset>
+
+                    <fieldset class="fieldset-border">
+                        <legend class="legend-border">Filtros</legend>
+                        <div class="form-group row">
+                            <form class="form-horizontal ml-3" enctype="multipart/form-data" method="post"
+                                  th:action="@{/projects/get/__${selectedProject.id}__/filters}">
+                                <button class="btn btn-warning"
+                                        id="editFilter" type="submit">Editar Filtros
                                 </button>
                             </form>
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                            <form class="form-horizontal ml-4" enctype="multipart/form-data" method="post"
                                   th:action="@{/projects/get/__${selectedProject.id}__/results}">
                                 <button class="btn btn-success"
                                         id="viewDMNFilteredResults" name="filtered" type="submit"
                                         value="true">Ver Registros Filtrados
                                 </button>
                             </form>
+                        </div>
+                        <fieldset class="fieldset-border">
+                            <legend class="legend-border">Tabla de decisión</legend>
                             <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                                  th:action="@{/projects/get/__${selectedProject.id}__/dmnFile}">
+                                <button class="btn btn-success" download id="getDmn"
+                                        type="submit" value="getDmn">Descargar DMN
+                                </button>
+                            </form>
+                            <form class="form-horizontal mt-3 ml-3" enctype="multipart/form-data" method="post"
                                   th:action="@{/projects/edit/__${selectedProject.id}__/dmnFile}">
-                                <div class="col-md-4">
+                                <div class="form-group">
                                     <input accept=".dm, .dmn" name="dmnFile" type="file"/>
-                                    <button class="btn btn-success"
+                                    <button class="btn btn-warning"
                                             id="editDmnButton" type="submit">Editar DMN
                                     </button>
                                 </div>
                             </form>
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
-                                  th:action="@{/projects/get/__${selectedProject.id}__/filters}">
-                                <button class="btn btn-warning"
-                                        id="editFilter" type="submit">Editar Filtros
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Button (Double) -->
-                    <div class="form-group">
-                        <label class="col-md-4 control-label" for="ViewAll">Registros</label>
-                        <div class="col-md-8">
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                        </fieldset>
+                    </fieldset>
+                    <fieldset class="fieldset-border ">
+                        <legend class="legend-border">Registros</legend>
+                        <div class="form-group row">
+                            <form class="form-horizontal ml-3" enctype="multipart/form-data" method="post"
                                   th:action="@{/projects/get/__${selectedProject.id}__/results}">
                                 <button class="btn btn-success"
                                         id="ViewAll" name="filtered" type="submit"
                                         value="false">Ver
                                 </button>
                             </form>
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                            <form class="form-horizontal ml-3" enctype="multipart/form-data" method="post"
                                   th:action="@{/projects/delete/__${selectedProject.id}__/results}">
-                                <button class="btn btn-warning"
+                                <button class="btn btn-warning ml-3"
                                         id="deleteCommonData" type="submit">Borrar registros
                                 </button>
                             </form>
-                            <form class="form-horizontal" enctype="multipart/form-data" method="post"
-                                  th:action="@{/projects/delete/__${selectedProject.id}__/}">
-                                <button class="btn btn-danger"
-                                        id="deleteProject" type="submit">Borrar proyecto
-                                </button>
-                            </form>
                         </div>
-                    </div>
+                        <form class="form-horizontal" enctype="multipart/form-data" method="post"
+                              th:action="@{/projects/edit/__${selectedProject.id}__/results}">
+                            <div class="form-group dgc-ml-m16">
+                                <fieldset class="fieldset-border ">
+                                    <legend class="legend-border">Añadir más registros</legend>
+                                    <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                                           id="file" name="file"
+                                           type="file"/>
+                                    </br>
+                                    <button class="btn btn-warning mt-3 ml-3"
+                                            id="uploadFileButton" type="submit">Enviar
+                                    </button>
+                                </fieldset>
+                            </div>
+                        </form>
+                    </fieldset>
                 </fieldset>
-
             </div>
         </section>
     </div>

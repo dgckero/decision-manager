@@ -42,11 +42,11 @@
 <div class="container-fluid" id="generalContainer">
     <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
-    <div class="row" id="internalContainer">
+    <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
         <section class="span12 ml-5" id="main">
-            <div align="center" class="dgc-inner-main mt-4">
+            <div align="center" class="dgc-inner-main mt-4 d-flex justify-content-center">
                 <form method="post" th:action="@{/projects/edit/filters}" th:object="${form}">
                     <fieldset>
                         <!-- Form Name -->
@@ -75,10 +75,10 @@
 
 
                                     <!-- Prepended checkbox -->
-                                    <div class="input-group mb-3">
-                                        <legend>[[${item.name}]]&nbsp;</legend>
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">
+                                    <div class="form-group row">
+                                        <label th:for="${item.name} + '_div'" th:text="${item.name}"/>
+                                        <div class="input-group-prepend ml-3" th:id="${item.name} + '_div'">
+                                            <div class="input-group-text filter-checkbox">
                                                 <input th:field="*{filters[__${itemStat.index}__].active}"
                                                        th:id="${item.name} + '_checkbox'"
                                                        th:name="${item.name} + '_checkbox'" type="checkbox"/>
@@ -87,25 +87,26 @@
                                             <div th:switch="${item.class}">
 
                                                 <div th:case="'Date'">
-                                                    <input class="form-control"
+                                                    <input class="form-control filter-input"
                                                            placeholder="Seleccione la fecha por la que filtrar"
                                                            th:field="*{filters[__${itemStat.index}__].value}"
                                                            th:id="${item.name}" type="date"/>
                                                 </div>
                                                 <div th:case="'Double'">
-                                                    <input class="form-control"
+                                                    <input class="form-control filter-input"
                                                            step="any"
                                                            th:field="*{filters[__${itemStat.index}__].value}"
                                                            th:id="${item.name}" type="number"/>
                                                 </div>
                                                 <div th:case="*">
-                                                    <input class="form-control"
+                                                    <input class="form-control filter-input"
                                                            placeholder="Seleccione el valor por el que filtrar"
                                                            th:field="*{filters[__${itemStat.index}__].value}"
                                                            th:id="${item.name}" type="text"/>
                                                 </div>
                                             </div>
-                                            <p class="help-block">activa para filtrar por esta opción</p>
+                                            <small class="help-block text-muted ml-3">activa para filtrar por esta
+                                                opción</small>
                                         </div>
                                     </div>
 
@@ -115,8 +116,9 @@
 
                         <div id="contactFilterDiv" th:if="${contactFilter}">
                             <label class="checkbox-inline">
-                                <input data-toggle="toggle" id="sendEmail" name="sendEmail" type="checkbox">Enviar
-                                Email</input>
+                                <input data-off="No Enviar" data-offstyle="danger" data-on="Enviar Email"
+                                       data-onstyle="success" data-size="large" data-toggle="toggle" id="sendEmail"
+                                       name="sendEmail" type="checkbox"/>
                             </label>
                             <div class="col-md-4" id="emailDiv">
                         <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"

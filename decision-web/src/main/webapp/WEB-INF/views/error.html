@@ -9,24 +9,23 @@
 <div class="container-fluid" id="generalContainer">
     <div class="navbar" th:insert="fragments/nav :: navFragment"/>
 
-    <div class="row" id="internalContainer">
+    <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
-        <section class="col-md-12" id="main">
-            <div class="error-template">
-                <h1>
-                    Error!</h1>
+        <section class="span12 ml-3 mt-3" id="main">
+            <div align="center" class="dgc-inner-main dgc-h-280">
+                <h1>Error!</h1>
                 <h2>Ha ocurrido un error en la operación</h2>
                 <div class="error-details" th:if="${message}">
                     <h4 th:text="${message}"></h4>
                 </div>
                 <div class="error-actions">
                     <a class="btn btn-primary btn-lg" href="/decision-web"><span
-                            class="glyphicon glyphicon-home"></span>
+                            class="cus-home"></span>
                         Volver al inicio
                     </a>
-                    <a class="btn btn-default btn-lg" href="mailto:dgckero@gmail.com" title="Email dgckero@gmail.com">
-                        <span class="cus-email">Contactar con el administrador</span>
+                    <a class="btn btn-primary btn-lg" href="mailto:dgckero@gmail.com" title="Email dgckero@gmail.com">
+                        <span class="cus-email"></span>Contactar con el administrador
                     </a>
                 </div>
             </div>
