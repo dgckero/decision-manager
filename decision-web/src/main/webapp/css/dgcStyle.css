@@ -306,7 +306,7 @@ aside a#topInfolinkedin {
 	height: 97px;
 }
 #topbarInfoBuilt aside a {
-    background: url("/decision-web/images/toolbar/builtWithSprite.png") no-repeat ;
+    background: url("/decision-web/images/toolbar/frameworksSprites.png") no-repeat ;
     display: block;
     float: left;
     height: 18px;
@@ -317,29 +317,57 @@ aside a#topInfolinkedin {
     width: 18px;
 }
 aside a#topInfoJava {
-    background-position: 0 -166px;
-    width: 75px;
-    height: 75px;
-    margin-left: 71px;
+    width: 46px;
+    height: 47px;
+    background-position: -10px -351px;
+    margin-left: 105px;
 }
 aside a#toptInfoHibernate {
-    background-position: 0 -88px; width: 100px; height: 28px;
-	margin-left: 1px;
+    width: 99px;
+    height: 27px;
+    background-position: -10px -10px;
+    margin-left: 5px;
 }
 aside a#topInfoMaven {
-    background-position: 0 -291px; width: 94px; height: 33px;
-	margin-left: 1px;
-}
-aside a#topInfoSpring {
-    background-position: 0 -374px; width: 82px; height: 25px;
+    width: 43px;
+    height: 33px;
+    background-position: -10px -111px;
 	margin-left: 5px;
 }
-aside a#topInfoStruts {
-    background-position: 0 -449px; width: 64px; height: 22px;
+aside a#topInfoMaven2 {
+    width: 169px;
+    height: 90px;
+    background-position: -10px -516px;
+	margin-left: 1px;
+}
+aside a#topInfoCamunda {
+    width: 51px;
+    height: 33px;
+    background-position: -10px -58px;
+    margin-left: 5px;
+}
+aside a#topInfoCamunda2 {
+    width: 65px;
+    height: 78px;
+    background-position: -10px -418px;
+    margin-left: 5px;
+}
+aside a#topInfoSpring {
+    width: 129px;
+    height: 43px;
+    background-position: -10px -224px;
+	margin-left: 5px;
+}
+aside a#topInfoThymeleaf {
+    width: 51px;
+    height: 44px;
+    background-position: -10px -287px;
 	margin-left: 5px;
 }
 aside a#topInfoBootstrap {
-    background-position: 0 0; width: 130px; height: 38px;
+    width: 131px;
+    height: 39px;
+    background-position: -10px -164px;
 	margin-left: 5px;
 }
 
