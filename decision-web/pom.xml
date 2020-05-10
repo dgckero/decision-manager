@@ -131,6 +131,12 @@
             <artifactId>bootstrap4-toggle</artifactId>
             <version>${bootstrap4-toggle.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>catalina</artifactId>
+            <version>${catalina.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 

@@ -5,30 +5,29 @@
 package com.dgc.dm.core.db.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
-@Builder(toBuilder = true)
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@SuperBuilder(toBuilder = true)
 @DynamicUpdate
 @Table(name = "FILTERS")
 @Entity
-public class Filter implements Serializable {
+public class Filter extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NaturalId
-    @Column
+    @Column(updatable = true)
     private String name;
-    @Column(name = "class")
+    @Column(name = "class", updatable = false)
     private String filterClass;
     @Column
     private String value;

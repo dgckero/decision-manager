@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -50,7 +51,7 @@ public interface ProjectController {
     ModelAndView deleteProject (@PathVariable Integer id);
 
     @RequestMapping(value = "/edit/filters", method = RequestMethod.POST)
-    ModelAndView addFilters (@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @RequestParam(required = false, name = "sendEmail") Boolean sendEmail, @ModelAttribute FilterCreationDto form);
+    ModelAndView addFilters (@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @RequestParam(required = false, name = "sendEmail") Boolean sendEmail, @ModelAttribute FilterCreationDto form, HttpServletRequest request);
 
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     ModelAndView getProject (@RequestParam("id") Integer id);

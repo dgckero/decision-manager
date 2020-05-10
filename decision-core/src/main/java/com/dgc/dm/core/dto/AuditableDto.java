@@ -9,11 +9,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder(toBuilder = true)
 @Data
-public class RowDataDto<T> extends AuditableDto<T> {
-    private T rowId;
-    private ProjectDto project;
+@SuperBuilder(toBuilder = true)
+public class AuditableDto<U> implements Serializable {
+    private String dataCreationDate;
+
+    private String lastUpdatedDate;
 }

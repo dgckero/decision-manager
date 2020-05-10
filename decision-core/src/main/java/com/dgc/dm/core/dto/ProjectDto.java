@@ -4,20 +4,21 @@
 
 package com.dgc.dm.core.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-import java.io.Serializable;
-
-@Builder
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectDto implements Serializable {
+@SuperBuilder(toBuilder = true)
+@Data
+public class ProjectDto extends AuditableDto<String> {
     private Integer id;
     private String name;
     private String rowDataTableName;
     private String emailTemplate;
-    private String createDate;
     @ToString.Exclude
     private byte[] dmnFile;
 }

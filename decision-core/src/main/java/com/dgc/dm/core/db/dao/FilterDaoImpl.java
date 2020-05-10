@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class FilterDaoImpl extends CommonDao implements FilterDao {
 
     private static final String SELECT_CONTACT_FILTER = "Select * from FILTERS where contactFilter=? and project=?";
+
     @Autowired
     private FilterRepository filterRepository;
 
@@ -36,17 +39,17 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return
      * @throws SQLException
      */
-    private static Filter mapResultSet (ResultSet rs, int rowNum) throws SQLException {
-        return new Filter(
-                rs.getInt("id"),
-                rs.getString("name"),
-                rs.getString("class"),
-                rs.getString("value"),
-                rs.getBoolean("active"),
-                rs.getBoolean("contactFilter"),
-                Project.builder().id(rs.getInt("project")).
-                        build()
-        );
+    private static Filter mapResultSet (final ResultSet rs, final int rowNum) throws SQLException {
+        return Filter.builder()
+                .id(rs.getInt("id")).name(rs.getString("name"))
+                .filterClass(rs.getString("class"))
+                .value(rs.getString("value"))
+                .active(rs.getBoolean("active"))
+                .contactFilter(rs.getBoolean("contactFilter"))
+                .project(
+                        Project.builder().id(rs.getInt("project")).build()
+                )
+                .build();
     }
 
     /**
@@ -56,13 +59,13 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void createFilterTable (final Project project) {
+    public final void createFilterTable (Project project) {
         log.debug("[INIT] Creating table: Filters");
 
-        final Iterable<String> filterTableStatements = new StringArrayList(project);
+        Iterable<String> filterTableStatements = new StringArrayList(project);
         filterTableStatements.forEach(sql -> {
             log.debug(sql);
-            this.sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
+            sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
         });
         log.debug("[END] FILTERS table successfully created");
     }
@@ -74,15 +77,16 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void persistFilterList (final List<Filter> filterList) {
+    public final void persistFilterList (List<Filter> filterList) {
         log.debug("[INIT] Persisting filters got from Excel");
 
         for (int i = 0; i < filterList.size(); i++) {
-            this.sessionFactory.getCurrentSession().save(filterList.get(i));
+            final Filter filter = filterList.get(i);
+            sessionFactory.getCurrentSession().save(filter);
             if (i % 20 == 0) {
                 //flush a batch of inserts and release memory:
-                this.sessionFactory.getCurrentSession().flush();
-                this.sessionFactory.getCurrentSession().clear();
+                sessionFactory.getCurrentSession().flush();
+                sessionFactory.getCurrentSession().clear();
             }
         }
 
@@ -97,7 +101,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     public final List<Map<String, Object>> getFilters ( ) {
         log.debug("[INIT] Getting Filters");
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS");
+        List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS");
         log.debug("[END] Got filters");
         return filters;
     }
@@ -109,9 +113,9 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return all project's filters
      */
     @Override
-    public final List<Map<String, Object>> getFilters (final Project project) {
+    public final List<Map<String, Object>> getFilters (Project project) {
         log.debug("[INIT] Getting Filters by project {}", project);
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
+        List<Map<String, Object>> filters = getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
         log.debug("[END] Got filters");
         return filters;
     }
@@ -123,14 +127,15 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateFilters (final List<Filter> filterList) {
+    public final void updateFilters (List<Filter> filterList) {
         log.debug("[INIT] Updating filters ");
         for (int i = 0; i < filterList.size(); i++) {
-            this.sessionFactory.getCurrentSession().merge(filterList.get(i));
+            final Filter updatedFilter = filterList.get(i);
+            sessionFactory.getCurrentSession().merge(updatedFilter);
             if (i % 5 == 0) {
                 //flush a batch of inserts and release memory:
-                this.sessionFactory.getCurrentSession().flush();
-                this.sessionFactory.getCurrentSession().clear();
+                sessionFactory.getCurrentSession().flush();
+                sessionFactory.getCurrentSession().clear();
             }
         }
         log.debug("[END] Filters updated");
@@ -143,16 +148,16 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return project's filter having contactFilter=true
      */
     @Override
-    public final Filter getContactFilter (final Project project) {
+    public final Filter getContactFilter (Project project) {
         log.debug("[INIT] Getting Filters having contactFilter active for project {}", project);
         Filter filter = null;
         try {
             final String sql = SELECT_CONTACT_FILTER;
-            filter = this.getJdbcTemplate().queryForObject(sql, new Object[]{Integer.valueOf(1), project.getId()}, FilterDaoImpl::mapResultSet);
+            filter = getJdbcTemplate().queryForObject(sql, new Object[]{Integer.valueOf(1), project.getId()}, FilterDaoImpl::mapResultSet);
 
             log.debug("[END] Got filter {}", filter);
 
-        } catch (final EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             log.warn("No filter found having contactFilter active for project {}", project);
         }
         return filter;
@@ -166,8 +171,8 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
          *
          * @param project
          */
-        StringArrayList (Project project) {
-            this.add("CREATE TABLE IF NOT EXISTS FILTERS " +
+        StringArrayList (final Project project) {
+            add("CREATE TABLE IF NOT EXISTS FILTERS " +
                     "( ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "name TEXT," +
                     "class TEXT, " +
@@ -175,9 +180,11 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
                     "contactFilter INTEGER default 0," +
                     "value TEXT default NULL," +
                     "project INTEGER NOT NULL," +
+                    "dataCreationDate TEXT NOT NULL," +
+                    "lastUpdatedDate TEXT," +
                     "FOREIGN KEY(project) REFERENCES PROJECTS(id)," +
                     "CONSTRAINT UQ_NAME_PROJ UNIQUE (name, project) )");
-            this.add("INSERT INTO FILTERS (name, class, project) values ('rowId','java.lang.Integer','" + project.getId() + "')");
+            add("INSERT INTO FILTERS (name, class, project, dataCreationDate) values ('rowId','java.lang.Integer','" + project.getId() + "','" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "')");
         }
     }
 }

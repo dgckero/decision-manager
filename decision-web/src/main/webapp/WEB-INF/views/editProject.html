@@ -32,8 +32,9 @@
                         <div class="form-group row">
                             <label class="col-md-4 control-label" for="projectCreationDate">Fecha de creación</label>
                             <div class="col-md-4">
-                                <input class="form-control input-md" disabled id="projectCreationDate" name="createDate"
-                                       th:value="${selectedProject.createDate}" type="date">
+                                <input class="form-control input-md" disabled id="projectCreationDate"
+                                       name="dataCreationDate"
+                                       th:value="${selectedProject.dataCreationDate}" type="date">
                             </div>
                         </div>
                         <form method="post" th:action="@{/projects/edit/__${selectedProject.id}__/emailTemplate}">

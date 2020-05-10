@@ -3,7 +3,9 @@
 
 <head th:replace="fragments/header :: headerFragment">
     <title id="pageTitle">Selección de filtros</title>
-    <script>
+</head>
+<body>
+<script>
         $(document).ready(function () {
             initializeFormValues();
 
@@ -19,7 +21,7 @@
         function initializeFormValues(){
             var contactFilter = "[[${contactFilter}]]";
 
-            if ( contactFilter ){
+            if ( contactFilter && contactFilter.indexOf("active=true")>0){
                 $("div#emailDiv").show();
                 $("textarea#emailTemplate").val("[[${project.emailTemplate}]]");
                 $("#sendEmail").prop('checked', true);
@@ -29,15 +31,7 @@
         }
 
 
-
-
-
-
-
-    </script>
-
-</head>
-<body>
+</script>
 
 <div class="container-fluid" id="generalContainer">
     <div class="navbar" th:insert="fragments/nav :: navFragment"/>
@@ -58,8 +52,6 @@
                                     <input th:field="*{filters[__${itemStat.index}__].project.id}"
                                            type="hidden"/>
                                     <input th:field="*{filters[__${itemStat.index}__].project.name}"
-                                           type="hidden"/>
-                                    <input th:field="*{filters[__${itemStat.index}__].project.createDate}"
                                            type="hidden"/>
                                     <input th:field="*{filters[__${itemStat.index}__].project.rowDataTableName}"
                                            type="hidden"/>
@@ -116,7 +108,7 @@
 
                         <div id="contactFilterDiv" th:if="${contactFilter}">
                             <label class="checkbox-inline">
-                                <input data-off="No Enviar" data-offstyle="danger" data-on="Enviar Email"
+                                <input data-off="No Enviar Email" data-offstyle="danger" data-on="Enviar Email"
                                        data-onstyle="success" data-size="large" data-toggle="toggle" id="sendEmail"
                                        name="sendEmail" type="checkbox"/>
                             </label>

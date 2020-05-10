@@ -5,17 +5,22 @@
 package com.dgc.dm.core.db.model;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder(toBuilder = true)
 @Data
 @Table(name = "Data")
 @Entity
-public class RowData implements Serializable {
+public class RowData extends Auditable<String> {
     @Id
-    @Column(name = "rowId")
+    @Column(name = "rowId", updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int rowId;
     @ManyToOne(fetch = FetchType.EAGER)
