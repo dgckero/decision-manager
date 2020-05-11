@@ -85,7 +85,7 @@
                             <form class="form-horizontal mt-3 ml-3" enctype="multipart/form-data" method="post"
                                   th:action="@{/projects/edit/__${selectedProject.id}__/dmnFile}">
                                 <div class="form-group">
-                                    <input accept=".dm, .dmn" name="dmnFile" type="file"/>
+                                    <input accept=".dm, .dmn" name="dmnFile" required="required" type="file"/>
                                     <button class="btn btn-warning"
                                             id="editDmnButton" type="submit">Editar DMN
                                     </button>
@@ -116,7 +116,7 @@
                                 <fieldset class="fieldset-border ">
                                     <legend class="legend-border">Añadir más registros</legend>
                                     <input accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                           id="file" name="file"
+                                           id="file" name="file" required="required"
                                            type="file"/>
                                     </br>
                                     <button class="btn btn-warning mt-3 ml-3"
