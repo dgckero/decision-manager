@@ -31,7 +31,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void createRowDataTable (Map<String, Class<?>> columns, ProjectDto project) {
+    public void createRowDataTable (Map<String, Class<?>> columns, ProjectDto project) {
         log.debug("[INIT] createRowDataTable project: {}", project);
         rowDataDao.createRowDataTable(columns, getModelMapper().map(project, Project.class));
         log.debug("[END] createRowDataTable");
@@ -45,7 +45,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void persistRowData (String insertSentence, List<Object[]> infoToBePersisted) {
+    public void persistRowData (String insertSentence, List<Object[]> infoToBePersisted) {
         log.debug("[INIT] Persisting Excel rows");
         rowDataDao.persistRowData(insertSentence, infoToBePersisted);
         log.debug("[END] Persisted Excel rows");
@@ -72,7 +72,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteRowData (ProjectDto project) {
+    public void deleteRowData (ProjectDto project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
         rowDataDao.deleteRowData(getModelMapper().map(project, Project.class));
         log.debug("[END] Registers successfully deleted for project {}", project);

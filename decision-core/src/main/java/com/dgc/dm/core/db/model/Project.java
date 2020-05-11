@@ -4,16 +4,14 @@
 
 package com.dgc.dm.core.db.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
@@ -26,9 +24,9 @@ public class Project extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NaturalId
-    @Column(unique = true, updatable = true)
+    @Column(unique = true, updatable = false)
     private String name;
-    @Column(updatable = true)
+    @Column(updatable = false)
     private String rowDataTableName;
     @Column
     private String emailTemplate;

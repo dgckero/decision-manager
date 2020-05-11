@@ -155,7 +155,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateProject (final ProjectDto project) {
+    public void updateProject (final ProjectDto project) {
         log.info("[INIT] updateProject {}", project);
         if (null == project) {
             log.warn("Project is NULL, it won't be updated");
@@ -172,7 +172,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateFilters (final List<FilterDto> filters) {
+    public void updateFilters (final List<FilterDto> filters) {
         log.info("[INIT] Updating filters");
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found to be updated");
@@ -195,7 +195,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final List<Map<String, Object>> createDMNModel (final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws DecisionException, IOException {
+    public List<Map<String, Object>> createDMNModel (final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws DecisionException, IOException {
         List<Map<String, Object>> res = null;
         final ProjectDto project = filters.get(0).getProject();
         if (null == project) {
@@ -219,7 +219,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final List<Map<String, Object>> createDMNModel (final ProjectDto project, final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws IOException {
+    public List<Map<String, Object>> createDMNModel (final ProjectDto project, final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws IOException {
         final List<Map<String, Object>> res;
         log.info("[INIT] Creating and running Decision Table");
 
@@ -294,7 +294,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final ProjectDto getProject (final Integer selectedProjectId) {
+    public ProjectDto getProject (final Integer selectedProjectId) {
         log.info("[INIT] Getting project by Id {}", selectedProjectId);
         final ProjectDto result;
         final ProjectDto project = this.getProjectService().getProject(selectedProjectId);
@@ -317,7 +317,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final List<Map<String, Object>> executeDmn (final ProjectDto updatedProject) {
+    public List<Map<String, Object>> executeDmn (final ProjectDto updatedProject) {
         log.info("[INIT] Executing DMN file for project {}", updatedProject);
         final List<Map<String, Object>> res;
         final List<Map<String, Object>> result = this.bpmnServer.executeDmn(updatedProject);
@@ -340,7 +340,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void validateDmn (final ProjectDto project, final byte[] bytes) {
+    public void validateDmn (final ProjectDto project, final byte[] bytes) {
         log.info("[INIT] Validating DMN file");
         this.bpmnServer.validateDmn(bytes);
         log.info("[END] Validated DMN file");
@@ -379,7 +379,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteRowData (final ProjectDto project) {
+    public void deleteRowData (final ProjectDto project) {
         log.info("[INIT] deleteRowData for project: {}", project);
         if (null == project) {
             log.warn("Project is null");
@@ -398,7 +398,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteProject (final ProjectDto project) {
+    public void deleteProject (final ProjectDto project) {
         log.info("[INIT] delete project :{}", project);
         if (null == project) {
             log.warn("Project is null");
@@ -465,7 +465,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     public Map<String, List<Map<String, Object>>> getExistingProjects ( ) {
         log.info("[INIT] getExistingProjects");
         Map<String, List<Map<String, Object>>> modelMap = null;
-        List<Map<String, Object>> projects = null;
+        List<Map<String, Object>> projects;
         try {
             projects = this.getProjects();
         } catch (final SQLiteException exception) {

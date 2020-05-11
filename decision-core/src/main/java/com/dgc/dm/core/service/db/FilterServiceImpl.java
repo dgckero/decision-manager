@@ -48,7 +48,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
                 }.getType())
         );
         log.debug("Setting true on contact filter that contains Email information");
-        filterEntityList = markContactFilter(filterEntityList);
+        markContactFilter(filterEntityList);
         filterDao.persistFilterList(filterEntityList);
 
         log.info("[END] persistFilterList");

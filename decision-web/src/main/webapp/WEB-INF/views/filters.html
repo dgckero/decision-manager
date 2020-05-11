@@ -19,7 +19,7 @@
         });
 
         function initializeFormValues(){
-            var contactFilter = "[[${contactFilter}]]";
+            const contactFilter = "[[${contactFilter}]]";
 
             if ( contactFilter && contactFilter.indexOf("active=true")>0){
                 $("div#emailDiv").show();

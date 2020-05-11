@@ -96,7 +96,7 @@ class CommonController implements HandlerExceptionResolver {
             }
             modelAndView.getModel().put(MODEL_MESSAGE, exception.getMessage());
         }
-        log.debug("[END] resolveException exception: {}", exception);
+        log.debug("[END] resolveException exception: {}",exception.getMessage());
         return modelAndView;
     }
 

@@ -38,7 +38,7 @@ public class GlobalExceptionHandlerController {
      */
     @ExceptionHandler(NullPointerException.class)
     public ModelAndView handleNullPointerException (final Exception e) {
-        log.error("Handle NullPointer exception {}", e);
+        log.error("Handle NullPointer exception {}", e.getMessage());
         return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
     }
 
@@ -51,7 +51,7 @@ public class GlobalExceptionHandlerController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(DecisionException.class)
     public ModelAndView handleDecisionException (final Exception e) {
-        log.error("handle DecisionException {}", e);
+        log.error("handle DecisionException {}", e.getMessage());
         return this.generateErrorModelAndView(e.getMessage());
     }
 
@@ -64,7 +64,7 @@ public class GlobalExceptionHandlerController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ModelAndView handleAllException (final Exception e) {
-        log.error("handle internal server error exception {}", e);
+        log.error("handle internal server error exception {}", e.getMessage());
         return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
     }
 

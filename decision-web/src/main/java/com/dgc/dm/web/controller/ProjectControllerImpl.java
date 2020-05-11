@@ -239,10 +239,9 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      *
      * @param id       project's Id
      * @param response
-     * @throws IOException
      */
     @Override
-    public void getProjectDmn (@PathVariable Integer id, HttpServletResponse response) throws IOException {
+    public void getProjectDmn (@PathVariable Integer id, HttpServletResponse response) {
         log.info("[INIT] Getting dmn file for projectId {}", id);
 
         generateDmnFile(this.getProjectById(id), response);

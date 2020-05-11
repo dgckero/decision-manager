@@ -27,7 +27,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void createRowDataTable (Map<String, Class<?>> columns, Project project) {
+    public void createRowDataTable(Map<String, Class<?>> columns, Project project) {
         log.debug("[INIT] Creating table {}", project.getRowDataTableName());
 
         StringBuilder commonDataTableStatements = new StringBuilder("CREATE TABLE IF NOT EXISTS " + project.getRowDataTableName() +
@@ -36,7 +36,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
             String columnName = column.getKey();
             Class<?> columnClass = column.getValue();
             if (!StringUtils.isEmpty(columnName) && (null != columnClass)) {
-                commonDataTableStatements.append("'" + columnName + "'");
+                commonDataTableStatements.append("'").append(columnName).append("'");
                 commonDataTableStatements.append(" ");
                 commonDataTableStatements.append(DatabaseColumnType.getDBClassByColumnType(column.getValue().getSimpleName()));
                 commonDataTableStatements.append(",");
@@ -59,7 +59,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void persistRowData (String insertSentence, List<Object[]> infoToBePersisted) {
+    public void persistRowData(String insertSentence, List<Object[]> infoToBePersisted) {
         log.debug("[INIT] Persisting Excel rows into commonDatas table");
         for (int i = 0; i < infoToBePersisted.size(); i++) {
             Object[] info = infoToBePersisted.get(i);
@@ -91,12 +91,11 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
             } else if (data instanceof Integer) {
                 sBuilder.append(tokens[i]).append(data);
             } else {
-                sBuilder.append(tokens[i]).append("'" + data + "'");
+                sBuilder.append(tokens[i]).append("'").append(data).append("'");
             }
         }
-        String result = sBuilder.append(tokens[rowData.length]).toString();
 
-        return result;
+        return sBuilder.append(tokens[rowData.length]).toString();
     }
 
     /**
@@ -120,7 +119,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteRowData (Project project) {
+    public void deleteRowData (Project project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
         sessionFactory.getCurrentSession().createSQLQuery("DELETE FROM " + project.getRowDataTableName());
         log.debug("[END] Registers successfully deleted for project {}", project);

@@ -17,8 +17,6 @@
 *.iml
 
 # common files
-/.metadata/
-/.settings/
 /decision-core/.settings/
 /decision-core/target/
 /decision-web/.settings/

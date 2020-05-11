@@ -6,6 +6,7 @@ package com.dgc.dm.core.db.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -25,7 +27,7 @@ public class Filter extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NaturalId
-    @Column(updatable = true)
+    @Column(updatable = false)
     private String name;
     @Column(name = "class", updatable = false)
     private String filterClass;

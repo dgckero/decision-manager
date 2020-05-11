@@ -49,7 +49,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
 
         List<FilterDto> filterList = new ArrayList<>();
         for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-            if (!StringUtils.isEmpty(column.getValue()) && column.getValue() != null) {
+            if (!StringUtils.isEmpty(column.getValue())) {
                 filterList.add(FilterDto.builder().
                         name(column.getKey()).
                         filterClass(column.getValue().getSimpleName()).
@@ -97,6 +97,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         for (Object ob : array) {
             if (null != ob) {
                 isEmpty = false;
+                break;
             }
         }
         log.debug("[INIT] isArrayEmpty, isEmpty: {}", isEmpty);
@@ -235,7 +236,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void processExcel (MultipartFile file, ProjectDto project) {
+    public void processExcel (MultipartFile file, ProjectDto project) {
         log.info("[INIT] Processing Excel file: {}, for project: {} ", file.getOriginalFilename(), project);
 
         try {
@@ -260,7 +261,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final ProjectDto processExcel (MultipartFile file, Integer projectId) {
+    public ProjectDto processExcel (MultipartFile file, Integer projectId) {
         log.info("[INIT] Processing Excel file: {}, for projectId: {} ", file.getOriginalFilename(), projectId);
 
         final ProjectDto project = this.getProjectService().getProject(projectId);
@@ -293,7 +294,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final ProjectDto processExcel (MultipartFile file, String projectName) throws IOException {
+    public ProjectDto processExcel (MultipartFile file, String projectName) throws IOException {
         log.info("[INIT] Processing Excel file");
 
         Sheet worksheet = getWorkSheet(file);
@@ -314,7 +315,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @return new Project
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private ProjectDto createProjectModel (String projectName, Map<String, Class<?>> colMapByName) {
+    ProjectDto createProjectModel (String projectName, Map<String, Class<?>> colMapByName) {
         log.info("[INIT] createProjectModel by projectName: {}", projectName);
         ProjectDto project = null;
         try {
@@ -322,7 +323,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
             getRowDataService().createRowDataTable(colMapByName, project);
             getFilterService().persistFilterList(generateFilterList(colMapByName, project), project);
         } catch (PersistenceException e) {
-            log.error("Error Creating project : {}", e);
+            log.error("Error Creating project : {}", e.getMessage());
             if (e.getCause() instanceof GenericJDBCException && ((GenericJDBCException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
                 throw new DecisionException("Ya existe un proyecto con nombre " + projectName + ", por favor utilice un nombre diferente");
             }
@@ -347,13 +348,13 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @throws IllegalAccessException
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private void processExcelRows (Sheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) {
+    void processExcelRows (Sheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) {
         log.info("[INIT] processExcelRows by project: {}, rowIdNumber: {}", project, rowIdNumber);
         if (null != columns && !columns.isEmpty()) {
             List<Object> excelObjs = new ArrayList<>();
 
             log.info("Generating dynamic class");
-            Class<? extends RowDataDto> generatedObj = null;
+            Class<? extends RowDataDto> generatedObj;
             try {
                 generatedObj = PojoGenerator.generate("com.dgc.dm.core.dto.Pojo" + project.getName() + "$Generated", columns);
                 log.info("Generated dynamic class: {}", generatedObj.getName());
@@ -396,7 +397,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @throws InvocationTargetException
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private Object[] populateGeneratedObject (ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
+    Object[] populateGeneratedObject (ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
                                               List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
             InstantiationException, NoSuchMethodException, InvocationTargetException {
 
@@ -550,7 +551,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
                     String columnName = cell.getStringCellValue();
                     if (!StringUtils.isEmpty(columnName) && (null != cellClass)) {
                         colMapByName.put(getColumnNameByCellValue(columnName), cellClass);
-                        log.trace("Processed column({}), columnName {}, class {}", j, columnName, (null == cellClass) ? "NULL" : cellClass.getName());
+                        log.trace("Processed column({}), columnName {}, class {}", j, columnName, cellClass.getName());
                     }
                 }
             }

@@ -238,9 +238,7 @@ public class BPMNServerImpl implements BPMNServer {
         log.debug("[INIT] parseEntityToVariableMap");
         final VariableMap variableToBeValidated = Variables.createVariables();
 
-        final Iterator<Map.Entry<String, Object>> iterator = commonEntityMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            final Map.Entry<String, Object> commonEntity = iterator.next();
+        for (Map.Entry<String, Object> commonEntity : commonEntityMap.entrySet()) {
             if (!skipCommonEntity(commonEntity.getKey())) {
                 variableToBeValidated.put(commonEntity.getKey(), commonEntity.getValue());
             }
@@ -369,7 +367,7 @@ public class BPMNServerImpl implements BPMNServer {
                                                    String decisionTableId, String definitionId, String definitionName,
                                                    String decisionId, String decisionName, List<FilterDto> activeFilters, Boolean sendMail) throws IOException {
         log.debug("[INIT] generateDmn based on project: {}, outputFilePath: {}, decisionTableId: {}, definitionId: {}, definitionName: {}, decisionId: {}, decisionName: {}, sendMail: {}, activeFilters: {}", project, outputFilePath, decisionTableId, definitionId, definitionName, decisionId, decisionName, sendMail, activeFilters);
-        List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
+        List<Map<String, Object>> commonEntitiesAccepted;
 
         final DmnModelInstance modelInstance = this.createDmnModelInstance(activeFilters, definitionName, definitionId, decisionId, decisionName, decisionTableId, sendMail);
 

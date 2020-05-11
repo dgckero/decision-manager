@@ -29,7 +29,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * Create table Projects if not exist
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    private void createProjectTable ( ) {
+    void createProjectTable() {
         log.debug("[INIT] Creating table PROJECTS if not exist");
         final String createTableProject =
                 "CREATE TABLE IF NOT EXISTS PROJECTS " +
@@ -83,14 +83,13 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * Get all projects
      *
      * @return all projects
-     * @throws SQLiteException, UncategorizedSQLException
      */
     @Override
-    public List<Map<String, Object>> getProjects ( ) throws SQLiteException, UncategorizedSQLException {
+    public List<Map<String, Object>> getProjects ( ) throws UncategorizedSQLException {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
         final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
-        if (projects == null || projects.isEmpty()) {
+        if (projects.isEmpty()) {
             log.warn("[END] No project founds");
         } else {
             log.debug("[INIT] Got " + projects.size() + " projects");

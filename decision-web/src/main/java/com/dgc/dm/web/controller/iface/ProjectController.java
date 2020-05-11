@@ -36,7 +36,7 @@ public interface ProjectController {
 
     @RequestMapping(value = "/get/{id}/dmnFile", method = RequestMethod.POST)
     @ResponseBody
-    void getProjectDmn (@PathVariable Integer id, HttpServletResponse response) throws IOException;
+    void getProjectDmn (@PathVariable Integer id, HttpServletResponse response);
 
     @RequestMapping(value = "/edit/{id}/dmnFile", method = RequestMethod.POST)
     ModelAndView editDmn (@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile);

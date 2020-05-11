@@ -59,7 +59,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void createFilterTable (final Project project) {
+    public void createFilterTable (final Project project) {
         log.debug("[INIT] Creating table: Filters");
 
         final Iterable<String> filterTableStatements = new StringArrayList(project);
@@ -77,7 +77,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void persistFilterList (final List<Filter> filterList) {
+    public void persistFilterList (final List<Filter> filterList) {
         log.debug("[INIT] Persisting filters got from Excel");
 
         for (int i = 0; i < filterList.size(); i++) {
@@ -127,7 +127,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void updateFilters (final List<Filter> filterList) {
+    public void updateFilters (final List<Filter> filterList) {
         log.debug("[INIT] Updating filters ");
         for (int i = 0; i < filterList.size(); i++) {
             Filter updatedFilter = filterList.get(i);
@@ -152,8 +152,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
         log.debug("[INIT] Getting Filters having contactFilter active for project {}", project);
         Filter filter = null;
         try {
-            final String sql = SELECT_CONTACT_FILTER;
-            filter = this.getJdbcTemplate().queryForObject(sql, new Object[]{Integer.valueOf(1), project.getId()}, FilterDaoImpl::mapResultSet);
+            filter = this.getJdbcTemplate().queryForObject(SELECT_CONTACT_FILTER, new Object[]{1, project.getId()}, FilterDaoImpl::mapResultSet);
 
             log.debug("[END] Got filter {}", filter);
 
