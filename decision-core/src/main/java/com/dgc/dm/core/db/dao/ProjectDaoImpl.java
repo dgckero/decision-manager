@@ -6,7 +6,7 @@ package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
 import com.dgc.dm.core.db.repository.ProjectRepository;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import org.sqlite.SQLiteException;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @Service
 public class ProjectDaoImpl extends CommonDao implements ProjectDao {
 
@@ -41,7 +41,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
                         "emailTemplate TEXT," +
                         "dmnFile BLOB)";
 
-        this.sessionFactory.getCurrentSession().createSQLQuery(createTableProject).executeUpdate();
+        sessionFactory.getCurrentSession().createSQLQuery(createTableProject).executeUpdate();
         log.debug("[END] Table PROJECTS successfully created");
     }
 
@@ -53,15 +53,15 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Project createProject (final String projectName) {
+    public Project createProject (String projectName) {
         log.debug("[INIT] Creating project " + projectName);
-        createProjectTable();
-        final Project project =
+        this.createProjectTable();
+        Project project =
                 Project.builder()
                         .name(projectName)
                         .rowDataTableName(COMMONDATAS_PREFIX_TABLE_NAME + projectName)
                         .build();
-        this.sessionFactory.getCurrentSession().persist(project);
+        sessionFactory.getCurrentSession().persist(project);
         log.debug("[END] Project " + project + " successfully created");
         return project;
     }
@@ -73,9 +73,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateProject (final Project project) {
+    public void updateProject (Project project) {
         log.debug("[INIT] Updating project " + project);
-        this.sessionFactory.getCurrentSession().merge(project);
+        sessionFactory.getCurrentSession().merge(project);
         log.debug("[END] Project " + project + " successfully updated");
     }
 
@@ -89,7 +89,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     public List<Map<String, Object>> getProjects ( ) throws SQLiteException, UncategorizedSQLException {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
-        List<Map<String, Object>> projects = this.getJdbcTemplate().queryForList("Select * from PROJECTS");
+        final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
         if (projects == null || projects.isEmpty()) {
             log.warn("[END] No project founds");
         } else {
@@ -106,11 +106,11 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return project with id = selectedProjectId
      */
     @Override
-    public Project getProject (final Integer selectedProjectId) {
-        final Project result;
+    public Project getProject (Integer selectedProjectId) {
+        Project result;
         log.debug("[INIT] Getting project by id " + selectedProjectId);
 
-        result = this.sessionFactory.getCurrentSession().find(Project.class, selectedProjectId);
+        result = sessionFactory.getCurrentSession().find(Project.class, selectedProjectId);
         log.debug("[END] project found " + result);
         return result;
     }
@@ -122,9 +122,9 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteProject (final Project project) {
+    public void deleteProject (Project project) {
         log.debug("[INIT] deleting project " + project);
-        this.sessionFactory.getCurrentSession().delete(project);
+        sessionFactory.getCurrentSession().delete(project);
         log.debug("[END] project successfully deleted");
     }
 }

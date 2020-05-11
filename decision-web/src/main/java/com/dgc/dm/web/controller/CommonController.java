@@ -10,7 +10,7 @@ import com.dgc.dm.web.facade.ExcelFacade;
 import com.dgc.dm.web.facade.ModelFacade;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Slf4j
+@Log4j2
 @Getter(AccessLevel.PROTECTED)
 class CommonController implements HandlerExceptionResolver {
 
@@ -58,10 +58,10 @@ class CommonController implements HandlerExceptionResolver {
      * @param binder
      */
     @InitBinder
-    protected final void initBinder (final ServletRequestDataBinder binder) {
+    protected final void initBinder (ServletRequestDataBinder binder) {
         log.debug("[INIT] initBinder registering custom property editor for byte[] and Date");
         binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(this.format, true));
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(format, true));
         log.debug("[END] initBinder ");
     }
 
@@ -75,14 +75,13 @@ class CommonController implements HandlerExceptionResolver {
      * @return error view
      */
     @Override
-    public final ModelAndView resolveException (final HttpServletRequest request, final HttpServletResponse response,
-                                                final Object object, final Exception exception) {
-        log.debug("[INIT] handleError exception: {}", exception);
-        final ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
+    public final ModelAndView resolveException (HttpServletRequest request, HttpServletResponse response,
+                                                Object object, Exception exception) {
+        log.debug("[INIT] handleError exception: {}", exception.getMessage());
+        ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
 
-        log.error("Error {}", (exception.getCause() == null) ? exception.getMessage() : exception.getCause().getMessage());
         if (exception instanceof MaxUploadSizeExceededException) {
-            log.error("");
+            log.error("El fichero a procesar es demasiado grande {}", exception.getMessage());
             modelAndView.getModel().put(MODEL_MESSAGE, "El fichero a procesar es demasiado grande, el tamaño máximo es: " + ApplicationConfiguration.MAX_UPLOAD_SIZE);
         } else if (exception instanceof HttpRequestMethodNotSupportedException) {
             modelAndView.setViewName(HOME_VIEW);
@@ -93,7 +92,7 @@ class CommonController implements HandlerExceptionResolver {
             log.warn("Exception " + exception.getMessage());
         } else {
             if (!(exception instanceof DecisionException)) {
-                log.error("Uncontrolled Exception: {}", exception);
+                log.error("Uncontrolled Exception {}", (exception.getCause() == null) ? exception.getMessage() : exception.getCause().getMessage());
             }
             modelAndView.getModel().put(MODEL_MESSAGE, exception.getMessage());
         }

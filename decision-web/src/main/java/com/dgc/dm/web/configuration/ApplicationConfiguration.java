@@ -5,7 +5,7 @@
 package com.dgc.dm.web.configuration;
 
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +25,7 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
 import java.util.Locale;
 
-@Slf4j
+@Log4j2
 @Configuration
 @EnableWebMvc
 @ComponentScan("com.dgc.dm")
@@ -62,7 +62,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      */
 
     @Override
-    public void addResourceHandlers (final ResourceHandlerRegistry registry) {
+    public void addResourceHandlers (ResourceHandlerRegistry registry) {
         log.debug("[INIT] addResourceHandlers registry: {}", registry);
         registry.addResourceHandler(RESOURCES_PATH)
                 .addResourceLocations(RESOURCES_CLASSPATH);
@@ -81,9 +81,9 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void addInterceptors (final InterceptorRegistry registry) {
+    public void addInterceptors (InterceptorRegistry registry) {
         log.debug("[INIT] addInterceptors registry: {}", registry);
-        registry.addInterceptor(this.localeChangeInterceptor());
+        registry.addInterceptor(localeChangeInterceptor());
         log.debug("[END] addInterceptors");
     }
 
@@ -96,7 +96,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor ( ) {
         log.debug("[INIT] localeChangeInterceptor");
-        final LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+        LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
         lci.setParamName("lang");
         log.debug("[END] localeChangeInterceptor");
         return lci;
@@ -110,7 +110,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public LocaleResolver localeResolver ( ) {
         log.debug("[INIT] localeResolver");
-        final SessionLocaleResolver slr = new SessionLocaleResolver();
+        SessionLocaleResolver slr = new SessionLocaleResolver();
         slr.setDefaultLocale(SPANISH_LOCALE);
         log.debug("[END] localeResolver");
         return slr;
@@ -124,7 +124,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public FixedThemeResolver themeResolver ( ) {
         log.debug("[INIT] themeResolver");
-        final FixedThemeResolver resolver = new FixedThemeResolver();
+        FixedThemeResolver resolver = new FixedThemeResolver();
         resolver.setDefaultThemeName("default-theme");
         log.debug("[END] themeResolver");
         return resolver;
@@ -138,7 +138,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public ResourceBundleMessageSource resourceBundleMessageSource ( ) {
         log.debug("[INIT] resourceBundleMessageSource");
-        final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         log.debug("[END] resourceBundleMessageSource");
         return messageSource;
@@ -154,8 +154,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     public SpringResourceTemplateResolver templateResolver ( ) {
         log.debug("[INIT] templateResolver");
 
-        final SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(this.applicationContext);
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(applicationContext);
         templateResolver.setPrefix(WEB_INF_VIEWS_PATH);
         templateResolver.setSuffix(HTML_EXTENSION);
 
@@ -171,8 +171,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public SpringTemplateEngine templateEngine ( ) {
         log.debug("[INIT] templateEngine");
-        final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(this.templateResolver());
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
         templateEngine.setEnableSpringELCompiler(true);
         log.debug("[END] templateEngine");
         return templateEngine;
@@ -184,10 +184,10 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void configureViewResolvers (final ViewResolverRegistry registry) {
+    public void configureViewResolvers (ViewResolverRegistry registry) {
         log.debug("[INIT] configureViewResolvers registry: {}", registry);
-        final ThymeleafViewResolver resolver = new ThymeleafViewResolver();
-        resolver.setTemplateEngine(this.templateEngine());
+        ThymeleafViewResolver resolver = new ThymeleafViewResolver();
+        resolver.setTemplateEngine(templateEngine());
         registry.viewResolver(resolver);
         log.debug("[END] configureViewResolvers");
     }
@@ -200,7 +200,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     @Bean
     public MultipartResolver multipartResolver ( ) {
         log.debug("[INIT] multipartResolver");
-        final CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
         log.debug("[END] multipartResolver");
         return multipartResolver;

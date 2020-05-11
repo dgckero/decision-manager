@@ -3,11 +3,11 @@
  */
 package com.dgc.dm.web.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 
-@Slf4j
+@Log4j2
 @Controller
 public class WebRedirectController extends CommonController implements com.dgc.dm.web.controller.iface.WebRedirectController {
 

@@ -7,7 +7,7 @@ package com.dgc.dm.core.service.db;
 import com.dgc.dm.core.db.dao.RowDataDao;
 import com.dgc.dm.core.db.model.Project;
 import com.dgc.dm.core.dto.ProjectDto;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @Service
 public class RowDataServiceImpl extends CommonServer implements RowDataService {
 
@@ -31,9 +31,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void createRowDataTable (final Map<String, Class<?>> columns, final ProjectDto project) {
+    public final void createRowDataTable (Map<String, Class<?>> columns, ProjectDto project) {
         log.debug("[INIT] createRowDataTable project: {}", project);
-        this.rowDataDao.createRowDataTable(columns, this.getModelMapper().map(project, Project.class));
+        rowDataDao.createRowDataTable(columns, getModelMapper().map(project, Project.class));
         log.debug("[END] createRowDataTable");
     }
 
@@ -45,9 +45,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void persistRowData (final String insertSentence, final List<Object[]> infoToBePersisted) {
+    public final void persistRowData (String insertSentence, List<Object[]> infoToBePersisted) {
         log.debug("[INIT] Persisting Excel rows");
-        this.rowDataDao.persistRowData(insertSentence, infoToBePersisted);
+        rowDataDao.persistRowData(insertSentence, infoToBePersisted);
         log.debug("[END] Persisted Excel rows");
     }
 
@@ -58,9 +58,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      * @return List of RowData
      */
     @Override
-    public final List<Map<String, Object>> getRowData (final ProjectDto project) {
+    public final List<Map<String, Object>> getRowData (ProjectDto project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
-        final List<Map<String, Object>> entities = this.rowDataDao.getRowData(this.getModelMapper().map(project, Project.class));
+        List<Map<String, Object>> entities = rowDataDao.getRowData(getModelMapper().map(project, Project.class));
         log.info("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }
@@ -72,9 +72,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public final void deleteRowData (final ProjectDto project) {
+    public final void deleteRowData (ProjectDto project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
-        this.rowDataDao.deleteRowData(this.getModelMapper().map(project, Project.class));
+        rowDataDao.deleteRowData(getModelMapper().map(project, Project.class));
         log.debug("[END] Registers successfully deleted for project {}", project);
     }
 
@@ -85,9 +85,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      * @return number of rows on table project.RowDataTableName
      */
     @Override
-    public final Integer getRowDataSize (final ProjectDto project) {
+    public final Integer getRowDataSize (ProjectDto project) {
         log.debug("[INIT] Getting common data size for project {}", project);
-        final Integer commonDataSize = this.rowDataDao.getRowDataSize(this.getModelMapper().map(project, Project.class));
+        Integer commonDataSize = rowDataDao.getRowDataSize(getModelMapper().map(project, Project.class));
         log.debug("[END] common data size {} for project {}", commonDataSize, project);
         return commonDataSize;
     }

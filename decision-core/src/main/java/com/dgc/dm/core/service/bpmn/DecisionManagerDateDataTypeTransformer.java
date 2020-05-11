@@ -4,14 +4,14 @@
 
 package com.dgc.dm.core.service.bpmn;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.camunda.bpm.dmn.engine.impl.type.DateDataTypeTransformer;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Slf4j
+@Log4j2
 class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -21,13 +21,13 @@ class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
      * @param value
      * @return date parsed
      */
-    protected Date transformString (final String value) {
+    protected Date transformString (String value) {
         log.debug("[INIT] transformString parsing: {}", value);
         try {
-            final Date parsedDate = this.format.parse(value);
+            Date parsedDate = format.parse(value);
             log.debug("[END] transformString parsedDate: {}", parsedDate);
             return parsedDate;
-        } catch (final ParseException e) {
+        } catch (ParseException e) {
             log.error("Error parsing date " + e.getMessage());
             throw new IllegalArgumentException(e);
         }

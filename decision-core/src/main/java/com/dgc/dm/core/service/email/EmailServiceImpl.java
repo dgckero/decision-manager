@@ -5,7 +5,7 @@
 package com.dgc.dm.core.service.email;
 
 import com.dgc.dm.core.dto.ProjectDto;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,7 +18,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-@Slf4j
+@Log4j2
 @Service
 public class EmailServiceImpl implements EmailService {
 
@@ -38,10 +38,10 @@ public class EmailServiceImpl implements EmailService {
      * @param from
      * @return default email body
      */
-    private static String generateDefaultEmailBodyHtml (String from) {
+    private static String generateDefaultEmailBodyHtml (final String from) {
         log.debug("[INIT] generateDefaultEmailBodyHtml from: {} ", from);
 
-        String htmlMessage = "\n" +
+        final String htmlMessage = "\n" +
                 "<html>\n" +
                 "<body>\n" +
                 "<h4>Se han encontrado sus datos de contacto en la aplicación decision-manager, por favor póngase en contacto con el administrador de la aplicación:</h4>" +
@@ -62,10 +62,10 @@ public class EmailServiceImpl implements EmailService {
      * @param name
      * @return email formatted on HTML
      */
-    private static String generateEmailBodyHtml (String from, String body, String name) {
+    private static String generateEmailBodyHtml (final String from, final String body, final String name) {
         log.debug("[INIT] generateEmailBodyHtml from: {}, body: {}, name: {}", from, body, name);
 
-        String htmlMessage = "\n" +
+        final String htmlMessage = "\n" +
                 "<html>\n" +
                 "<body>\n" +
                 "<h4>Se ha recibido un mensaje en la aplicación decision-web con los siguientes datos:</h4>" +
@@ -87,19 +87,19 @@ public class EmailServiceImpl implements EmailService {
      * @param project
      */
     @Override
-    public final void sendAsynchronousMail (String toEmail, ProjectDto project) {
+    public final void sendAsynchronousMail (final String toEmail, final ProjectDto project) {
         log.debug("[INIT] sendAsynchronousMail to {}", toEmail);
 
-        SimpleMailMessage mail = new SimpleMailMessage();
+        final SimpleMailMessage mail = new SimpleMailMessage();
         mail.setFrom("prueba@gmail.com");
         mail.setTo(toEmail);
         mail.setSubject("test email");
         mail.setText(project.getEmailTemplate());
 
-        quickService.submit(( ) -> {
+        this.quickService.submit(( ) -> {
             try {
-                javaMailSender.send(mail);
-            } catch (final MailException e) {
+                this.javaMailSender.send(mail);
+            } catch (MailException e) {
                 log.error("Exception occur while send a mail : ", e);
                 e.printStackTrace();
             }
@@ -115,11 +115,11 @@ public class EmailServiceImpl implements EmailService {
      * @throws MessagingException
      */
     @Override
-    public final void sendMail (String to, ProjectDto project) throws MessagingException {
+    public final void sendMail (final String to, final ProjectDto project) throws MessagingException {
         log.debug("[init] sendMail to: {}, project: {}", to, project);
-        MimeMessage message = generateEmailMessage(to, project);
+        final MimeMessage message = this.generateEmailMessage(to, project);
         log.debug("Enviando mensaje {}", message);
-        javaMailSender.send(message);
+        this.javaMailSender.send(message);
         log.debug("[END] Mensaje enviado correctamente");
     }
 
@@ -134,11 +134,11 @@ public class EmailServiceImpl implements EmailService {
      * @throws MessagingException
      */
     @Override
-    public final void sendMail (String from, String to, String subject, String body, String name) throws MessagingException {
+    public final void sendMail (final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
         log.debug("[INIT] sendMail from: {}, to: {}, subject: {}, body: {}, name: {}", from, to, subject, body, name);
-        MimeMessage message = generateEmailMessage(from, to, subject, body, name);
+        final MimeMessage message = this.generateEmailMessage(from, to, subject, body, name);
         log.debug("Enviando mensaje {}", message);
-        javaMailSender.send(message);
+        this.javaMailSender.send(message);
         log.debug("[END] Mensaje enviado correctamente");
     }
 
@@ -150,11 +150,11 @@ public class EmailServiceImpl implements EmailService {
      * @return MimeMessage
      * @throws MessagingException
      */
-    private MimeMessage generateEmailMessage (String to, ProjectDto project) throws MessagingException {
+    private MimeMessage generateEmailMessage (final String to, final ProjectDto project) throws MessagingException {
         log.debug("[INIT] generateEmailMessage to:  {}, Project: {}", to, project);
 
-        MimeMessage mail = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mail, true);
+        final MimeMessage mail = this.javaMailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom("dgctrips@gmail.com");
         helper.setTo(to);
         helper.setSubject("test email");
@@ -175,11 +175,11 @@ public class EmailServiceImpl implements EmailService {
      * @return MimeMessage
      * @throws MessagingException
      */
-    private MimeMessage generateEmailMessage (String from, String to, String subject, String body, String name) throws MessagingException {
+    private MimeMessage generateEmailMessage (final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
         log.debug("[INIT] generateEmailMessage from: {}, to:  {}, subject: {}, body: {}, name: {}", from, to, subject, body, name);
 
-        MimeMessage mail = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mail, true);
+        final MimeMessage mail = this.javaMailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(mail, true);
         helper.setFrom(from);
         helper.setTo(to);
         helper.setSubject(subject);

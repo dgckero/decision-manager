@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="decision-manager" packages="">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{dd/MM/yyyy HH:mm:ss} %c %m%n"/>
+        </Console>
+        <RandomAccessFile name="LOGFILE"
+                          fileName="logs/decision-manager.${date:yyyy-MM-dd}.log"
+                          append="true" immediateFlush="false">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss}  %-6p  %C{1}.%t:%L  >>> %m%n"/>
+        </RandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.dgc" level="debug">
+            <AppenderRef ref="LOGFILE"/>
+        </Logger>
+        <Logger name="org.hibernate" level="info">
+            <AppenderRef ref="LOGFILE"/>
+        </Logger>
+        <Logger name="org.springframework" level="info">
+            <AppenderRef ref="LOGFILE"/>
+        </Logger>
+        <Logger name="org.camunda" level="debug">
+            <AppenderRef ref="LOGFILE"/>
+        </Logger>
+        <Logger name="org.thymeleaf" level="info">
+            <AppenderRef ref="LOGFILE"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

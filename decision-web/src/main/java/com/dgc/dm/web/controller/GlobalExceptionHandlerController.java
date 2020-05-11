@@ -6,7 +6,7 @@ package com.dgc.dm.web.controller;
 
 import com.dgc.dm.core.exception.DecisionException;
 import com.dgc.dm.web.error.ResourceNotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-@Slf4j
+@Log4j2
 @ControllerAdvice
 public class GlobalExceptionHandlerController {
 
@@ -24,8 +24,8 @@ public class GlobalExceptionHandlerController {
      * @param message
      * @return error view
      */
-    private ModelAndView generateErrorModelAndView (final String message) {
-        ModelAndView errorModelAndView = new ModelAndView(CommonController.ERROR_VIEW);
+    private ModelAndView generateErrorModelAndView (String message) {
+        final ModelAndView errorModelAndView = new ModelAndView(CommonController.ERROR_VIEW);
         errorModelAndView.getModel().put(CommonController.MODEL_MESSAGE, message);
         return errorModelAndView;
     }
@@ -37,9 +37,9 @@ public class GlobalExceptionHandlerController {
      * @return error view
      */
     @ExceptionHandler(NullPointerException.class)
-    public ModelAndView handleNullPointerException (Exception e) {
+    public ModelAndView handleNullPointerException (final Exception e) {
         log.error("Handle NullPointer exception {}", e);
-        return generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
+        return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
     }
 
     /**
@@ -50,9 +50,9 @@ public class GlobalExceptionHandlerController {
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(DecisionException.class)
-    public ModelAndView handleDecisionException (Exception e) {
+    public ModelAndView handleDecisionException (final Exception e) {
         log.error("handle DecisionException {}", e);
-        return generateErrorModelAndView(e.getMessage());
+        return this.generateErrorModelAndView(e.getMessage());
     }
 
     /**
@@ -63,9 +63,9 @@ public class GlobalExceptionHandlerController {
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public ModelAndView handleAllException (Exception e) {
+    public ModelAndView handleAllException (final Exception e) {
         log.error("handle internal server error exception {}", e);
-        return generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
+        return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
     }
 
     /**
@@ -77,7 +77,7 @@ public class GlobalExceptionHandlerController {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ModelAndView handleResourceNotFoundException ( ) {
         log.error("handle resource not found exception");
-        return generateErrorModelAndView("El recurso al que intenta acceder no existe");
+        return this.generateErrorModelAndView("El recurso al que intenta acceder no existe");
     }
 
     /**
@@ -88,8 +88,8 @@ public class GlobalExceptionHandlerController {
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ModelAndView handle (NoHandlerFoundException ex) {
+    public ModelAndView handle (final NoHandlerFoundException ex) {
         log.error("handle page not found exception {}", ex.getMessage());
-        return generateErrorModelAndView("La página a la que intenta acceder no existe");
+        return this.generateErrorModelAndView("La página a la que intenta acceder no existe");
     }
 }

@@ -5,7 +5,7 @@
 package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig;
 import org.jasypt.encryption.pbe.config.PBEConfig;
@@ -33,7 +33,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-@Slf4j
+@Log4j2
 @Configuration
 @PropertySource({
         "classpath:application.properties",
@@ -82,7 +82,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public ModelMapper modelMapper ( ) {
         log.debug("[INIT] Configuring modelMapper");
 
-        ModelMapper modelMapper = new ModelMapper();
+        final ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
@@ -98,9 +98,9 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     final Properties getHibernateProperties ( ) {
         log.debug("[INIT] Configuring additionalProperties");
 
-        final Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty(HIBERNATE_DIALECT, env.getProperty(HIBERNATE_DIALECT));
-        hibernateProperties.setProperty(HIBERNATE_SHOW_SQL, env.getProperty(HIBERNATE_SHOW_SQL));
+        Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty(HIBERNATE_DIALECT, this.env.getProperty(HIBERNATE_DIALECT));
+        hibernateProperties.setProperty(HIBERNATE_SHOW_SQL, this.env.getProperty(HIBERNATE_SHOW_SQL));
 
         log.debug("[END] Configuring additionalProperties");
         return hibernateProperties;
@@ -115,11 +115,11 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public DataSource dataSource ( ) {
         log.debug("[INIT] Configuring dataSource");
 
-        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Preconditions.checkNotNull(env.getProperty(JDBC_DRIVER_CLASS_NAME)));
-        dataSource.setUrl(Preconditions.checkNotNull(env.getProperty(JDBC_URL)));
-        dataSource.setUsername(Preconditions.checkNotNull(env.getProperty(JDBC_USER)));
-        dataSource.setPassword(Preconditions.checkNotNull(env.getProperty(JDBC_PASS)));
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(Preconditions.checkNotNull(this.env.getProperty(JDBC_DRIVER_CLASS_NAME)));
+        dataSource.setUrl(Preconditions.checkNotNull(this.env.getProperty(JDBC_URL)));
+        dataSource.setUsername(Preconditions.checkNotNull(this.env.getProperty(JDBC_USER)));
+        dataSource.setPassword(Preconditions.checkNotNull(this.env.getProperty(JDBC_PASS)));
 
         log.debug("[END] Configuring dataSource");
         return dataSource;
@@ -134,10 +134,10 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public LocalSessionFactoryBean sessionFactory ( ) {
         log.debug("[INIT] Configuring sessionFactory");
 
-        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setDataSource(dataSource());
+        final LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        sessionFactory.setDataSource(this.dataSource());
         sessionFactory.setPackagesToScan(CORE_PACKAGE);
-        sessionFactory.setHibernateProperties(getHibernateProperties());
+        sessionFactory.setHibernateProperties(this.getHibernateProperties());
 
         log.debug("[END] Configuring sessionFactory");
         return sessionFactory;
@@ -150,11 +150,11 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return JpaTransactionManager
      */
     @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager (EntityManagerFactory entityManagerFactory) {
+    public PlatformTransactionManager transactionManager (final EntityManagerFactory entityManagerFactory) {
         log.debug("[INIT] Configuring transactionManager for entityManagerFactory: " + entityManagerFactory);
 
-        DataSourceTransactionManager txManager = new DataSourceTransactionManager();
-        txManager.setDataSource(dataSource());
+        final DataSourceTransactionManager txManager = new DataSourceTransactionManager();
+        txManager.setDataSource(this.dataSource());
 
         log.debug("[END] Configuring transactionManager");
         return txManager;
@@ -170,8 +170,8 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public PlatformTransactionManager annotationDrivenTransactionManager ( ) {
         log.debug("[INIT] Configuring annotationDrivenTransactionManager");
 
-        JpaTransactionManager jpa = new JpaTransactionManager();
-        jpa.setEntityManagerFactory(sessionFactory().getObject());
+        final JpaTransactionManager jpa = new JpaTransactionManager();
+        jpa.setEntityManagerFactory(this.sessionFactory().getObject());
 
         log.debug("[END] Configuring annotationDrivenTransactionManager");
         return jpa;
@@ -187,7 +187,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     @Bean
     public PersistenceExceptionTranslationPostProcessor exceptionTranslation ( ) {
         log.debug("[INIT] Configuring exceptionTranslation");
-        PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor = new PersistenceExceptionTranslationPostProcessor();
+        final PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor = new PersistenceExceptionTranslationPostProcessor();
         log.debug("[END] Configuring exceptionTranslation");
         return persistenceExceptionTranslationPostProcessor;
     }
@@ -200,7 +200,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     @Bean
     public JdbcTemplate jdbcTemplate ( ) {
         log.debug("[INIT] Configuring jdbcTemplate");
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource());
+        final JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource());
         log.debug("[END] Configuring jdbcTemplate");
         return jdbcTemplate;
     }
@@ -214,17 +214,17 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     public JavaMailSender getJavaMailSender ( ) {
         log.debug("[INIT] Configuring Mail Sender");
 
-        final JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(env.getProperty(MAIL_HOST));
-        mailSender.setPort(Integer.parseInt(env.getProperty(MAIL_PORT)));
-        mailSender.setUsername(this.getEncryptedProperty(env.getProperty(MAIL_USERNAME)));
-        mailSender.setPassword(this.getEncryptedProperty(env.getProperty(MAIL_PASSWORD)));
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(this.env.getProperty(MAIL_HOST));
+        mailSender.setPort(Integer.parseInt(this.env.getProperty(MAIL_PORT)));
+        mailSender.setUsername(getEncryptedProperty(this.env.getProperty(MAIL_USERNAME)));
+        mailSender.setPassword(getEncryptedProperty(this.env.getProperty(MAIL_PASSWORD)));
 
-        final Properties props = mailSender.getJavaMailProperties();
-        props.put(MAIL_TRANSPORT_PROTOCOL, env.getProperty(MAIL_TRANSPORT_PROTOCOL));
-        props.put(MAIL_SMTP_AUTH, env.getProperty(MAIL_SMTP_AUTH));
-        props.put(MAIL_SMTP_STARTTLS_ENABLE, env.getProperty(MAIL_SMTP_STARTTLS_ENABLE));
-        props.put(MAIL_DEBUG, env.getProperty(MAIL_DEBUG));
+        Properties props = mailSender.getJavaMailProperties();
+        props.put(MAIL_TRANSPORT_PROTOCOL, this.env.getProperty(MAIL_TRANSPORT_PROTOCOL));
+        props.put(MAIL_SMTP_AUTH, this.env.getProperty(MAIL_SMTP_AUTH));
+        props.put(MAIL_SMTP_STARTTLS_ENABLE, this.env.getProperty(MAIL_SMTP_STARTTLS_ENABLE));
+        props.put(MAIL_DEBUG, this.env.getProperty(MAIL_DEBUG));
 
         log.debug("[END] Mail Sender successfully configured ");
         return mailSender;
@@ -236,12 +236,12 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @param encryptedPropery
      * @return decrypted propery
      */
-    private String getEncryptedProperty (final String encryptedPropery) {
+    private String getEncryptedProperty (String encryptedPropery) {
         log.debug("[INIT] decrypting property {}", encryptedPropery);
         String decryptedProperty = null;
         try {
-            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, this.getEncryptor());
-        } catch (final NullPointerException e) {
+            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, getEncryptor());
+        } catch (NullPointerException e) {
             log.error("JASYPT ENVIRONMENT VARIABLE HAS NOT BEEN DEFINED");
         }
         log.debug("[END] decrypting property ");
@@ -255,8 +255,8 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      */
     private StandardPBEStringEncryptor getEncryptor ( ) {
         log.debug("[INIT] getEncryptor");
-        final StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
-        standardPBEStringEncryptor.setConfig(this.getEnvironmentConfig());
+        StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
+        standardPBEStringEncryptor.setConfig(getEnvironmentConfig());
         log.debug("[END] getEncryptor");
 
         return standardPBEStringEncryptor;
@@ -269,9 +269,9 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      */
     private PBEConfig getEnvironmentConfig ( ) {
         log.debug("[INIT] getEnvironmentConfig");
-        final EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
-        config.setAlgorithm(env.getProperty(JASYPT_ENVIRONMENT_ALGORITHM));
-        config.setPasswordEnvName(env.getProperty(JASYPT_ENVIRONMENT_NAME));
+        EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
+        config.setAlgorithm(this.env.getProperty(JASYPT_ENVIRONMENT_ALGORITHM));
+        config.setPasswordEnvName(this.env.getProperty(JASYPT_ENVIRONMENT_NAME));
         log.debug("[END] getEnvironmentConfig");
         return config;
     }
