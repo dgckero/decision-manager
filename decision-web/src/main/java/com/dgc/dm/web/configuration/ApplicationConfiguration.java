@@ -6,7 +6,6 @@ package com.dgc.dm.web.configuration;
 
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -48,12 +47,23 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     private static final String IMAGES_CLASSPATH = "/images/";
     private static final String CSS_PATH = "/css/**";
     private static final String CSS_CLASSPATH = "/css/";
+    private static final String I18_PATH = "/i18/**";
+    private static final String I18_CLASSPATH = "/i18/";
     private static final String WEB_INF_VIEWS_PATH = "/WEB-INF/views/";
     private static final String HTML_EXTENSION = ".html";
 
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+
+    /**
+     * ApplicationConfiguration constructor
+     * initialize applicationContext
+     *
+     * @param applicationContext
+     */
+    public ApplicationConfiguration(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * Add a resource handler for serving static resources based on the specified URL path
@@ -62,7 +72,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      */
 
     @Override
-    public void addResourceHandlers (ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
         log.debug("[INIT] addResourceHandlers registry: {}", registry);
         registry.addResourceHandler(RESOURCES_PATH)
                 .addResourceLocations(RESOURCES_CLASSPATH);
@@ -72,6 +82,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
                 .addResourceLocations(IMAGES_CLASSPATH);
         registry.addResourceHandler(CSS_PATH)
                 .addResourceLocations(CSS_CLASSPATH);
+        registry.addResourceHandler(I18_PATH)
+                .addResourceLocations(I18_CLASSPATH);
         log.debug("[END] addResourceHandlers");
     }
 
@@ -81,7 +93,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void addInterceptors (InterceptorRegistry registry) {
+    public void addInterceptors(InterceptorRegistry registry) {
         log.debug("[INIT] addInterceptors registry: {}", registry);
         registry.addInterceptor(localeChangeInterceptor());
         log.debug("[END] addInterceptors");
@@ -94,7 +106,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return LocaleChangeInterceptor
      */
     @Bean
-    public LocaleChangeInterceptor localeChangeInterceptor ( ) {
+    public LocaleChangeInterceptor localeChangeInterceptor() {
         log.debug("[INIT] localeChangeInterceptor");
         LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
         lci.setParamName("lang");
@@ -108,7 +120,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return SessionLocaleResolver, default locale Spanish
      */
     @Bean
-    public LocaleResolver localeResolver ( ) {
+    public LocaleResolver localeResolver() {
         log.debug("[INIT] localeResolver");
         SessionLocaleResolver slr = new SessionLocaleResolver();
         slr.setDefaultLocale(SPANISH_LOCALE);
@@ -122,7 +134,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return ThemeResolver
      */
     @Bean
-    public FixedThemeResolver themeResolver ( ) {
+    public FixedThemeResolver themeResolver() {
         log.debug("[INIT] themeResolver");
         FixedThemeResolver resolver = new FixedThemeResolver();
         resolver.setDefaultThemeName("default-theme");
@@ -136,7 +148,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return ResourceBundleMessageSource
      */
     @Bean
-    public ResourceBundleMessageSource resourceBundleMessageSource ( ) {
+    public ResourceBundleMessageSource resourceBundleMessageSource() {
         log.debug("[INIT] resourceBundleMessageSource");
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
@@ -151,7 +163,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return SpringResourceTemplateResolver
      */
     @Bean
-    public SpringResourceTemplateResolver templateResolver ( ) {
+    public SpringResourceTemplateResolver templateResolver() {
         log.debug("[INIT] templateResolver");
 
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
@@ -169,7 +181,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return SpringTemplateEngine
      */
     @Bean
-    public SpringTemplateEngine templateEngine ( ) {
+    public SpringTemplateEngine templateEngine() {
         log.debug("[INIT] templateEngine");
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         templateEngine.setTemplateResolver(templateResolver());
@@ -184,7 +196,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @param registry
      */
     @Override
-    public void configureViewResolvers (ViewResolverRegistry registry) {
+    public void configureViewResolvers(ViewResolverRegistry registry) {
         log.debug("[INIT] configureViewResolvers registry: {}", registry);
         ThymeleafViewResolver resolver = new ThymeleafViewResolver();
         resolver.setTemplateEngine(templateEngine());
@@ -198,7 +210,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
      * @return MultipartResolver
      */
     @Bean
-    public MultipartResolver multipartResolver ( ) {
+    public MultipartResolver multipartResolver() {
         log.debug("[INIT] multipartResolver");
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
         multipartResolver.setMaxUploadSize(MAX_UPLOAD_SIZE);

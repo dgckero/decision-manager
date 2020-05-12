@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
@@ -20,7 +21,7 @@ import javax.persistence.*;
 @Data
 @Table(name = "Data")
 @Entity
-public class RowData extends Auditable<String> {
+public class RowData extends Auditable<String> implements Serializable {
     @Id
     @Column(name = "rowId", updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)

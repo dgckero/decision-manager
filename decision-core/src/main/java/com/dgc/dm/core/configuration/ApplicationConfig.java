@@ -5,6 +5,7 @@
 package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig;
@@ -33,6 +34,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+@NoArgsConstructor
 @Log4j2
 @Configuration
 @PropertySource({
@@ -69,9 +71,6 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     @Autowired
     private Environment env;
 
-    public ApplicationConfig ( ) {
-    }
-
     /**
      * Set configuration for modelMapper
      * modelMapper is user to convert from DTO to Entity or vice-versa
@@ -79,7 +78,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return modelMapper
      */
     @Bean
-    public ModelMapper modelMapper ( ) {
+    public ModelMapper modelMapper() {
         log.debug("[INIT] Configuring modelMapper");
 
         final ModelMapper modelMapper = new ModelMapper();
@@ -95,7 +94,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      *
      * @return hibernateProperties
      */
-    final Properties getHibernateProperties ( ) {
+    final Properties getHibernateProperties() {
         log.debug("[INIT] Configuring additionalProperties");
 
         Properties hibernateProperties = new Properties();
@@ -112,7 +111,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return dataSource
      */
     @Bean
-    public DataSource dataSource ( ) {
+    public DataSource dataSource() {
         log.debug("[INIT] Configuring dataSource");
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -131,7 +130,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return entityManagerFactory
      */
     @Bean
-    public LocalSessionFactoryBean sessionFactory ( ) {
+    public LocalSessionFactoryBean sessionFactory() {
         log.debug("[INIT] Configuring sessionFactory");
 
         final LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
@@ -150,7 +149,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return JpaTransactionManager
      */
     @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager (final EntityManagerFactory entityManagerFactory) {
+    public PlatformTransactionManager transactionManager(final EntityManagerFactory entityManagerFactory) {
         log.debug("[INIT] Configuring transactionManager for entityManagerFactory: " + entityManagerFactory);
 
         final DataSourceTransactionManager txManager = new DataSourceTransactionManager();
@@ -167,7 +166,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     @Override
     @Bean
     @DependsOn("sessionFactory")
-    public PlatformTransactionManager annotationDrivenTransactionManager ( ) {
+    public PlatformTransactionManager annotationDrivenTransactionManager() {
         log.debug("[INIT] Configuring annotationDrivenTransactionManager");
 
         final JpaTransactionManager jpa = new JpaTransactionManager();
@@ -185,7 +184,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return PersistenceExceptionTranslationPostProcessor
      */
     @Bean
-    public PersistenceExceptionTranslationPostProcessor exceptionTranslation ( ) {
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
         log.debug("[INIT] Configuring exceptionTranslation");
         final PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor = new PersistenceExceptionTranslationPostProcessor();
         log.debug("[END] Configuring exceptionTranslation");
@@ -198,7 +197,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return JdbcTemplate
      */
     @Bean
-    public JdbcTemplate jdbcTemplate ( ) {
+    public JdbcTemplate jdbcTemplate() {
         log.debug("[INIT] Configuring jdbcTemplate");
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource());
         log.debug("[END] Configuring jdbcTemplate");
@@ -211,7 +210,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return JavaMailSender
      */
     @Bean
-    public JavaMailSender getJavaMailSender ( ) {
+    public JavaMailSender getJavaMailSender() {
         log.debug("[INIT] Configuring Mail Sender");
 
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -236,7 +235,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @param encryptedPropery
      * @return decrypted propery
      */
-    private String getEncryptedProperty (String encryptedPropery) {
+    private String getEncryptedProperty(String encryptedPropery) {
         log.debug("[INIT] decrypting property {}", encryptedPropery);
         String decryptedProperty = null;
         try {
@@ -253,7 +252,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      *
      * @return encryptor
      */
-    private StandardPBEStringEncryptor getEncryptor ( ) {
+    private StandardPBEStringEncryptor getEncryptor() {
         log.debug("[INIT] getEncryptor");
         StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
         standardPBEStringEncryptor.setConfig(getEnvironmentConfig());
@@ -267,7 +266,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      *
      * @return
      */
-    private PBEConfig getEnvironmentConfig ( ) {
+    private PBEConfig getEnvironmentConfig() {
         log.debug("[INIT] getEnvironmentConfig");
         EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
         config.setAlgorithm(this.env.getProperty(JASYPT_ENVIRONMENT_ALGORITHM));

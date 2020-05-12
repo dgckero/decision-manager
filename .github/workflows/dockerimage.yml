@@ -2,24 +2,32 @@ name: Decision Manager Workflow
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, dgckero-workflow]
   pull_request:
-    branches: [develop]
-    
+    branches: [develop, dgckero-workflow]
+
 jobs:
   decisionManagerJob:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8 
-    - name: Build with Maven
-      run: mvn clean install -T4 org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v1.2 
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Maven Package
+        run: mvn clean package
+      - name: Maven install
+        run: mvn install
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        run: mvn verify sonar:sonar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

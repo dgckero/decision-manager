@@ -29,7 +29,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * Create table Projects if not exist
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    void createProjectTable() {
+    public void createProjectTable() {
         log.debug("[INIT] Creating table PROJECTS if not exist");
         final String createTableProject =
                 "CREATE TABLE IF NOT EXISTS PROJECTS " +
