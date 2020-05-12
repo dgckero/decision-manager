@@ -48,6 +48,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     private static final String IMAGES_CLASSPATH = "/images/";
     private static final String CSS_PATH = "/css/**";
     private static final String CSS_CLASSPATH = "/css/";
+    private static final String I18_PATH = "/i18/**";
+    private static final String I18_CLASSPATH = "/i18/";
     private static final String WEB_INF_VIEWS_PATH = "/WEB-INF/views/";
     private static final String HTML_EXTENSION = ".html";
 
@@ -72,6 +74,8 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
                 .addResourceLocations(IMAGES_CLASSPATH);
         registry.addResourceHandler(CSS_PATH)
                 .addResourceLocations(CSS_CLASSPATH);
+        registry.addResourceHandler(I18_PATH)
+                .addResourceLocations(I18_CLASSPATH);
         log.debug("[END] addResourceHandlers");
     }
 

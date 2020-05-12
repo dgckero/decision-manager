@@ -315,7 +315,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @return new Project
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    ProjectDto createProjectModel (String projectName, Map<String, Class<?>> colMapByName) {
+    public ProjectDto createProjectModel (String projectName, Map<String, Class<?>> colMapByName) {
         log.info("[INIT] createProjectModel by projectName: {}", projectName);
         ProjectDto project = null;
         try {
@@ -348,7 +348,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @throws IllegalAccessException
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    void processExcelRows (Sheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) {
+    public void processExcelRows (Sheet worksheet, Map<String, Class<?>> columns, ProjectDto project, int rowIdNumber) {
         log.info("[INIT] processExcelRows by project: {}, rowIdNumber: {}", project, rowIdNumber);
         if (null != columns && !columns.isEmpty()) {
             List<Object> excelObjs = new ArrayList<>();
@@ -397,7 +397,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
      * @throws InvocationTargetException
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    Object[] populateGeneratedObject (ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
+    public Object[] populateGeneratedObject (ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
                                               List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
             InstantiationException, NoSuchMethodException, InvocationTargetException {
 
