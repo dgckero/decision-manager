@@ -2,9 +2,9 @@ name: Decision Manager Workflow
 
 on:
   push:
-    branches: [develop, dgckero-workflow]
+    branches: '**'
   pull_request:
-    branches: [develop, dgckero-workflow]
+    branches: '**'
 
 jobs:
   decisionManagerJob:
