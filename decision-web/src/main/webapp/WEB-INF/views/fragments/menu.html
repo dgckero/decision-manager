@@ -9,7 +9,7 @@
 
         <ul class="list-unstyled components">
             <li>
-                <a href="/decision-web/newProject" id="goToNewProject">Crear Proyecto</a>
+                <a th:href="@{/newProject}" id="goToNewProject">Crear Proyecto</a>
             </li>
             <li>
                 <form id="goToExistingProjectsForm" method="post" th:action="@{/projects/get/all}">
@@ -18,7 +18,7 @@
                 </form>
             </li>
             <li>
-                <a href="/decision-web/information">Información</a>
+                <a th:href="@{/information}">Información</a>
             </li>
         </ul>
     </nav>

@@ -7,7 +7,7 @@
 
 <body>
 <div class="container-fluid" id="generalContainer">
-    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
+    <div class="navbar" th:insert="fragments/nav :: navFragment"></div>
 
     <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
@@ -15,6 +15,6 @@
     </div>
 </div>
 
-<footer th:replace="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"></footer>
 </body>
 </html>

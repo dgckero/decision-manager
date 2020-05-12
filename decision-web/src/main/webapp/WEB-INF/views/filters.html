@@ -6,43 +6,43 @@
 </head>
 <body>
 <script>
-        $(document).ready(function () {
-            initializeFormValues();
+    $(document).ready(function () {
+        initializeFormValues();
 
-            $('#sendEmail').change(function () {
-                if ( $(this).prop("checked") ){
-                    $("div#emailDiv").show();
-                }else{
-                    $("div#emailDiv").hide();
-                }
-            });
-        });
-
-        function initializeFormValues(){
-            const contactFilter = "[[${contactFilter}]]";
-
-            if ( contactFilter && contactFilter.indexOf("active=true")>0){
+        $('#sendEmail').change(function () {
+            if ($(this).prop("checked")) {
                 $("div#emailDiv").show();
-                $("textarea#emailTemplate").val("[[${project.emailTemplate}]]");
-                $("#sendEmail").prop('checked', true);
-            }else{
+            } else {
                 $("div#emailDiv").hide();
             }
+        });
+    });
+
+    function initializeFormValues() {
+        var contactFilter = "[[${contactFilter}]]";
+
+        if (contactFilter && contactFilter.indexOf("active=true") > 0) {
+            $("div#emailDiv").show();
+            $("textarea#emailTemplate").val("[[${project.emailTemplate}]]");
+            $("#sendEmail").prop('checked', true);
+        } else {
+            $("div#emailDiv").hide();
         }
+    }
 
 
 </script>
 
 <div class="container-fluid" id="generalContainer">
-    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
+    <div class="navbar" th:insert="fragments/nav :: navFragment"></div>
 
     <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
-        <section class="span12 ml-5" id="main">
-            <div align="center" class="dgc-inner-main mt-4 d-flex justify-content-center">
-                <form method="post" th:action="@{/projects/edit/filters}" th:object="${form}">
-                    <fieldset>
+        <section class="span12 mt-3" id="main">
+            <div class="dgc-inner-main d-flex justify-content-center">
+                <form method="post" class="fieldset-legend-center" th:action="@{/projects/edit/filters}" th:object="${form}">
+                    <div>
                         <!-- Form Name -->
                         <legend>Seleccione los filtros de la decisión</legend>
 
@@ -67,7 +67,7 @@
 
 
                                     <!-- Prepended checkbox -->
-                                    <div class="form-group row">
+                                    <div class="form-group row dgc-ml-20">
                                         <label th:for="${item.name} + '_div'" th:text="${item.name}"/>
                                         <div class="input-group-prepend ml-3" th:id="${item.name} + '_div'">
                                             <div class="input-group-text filter-checkbox">
@@ -106,21 +106,24 @@
                             </tr>
                         </table>
 
-                        <div id="contactFilterDiv" th:if="${contactFilter}">
-                            <label class="checkbox-inline">
-                                <input data-off="No Enviar Email" data-offstyle="danger" data-on="Enviar Email"
-                                       data-onstyle="success" data-size="large" data-toggle="toggle" id="sendEmail"
-                                       name="sendEmail" type="checkbox"/>
-                            </label>
-                            <div class="col-md-4" id="emailDiv">
-                        <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"
-                                  placeholder="Defina el Texto que será enviado a la información de contacto de los registros que pasen las validaciones que defina en esta página"
-                                  rows="5"></textarea>
+                        <div class="text-center">
+                            <div id="contactFilterDiv dgc-ml-30" th:if="${contactFilter}">
+                                <label class="checkbox-inline">
+                                    <input data-off="No Enviar Email" data-offstyle="danger" data-on="Enviar Email"
+                                           data-onstyle="success" data-size="large" data-toggle="toggle" id="sendEmail"
+                                           name="sendEmail" type="checkbox"/>
+                                </label>
+                                <div class="col-md-10 dgc-ml-30 text-left" id="emailDiv">
+                                    <label for="emailTemplate">Enviar Email</label>
+                                    <textarea class="form-control" cols="90" id="emailTemplate" name="emailTemplate"
+                                              placeholder="Defina el Texto que será enviado a la información de contacto de los registros que pasen las validaciones que defina en esta página"
+                                              rows="5"></textarea>
+                                </div>
                             </div>
-                        </div>
 
-                        <input id="submitButton" th:value="Enviar" type="submit">
-                        <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
+                            <input id="submitButton" th:value="Enviar" type="submit">
+                            <input id="resetButton" name="reset" th:value="Reset" type="reset"/>
+                        </div>
                     </fieldset>
                 </form>
             </div>
@@ -128,6 +131,6 @@
     </div>
 </div>
 
-<footer th:replace="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"></footer>
 </body>
 </html>

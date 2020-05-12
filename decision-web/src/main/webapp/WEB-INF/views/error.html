@@ -7,20 +7,21 @@
 
 <body>
 <div class="container-fluid" id="generalContainer">
-    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
+    <div class="navbar" th:insert="fragments/nav :: navFragment"></div>
 
     <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
         <section class="span12 ml-3 mt-3" id="main">
-            <div align="center" class="dgc-inner-main dgc-h-280">
+            <div class="justify-content-center dgc-inner-main dgc-h-280">
                 <h1>Error!</h1>
                 <h2>Ha ocurrido un error en la operación</h2>
+                <!--/*@thymesVar id="message" type="java.lang.String"*/-->
                 <div class="error-details" th:if="${message}">
                     <h4 th:text="${message}"></h4>
                 </div>
                 <div class="error-actions">
-                    <a class="btn btn-primary btn-lg" href="/decision-web"><span
+                    <a class="btn btn-primary btn-lg" th:href="@{/}"><span
                             class="cus-home"></span>
                         Volver al inicio
                     </a>
@@ -33,6 +34,6 @@
     </div>
 </div>
 
-<footer th:replace="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"></footer>
 </body>
 </html>

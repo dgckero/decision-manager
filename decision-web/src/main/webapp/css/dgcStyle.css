@@ -25,10 +25,6 @@ footer {
     border-radius: 6px;
 }
 
-.mt-m05{
-    margin-top: -0.5rem !important;
-}
-
 .dgc-inner-main h1 {
     margin-bottom: 0;
     font-size: 60px;
@@ -188,6 +184,14 @@ section.section-main-result {
     margin-top: -4px;
 }
 
+.dgc-mt-m05{
+    margin-top: -0.5rem !important;
+}
+
+.fieldset-legend-center > fieldset > legend {
+    text-align: center;
+}
+
 .dgc-mt-m4 {
     margin-top: -4px;
 }
@@ -200,6 +204,13 @@ section.section-main-result {
     margin-top: -16px;
 }
 
+.dgc-ml-20{
+    margin-left: 20px;
+}
+
+.dgc-ml-30{
+    margin-left: 30px;
+}
 /* Edit project */
 
 .fieldset-border {

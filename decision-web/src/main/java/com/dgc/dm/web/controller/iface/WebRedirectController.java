@@ -9,14 +9,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 public interface WebRedirectController {
     @RequestMapping("/")
-    ModelAndView home ( );
+    ModelAndView home();
 
     @RequestMapping("/newProject")
-    ModelAndView newProject ( );
+    ModelAndView newProject();
 
     @RequestMapping("/information")
-    ModelAndView information ( );
-
-//    @RequestMapping(value = "/**")
-//    ModelAndView Error ( );
+    ModelAndView information();
 }

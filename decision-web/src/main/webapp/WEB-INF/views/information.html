@@ -7,13 +7,13 @@
 
 <body>
 <div class="container-fluid" id="generalContainer">
-    <div class="navbar" th:insert="fragments/nav :: navFragment"/>
+    <div class="navbar" th:insert="fragments/nav :: navFragment"></div>
 
     <div class="row" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
         <section class="span10 ml-1" id="main">
-            <div align="center" class="dgc-inner-main">
+            <div class="dgc-inner-main justify-content-center">
                 <p class="page_title">
                 <h1>Información</h1>
                 <div class="ml-3 mr-3 mb-3">
@@ -24,12 +24,12 @@
                     <p>Decision Manager permite al usuario almacenar información contenida en ficheros de tipo Excel y
                         definir validaciones, a través de un formulario Web, basados en las columnas del Excel procesado
                         pudiendo obtener el resultado de los registros que cumplan esas validaciones</p>
-                    <p><a class="dgc-brand" href="/decision-web">Decision-Manager</a> está desarrollado
+                    <p><a class="dgc-brand" th:href="@{/}">Decision-Manager</a> está desarrollado
                         por <a class="developed-by" href="mailto:dgckero@gmail.com">David Gómez Castellanos</a></p>
                 </div>
             </div>
-            <div align="center" class="row-fluid">
-                <h2 align="center" class="h2-frameworks">Esta Web ha sido desarrollada utilizando </h2>
+            <div class="row-fluid d-flex justify-content-center">
+                <h2 class="h2-frameworks justify-content-center">Esta Web ha sido desarrollada utilizando </h2>
                 <section id="topbarInfoBuilt">
                     <aside>
                         <a href="http://www.java.com" id="topInfoJava" rel="nofollow" target="_blank"
@@ -49,9 +49,9 @@
                 </section>
             </div>
         </section>
-        <div align="center" class="mb25 ml-3">
+        <div class="mb25 ml-3 justify-content-center">
             <p class="social-network font-weight-bold">También estoy en redes sociales</p>
-            <div align="center">
+            <div class="justify-content-center">
                 <section id="topbarInfo">
                     <aside>
                         <a href="http://www.facebook.com/DavidGzazG" id="topInfofacebook" rel="nofollow"
@@ -71,6 +71,6 @@
     </div>
 </div>
 
-<footer th:replace="fragments/footer :: footerFragment"/>
+<footer th:replace="fragments/footer :: footerFragment"></footer>
 </body>
 </html>
