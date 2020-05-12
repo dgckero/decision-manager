@@ -13,7 +13,7 @@ import java.util.Date;
 
 @Log4j2
 class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * Format date
@@ -21,10 +21,10 @@ class DecisionManagerDateDataTypeTransformer extends DateDataTypeTransformer {
      * @param value
      * @return date parsed
      */
-    protected Date transformString (String value) {
+    protected Date transformString(String value) {
         log.debug("[INIT] transformString parsing: {}", value);
         try {
-            Date parsedDate = format.parse(value);
+            Date parsedDate = simpleDateFormat.parse(value);
             log.debug("[END] transformString parsedDate: {}", parsedDate);
             return parsedDate;
         } catch (ParseException e) {

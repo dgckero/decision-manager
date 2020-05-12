@@ -30,6 +30,7 @@ import java.util.Map;
 @Controller
 public class ProjectControllerImpl extends CommonController implements ProjectController {
 
+    public static final String NO_RESULT_FOUND = "No se han encontrado datos que cumplan con los filtros definidos";
     private static final String PROJECT_MODEL = "project";
     private static final String FORM_MODEL = "form";
 
@@ -40,20 +41,25 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @param response
      * @throws IOException
      */
-    private static void generateDmnFile (ProjectDto project, HttpServletResponse response) {
+    private static void generateDmnFile(ProjectDto project, HttpServletResponse response) {
         log.debug("[INIT] generateDmnFile project: {}", project);
         try {
             // create full filename and get input stream
             File dmnFile = new File("temp/" + project.getName() + "decision-manager.dm");
             writeByte(dmnFile, project.getDmnFile());
-            InputStream is = new FileInputStream(dmnFile);
-            // set file as attached data and copy file data to response output stream
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + dmnFile.getName() + "\"");
-            FileCopyUtils.copy(is, response.getOutputStream());
+            try (InputStream is = new FileInputStream(dmnFile)) {
+                // set file as attached data and copy file data to response output stream
+                response.setHeader("Content-Disposition", "attachment; filename=\"" + dmnFile.getName() + "\"");
+                FileCopyUtils.copy(is, response.getOutputStream());
+            }
             // delete file on server file system
             dmnFile.deleteOnExit();
             // close stream and return to view
             response.flushBuffer();
+        } catch (FileNotFoundException e) {
+            log.error("Error generating DMN File: {}", e.getMessage());
+            e.printStackTrace();
+            throw new DecisionException("Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador");
         } catch (IOException e) {
             log.error("Error generating DMN File: {}", e.getMessage());
             e.printStackTrace();
@@ -68,12 +74,12 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @param file
      * @param bytes
      */
-    private static void writeByte (File file, byte[] bytes) throws IOException {
+    private static void writeByte(File file, byte[] bytes) throws IOException {
         log.debug("[INIT] writeByte");
-        OutputStream os = new FileOutputStream(file);
-        os.write(bytes);
-        log.trace("Successfully project dmn inserted into file");
-        os.close();
+        try (OutputStream os = new FileOutputStream(file)) {
+            os.write(bytes);
+            log.trace("Successfully project dmn inserted into file");
+        }
         log.debug("[END] writeByte");
     }
 
@@ -83,7 +89,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return view existing projects
      */
     @Override
-    public ModelAndView getProjects ( ) {
+    public ModelAndView getProjects() {
         log.info("[INIT] Go to view project view");
         final ModelAndView modelAndView = new ModelAndView(SELECT_PROJECT_VIEW);
         final Map<String, List<Map<String, Object>>> projects = this.getModelFacade().getExistingProjects();
@@ -106,7 +112,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    public ModelAndView createProject (@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws IOException {
+    public ModelAndView createProject(@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws IOException {
         log.info("[INIT] createProject file {} projectName {}", file.getOriginalFilename(), projectName);
 
         if (file.isEmpty()) {
@@ -136,7 +142,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    public final ModelAndView addInformationToProject (@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws DecisionException {
+    public final ModelAndView addInformationToProject(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws DecisionException {
         log.info("[INIT] adding information {} to existing projectId {}", file.getOriginalFilename(), id);
         ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
 
@@ -173,7 +179,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    public ModelAndView getProjectFilters (@PathVariable Integer id) {
+    public ModelAndView getProjectFilters(@PathVariable Integer id) {
         log.info("[INIT] Go to edit filters for projectId: {}", id);
         ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
 
@@ -193,7 +199,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView editEmailTemplate (@PathVariable Integer id, @RequestBody final String emailTemplate) {
+    public final ModelAndView editEmailTemplate(@PathVariable Integer id, @RequestBody final String emailTemplate) {
         log.info("[INIT] Edit email template ({}) for projectId {}", emailTemplate, id);
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
 
@@ -212,7 +218,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView getFilteredResults (@PathVariable Integer id) {
+    public final ModelAndView getFilteredResults(@PathVariable Integer id) {
         log.info("[INIT] getting results filtering by projecId: {}", id);
         ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
         ProjectDto project = this.getProjectById(id);
@@ -241,7 +247,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @param response
      */
     @Override
-    public void getProjectDmn (@PathVariable Integer id, HttpServletResponse response) {
+    public void getProjectDmn(@PathVariable Integer id, HttpServletResponse response) {
         log.info("[INIT] Getting dmn file for projectId {}", id);
 
         generateDmnFile(this.getProjectById(id), response);
@@ -257,7 +263,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView editDmn (@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile) {
+    public final ModelAndView editDmn(@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile) {
         log.info("[INIT] editDmn for projectId: {}", id);
         ProjectDto project = this.getProjectById(id);
         if (dmnFile.isEmpty()) {
@@ -301,7 +307,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView getAllRegisters (@PathVariable Integer id) {
+    public final ModelAndView getAllRegisters(@PathVariable Integer id) {
         log.info("[INIT] Get all Registers for projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
@@ -324,7 +330,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView deleteRegisters (@PathVariable Integer id) {
+    public final ModelAndView deleteRegisters(@PathVariable Integer id) {
         log.info("[INIT] Delete all registers for projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
@@ -344,7 +350,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView deleteProject (@PathVariable Integer id) {
+    public final ModelAndView deleteProject(@PathVariable Integer id) {
         log.info("[INIT] Delete projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
@@ -358,6 +364,55 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
     }
 
     /**
+     * Get filter list from FilterCreationForm
+     *
+     * @param form
+     * @return filter List
+     */
+    private List<FilterDto> getFiltersFromForm(final FilterCreationDto form) {
+        log.debug("[INIT] getFiltersFromForm form {}", form);
+        final List<FilterDto> filters = form.getFilters();
+        if (null == filters || filters.isEmpty()) {
+            log.warn("No filters found");
+            throw new DecisionException("No se han podido generar los filtros, por favor póngase en contacto con el administrador");
+        }
+        log.info("[END] getFiltersFromForm filters {}", filters);
+        return filters;
+    }
+
+    private ProjectDto getProjectFromFilters(List<FilterDto> filters) {
+        log.debug("[INIT] getProjectFromFilters");
+        ProjectDto project = filters.get(0).getProject();
+        if (null == project) {
+            log.error("No project found ");
+            throw new DecisionException("No se han podido recuperar el proyecto de los filtros, por favor póngase en contacto con el administrador");
+        }
+        log.debug("[END] getProjectFromFilters, project {}", project);
+        return project;
+    }
+
+    /**
+     * Create and running decision table
+     *
+     * @param project
+     * @param filters
+     * @param emailTemplate
+     * @param sendEmail
+     * @return list of rows that fits filters
+     * @throws Exception
+     */
+    private List<Map<String, Object>> createAndRunDmnModel(ProjectDto project, List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception {
+        log.debug("[INIT] createAndRunDmnModel project: {}, emailTemplate: {}, sendEmail: {}", project, emailTemplate, sendEmail);
+        final List<Map<String, Object>> result = Collections.unmodifiableList(this.getModelFacade().createDMNModel(project, filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
+        if (result.isEmpty()) {
+            log.warn(NO_RESULT_FOUND);
+            throw new DecisionException(NO_RESULT_FOUND);
+        }
+        log.debug("[END] createAndRunDmnModel found {} results", result.size());
+        return result;
+    }
+
+    /**
      * Add filters to project
      *
      * @param form
@@ -366,37 +421,23 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView addFilters (@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @PathVariable Boolean sendEmail, @ModelAttribute final FilterCreationDto form, final HttpServletRequest request) {
+    public final ModelAndView addFilters(@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @PathVariable Boolean sendEmail, @ModelAttribute final FilterCreationDto form, final HttpServletRequest request) {
         log.info("[INIT] Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
 
         final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
-        final List<FilterDto> filters = form.getFilters();
-        if (null == filters || filters.isEmpty()) {
-            log.warn("No filters found");
-            throw new DecisionException("No se han podido generar los filtros, por favor póngase en contacto con el administrador");
-        } else {
-            log.info("Got filters {}", filters);
-            try {
-                ProjectDto project = filters.get(0).getProject();
-                if (null == project) {
-                    log.error("No project found ");
-                    throw new DecisionException("No se han podido recuperar el proyecto de los filtros, por favor póngase en contacto con el administrador");
-                } else {
+        final List<FilterDto> filters = getFiltersFromForm(form);
+        ProjectDto project = getProjectFromFilters(filters);
+        try {
+            final List<Map<String, Object>> result = createAndRunDmnModel(project, filters, emailTemplate, sendEmail);
+            modelAndView.addObject(FORM_MODEL, result);
+            modelAndView.getModel().put(PROJECT_MODEL, project);
 
-                    final List<Map<String, Object>> result = Collections.unmodifiableList(this.getModelFacade().createDMNModel(project, filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
-                    if (result.isEmpty()) {
-                        throw new DecisionException("No se han encontrado datos que cumplan con los filtros definidos");
-                    } else {
-                        modelAndView.addObject(FORM_MODEL, result);
-                        modelAndView.getModel().put(PROJECT_MODEL, project);
-                    }
-                }
-            } catch (final Exception e) {
-                log.error("Error processing filters: {}", e.getMessage());
-                e.printStackTrace();
-                throw new DecisionException("Error procesando los filtros: " + e.getMessage());
-            }
+        } catch (final Exception e) {
+            log.error("Error processing filters: {}", e.getMessage());
+            e.printStackTrace();
+            throw new DecisionException("Error procesando los filtros: " + e.getMessage());
         }
+
         log.info("[END] Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
         return modelAndView;
     }
@@ -408,7 +449,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return view project
      */
     @Override
-    public ModelAndView getProject (@RequestParam("id") final Integer id) {
+    public ModelAndView getProject(@RequestParam("id") final Integer id) {
         log.info("[INIT] viewProject by id: {}", id);
         final ModelAndView modelAndView = new ModelAndView(EDIT_PROJECT);
         if (id == null) {
@@ -431,7 +472,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return projectDto
      * @throws DecisionException if project is not found
      */
-    private ProjectDto getProjectById (final Integer id) throws DecisionException {
+    private ProjectDto getProjectById(final Integer id) throws DecisionException {
         log.debug("[INIT] getProjectById id: {}", id);
         ProjectDto project = getModelFacade().getProject(id);
         if (null == project) {
