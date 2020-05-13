@@ -56,13 +56,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
             dmnFile.deleteOnExit();
             // close stream and return to view
             response.flushBuffer();
-        } catch (FileNotFoundException e) {
-            log.error("Error generating DMN File: {}", e.getMessage());
-            e.printStackTrace();
-            throw new DecisionException("Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador");
         } catch (IOException e) {
-            log.error("Error generating DMN File: {}", e.getMessage());
-            e.printStackTrace();
+            log.error("Error generating DMN File: {}", e);
             throw new DecisionException("Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador");
         }
         log.debug("[END] generateDmnFile file");
