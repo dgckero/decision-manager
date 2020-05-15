@@ -13,7 +13,7 @@ public enum DatabaseColumnType {
     INTEGER(Integer.class.getSimpleName()),
     STRING(String.class.getSimpleName());
 
-    DatabaseColumnType (final String simpleNameClass) {
+    DatabaseColumnType(final String simpleNameClass) {
     }
 
     /**
@@ -22,24 +22,27 @@ public enum DatabaseColumnType {
      * @param columnClassName java type to be parsed
      * @return database type
      */
-    public static String getDBClassByColumnType (final String columnClassName) {
+    public static String getDBClassByColumnType(final String columnClassName) {
         final DatabaseColumnType cl = valueOf(columnClassName.toUpperCase());
 
         switch (cl) {
             case INTEGER:
-                return "INTEGER";
+                return Constants.INTEGER_DB_CLASS;
             case DOUBLE:
-                return "REAL";
+                return Constants.REAL_DB_CLASS;
             case DATE:
             case STRING:
             case EMAIL:
             default:
-                return "TEXT";
+                return Constants.TEXT_DB_CLASS;
         }
     }
 
     public static class Constants {
         public static final String EMAIL_TYPE = "Email";
+        public static final String INTEGER_DB_CLASS = "INTEGER";
+        public static final String TEXT_DB_CLASS = "TEXT";
+        public static final String REAL_DB_CLASS = "REAL";
     }
 
 }

@@ -24,3 +24,5 @@
 /target/
 /lib/
 /${tomcat_home}/
+/decision-web/logs/
+/decision-core/logs/

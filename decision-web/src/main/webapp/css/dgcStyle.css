@@ -484,11 +484,6 @@ div #leftMenu {
     align-items: stretch;
 }
 
-.wrapper {
-    display: flex;
-    align-items: stretch;
-}
-
 #sidebar {
     background: rgba(238, 238, 238, 0.3);
     color: #fff;

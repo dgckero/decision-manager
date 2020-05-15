@@ -35,7 +35,9 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @return true if Exception is SQLITE_ERROR
      */
     private static boolean isProjectNotFoundException(Exception e) {
-        return (e instanceof UncategorizedSQLException && ((UncategorizedSQLException) e).getSQLException().getErrorCode() == SQLiteErrorCode.SQLITE_ERROR.code)
+        return (e instanceof UncategorizedSQLException &&
+                ((UncategorizedSQLException) e).getSQLException() != null &&
+                ((UncategorizedSQLException) e).getSQLException().getErrorCode() == SQLiteErrorCode.SQLITE_ERROR.code)
                 || (e instanceof SQLiteException && ((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_ERROR.code);
     }
 
@@ -76,7 +78,7 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @throws SQLiteException
      */
     @Override
-    public final List<Map<String, Object>> getProjects() throws SQLiteException {
+    public final List<Map<String, Object>> getProjects() {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
         try {
