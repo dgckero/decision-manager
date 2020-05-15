@@ -401,42 +401,48 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     public Object[] populateGeneratedObject(ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
             InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Object[] result = null;
 
         log.trace("[INIT] populating dynamic class with Excel row number {}", rowNumber);
         Object[] insertQueryValues = {};
-        Iterator<Cell> excelRowIterator = row.cellIterator();
-        while (excelRowIterator.hasNext()) {
-            RowDataDto obj = generatedObj.getConstructor().newInstance();
-            for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-                if (column.getValue() == Date.class) {
-                    column.setValue(String.class);
+        if (row == null || row.cellIterator() == null) {
+            log.warn("ror number {} is empty", rowNumber);
+        } else {
+            Iterator<Cell> excelRowIterator = row.cellIterator();
+            while (excelRowIterator.hasNext()) {
+                RowDataDto obj = generatedObj.getConstructor().newInstance();
+                for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+                    if (column.getValue() == Date.class) {
+                        column.setValue(String.class);
+                    }
+                    insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
                 }
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
+                //Add projectId
+                insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
+                if (isArrayEmpty(insertQueryValues)) {
+                    insertQueryValues = new Object[]{};
+                } else {
+                    //Add rowId
+                    insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
+                    // Add createDate
+                    insertQueryValues = appendValueToObjectArray(insertQueryValues, new Date());
+
+                    obj.setRowId(rowNumber);
+                    obj.setProject(project);
+                    obj.setDataCreationDate(format.format(new Date()));
+                    excelObjs.add(obj);
+
+                    log.trace("added object ({}) by row( {})", obj, rowNumber);
+                }
             }
-            //Add projectId
-            insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
             if (isArrayEmpty(insertQueryValues)) {
-                insertQueryValues = new Object[]{};
+                log.warn("insertQueryValues is empty");
             } else {
-                //Add rowId
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
-                // Add createDate
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, new Date());
-
-                obj.setRowId(rowNumber);
-                obj.setProject(project);
-                obj.setDataCreationDate(format.format(new Date()));
-                excelObjs.add(obj);
-
-                log.trace("added object ({}) by row( {})", obj, rowNumber);
+                log.trace("[END] populating dynamic class with Excel row number {}", rowNumber);
+                result = insertQueryValues;
             }
         }
-        if (isArrayEmpty(insertQueryValues)) {
-            log.warn("insertQueryValues is empty");
-            return null;
-        }
-        log.trace("[END] populating dynamic class with Excel row number {}", rowNumber);
-        return insertQueryValues;
+        return result;
     }
 
     /**

@@ -18,13 +18,17 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 @ControllerAdvice
 public class GlobalExceptionHandlerController {
 
+    public static final String GENERIC_SERVER_ERROR = "Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador";
+    public static final String RESOURCE_NOT_FOUND = "El recurso al que intenta acceder no existe";
+    public static final String PAGE_NOT_FOUND = "La página a la que intenta acceder no existe";
+
     /**
      * Generate a model ERROR adding message
      *
      * @param message
      * @return error view
      */
-    private ModelAndView generateErrorModelAndView (String message) {
+    private ModelAndView generateErrorModelAndView(String message) {
         final ModelAndView errorModelAndView = new ModelAndView(CommonController.ERROR_VIEW);
         errorModelAndView.getModel().put(CommonController.MODEL_MESSAGE, message);
         return errorModelAndView;
@@ -37,9 +41,9 @@ public class GlobalExceptionHandlerController {
      * @return error view
      */
     @ExceptionHandler(NullPointerException.class)
-    public ModelAndView handleNullPointerException (final Exception e) {
+    public ModelAndView handleNullPointerException(final Exception e) {
         log.error("Handle NullPointer exception {}", e.getMessage());
-        return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
+        return this.generateErrorModelAndView(GENERIC_SERVER_ERROR);
     }
 
     /**
@@ -50,7 +54,7 @@ public class GlobalExceptionHandlerController {
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(DecisionException.class)
-    public ModelAndView handleDecisionException (final Exception e) {
+    public ModelAndView handleDecisionException(final Exception e) {
         log.error("handle DecisionException {}", e.getMessage());
         return this.generateErrorModelAndView(e.getMessage());
     }
@@ -63,9 +67,9 @@ public class GlobalExceptionHandlerController {
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public ModelAndView handleAllException (final Exception e) {
+    public ModelAndView handleAllException(final Exception e) {
         log.error("handle internal server error exception {}", e.getMessage());
-        return this.generateErrorModelAndView("Ha ocurrido un error en el servidor, por favor póngase en contacto con el administrador");
+        return this.generateErrorModelAndView(GENERIC_SERVER_ERROR);
     }
 
     /**
@@ -75,9 +79,9 @@ public class GlobalExceptionHandlerController {
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ModelAndView handleResourceNotFoundException ( ) {
+    public ModelAndView handleResourceNotFoundException() {
         log.error("handle resource not found exception");
-        return this.generateErrorModelAndView("El recurso al que intenta acceder no existe");
+        return this.generateErrorModelAndView(RESOURCE_NOT_FOUND);
     }
 
     /**
@@ -88,8 +92,8 @@ public class GlobalExceptionHandlerController {
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ModelAndView handle (final NoHandlerFoundException ex) {
+    public ModelAndView handle(final NoHandlerFoundException ex) {
         log.error("handle page not found exception {}", ex.getMessage());
-        return this.generateErrorModelAndView("La página a la que intenta acceder no existe");
+        return this.generateErrorModelAndView(PAGE_NOT_FOUND);
     }
 }

@@ -78,7 +78,7 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @throws SQLiteException
      */
     @Override
-    public final List<Map<String, Object>> getProjects() throws SQLiteException {
+    public final List<Map<String, Object>> getProjects() {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
         try {

@@ -6,7 +6,6 @@ package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
 import org.springframework.jdbc.UncategorizedSQLException;
-import org.sqlite.SQLiteException;
 
 import java.util.List;
 import java.util.Map;

@@ -42,6 +42,7 @@ class CommonController implements HandlerExceptionResolver {
     protected static final String NEW_PROJECT_VIEW = "newProject";
     protected static final String MODEL_MESSAGE = "message";
     protected static final String INFORMATION_VIEW = "information";
+    public static final String MAX_UPLOAD_SIZE_EXCEEDED = "El fichero a procesar es demasiado grande, el tamaño máximo es: " + ApplicationConfiguration.MAX_UPLOAD_SIZE;
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -82,7 +83,7 @@ class CommonController implements HandlerExceptionResolver {
 
         if (exception instanceof MaxUploadSizeExceededException) {
             log.error("El fichero a procesar es demasiado grande {}", exception.getMessage());
-            modelAndView.getModel().put(MODEL_MESSAGE, "El fichero a procesar es demasiado grande, el tamaño máximo es: " + ApplicationConfiguration.MAX_UPLOAD_SIZE);
+            modelAndView.getModel().put(MODEL_MESSAGE, MAX_UPLOAD_SIZE_EXCEEDED);
         } else if (exception instanceof HttpRequestMethodNotSupportedException) {
             modelAndView.setViewName(HOME_VIEW);
         } else if (exception instanceof NoHandlerFoundException) {

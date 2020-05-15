@@ -30,6 +30,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
     public static final String PROJECT_IS_NULL = "Project is null";
     public static final String NO_FILTERS_FOUND = "No filters found";
+    public static final String DATABASE_ERROR = "Error accediendo a la base de datos, por favor póngase en contacto en el administrador";
 
     private final BPMNServer bpmnServer;
 
@@ -483,7 +484,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             projects = this.getProjects();
         } catch (final SQLiteException exception) {
             exception.printStackTrace();
-            throw new DecisionException("Error accediendo a la base de datos, por favor póngase en contacto en el administrador");
+            throw new DecisionException(DATABASE_ERROR);
         }
         if (null == projects) {
             log.warn("No projects founds");

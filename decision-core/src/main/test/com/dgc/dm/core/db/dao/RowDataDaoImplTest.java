@@ -6,7 +6,10 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
