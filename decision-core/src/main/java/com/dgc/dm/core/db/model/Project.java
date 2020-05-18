@@ -20,6 +20,7 @@ import javax.persistence.*;
 @Table(name = "PROJECTS")
 @Entity
 public class Project extends Auditable<String> {
+    private static final long serialVersionUID = 7922620170100339098L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

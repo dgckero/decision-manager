@@ -25,7 +25,6 @@ import org.camunda.bpm.model.dmn.HitPolicy;
 import org.camunda.bpm.model.dmn.instance.*;
 import org.camunda.bpm.model.xml.impl.util.IoUtil;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
@@ -55,12 +54,15 @@ public class BPMNServerImpl implements BPMNServer {
     private static final String DEFINITION_PREFIX = "definition-";
     private static final String DECISION_PREFIX = "decision-";
 
-    @Autowired
-    private EmailService emailService;
-    @Autowired
-    private RowDataService rowDataService;
-    @Autowired
-    private FilterService filterService;
+    private final EmailService emailService;
+    private final RowDataService rowDataService;
+    private final FilterService filterService;
+
+    public BPMNServerImpl(EmailService emailService, RowDataService rowDataService, FilterService filterService) {
+        this.emailService = emailService;
+        this.rowDataService = rowDataService;
+        this.filterService = filterService;
+    }
 
     /**
      * Create a instance of Definition model

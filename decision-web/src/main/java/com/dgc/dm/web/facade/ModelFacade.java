@@ -9,7 +9,6 @@ import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
 import com.dgc.dm.core.exception.DecisionException;
 import org.springframework.web.servlet.ModelAndView;
-import org.sqlite.SQLiteException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -33,7 +32,7 @@ public interface ModelFacade {
 
     List<FilterDto> getActiveFilters (List<FilterDto> filters);
 
-    List<Map<String, Object>> getProjects ( ) throws SQLiteException;
+    List<Map<String, Object>> getProjects ( );
 
     ProjectDto getProject (Integer selectedProjectId);
 

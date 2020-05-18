@@ -5,14 +5,11 @@
 package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
-import com.dgc.dm.core.db.repository.ProjectRepository;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.sqlite.SQLiteException;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +19,6 @@ import java.util.Map;
 public class ProjectDaoImpl extends CommonDao implements ProjectDao {
 
     private static final String COMMONDATAS_PREFIX_TABLE_NAME = "COMMONDATAS_";
-    @Autowired
-    private ProjectRepository projectRepository;
 
     /**
      * Create table Projects if not exist
@@ -53,7 +48,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public Project createProject (String projectName) {
+    public Project createProject(String projectName) {
         log.debug("[INIT] Creating project " + projectName);
         this.createProjectTable();
         Project project =
@@ -73,7 +68,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateProject (Project project) {
+    public void updateProject(Project project) {
         log.debug("[INIT] Updating project " + project);
         sessionFactory.getCurrentSession().merge(project);
         log.debug("[END] Project " + project + " successfully updated");
@@ -85,7 +80,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return all projects
      */
     @Override
-    public List<Map<String, Object>> getProjects ( ) throws UncategorizedSQLException {
+    public List<Map<String, Object>> getProjects() throws UncategorizedSQLException {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
         final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
@@ -105,7 +100,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return project with id = selectedProjectId
      */
     @Override
-    public Project getProject (Integer selectedProjectId) {
+    public Project getProject(Integer selectedProjectId) {
         Project result;
         log.debug("[INIT] Getting project by id " + selectedProjectId);
 
@@ -121,7 +116,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteProject (Project project) {
+    public void deleteProject(Project project) {
         log.debug("[INIT] deleting project " + project);
         sessionFactory.getCurrentSession().delete(project);
         log.debug("[END] project successfully deleted");

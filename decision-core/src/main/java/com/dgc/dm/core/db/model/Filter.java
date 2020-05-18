@@ -23,6 +23,7 @@ import javax.persistence.*;
 @Table(name = "FILTERS")
 @Entity
 public class Filter extends Auditable<String> {
+    private static final long serialVersionUID = -2240436501746172768L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

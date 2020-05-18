@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @Data
 public class FilterDto extends AuditableDto<String> {
+    private static final long serialVersionUID = -2392676399973987679L;
     private Integer id;
     private String name;
     private String filterClass;

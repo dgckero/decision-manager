@@ -68,8 +68,12 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     private static final String JDBC_USER = "jdbc.user";
     private static final String JDBC_PASS = "jdbc.pass";
 
-    @Autowired
     private Environment env;
+
+    @Autowired
+    public ApplicationConfig(Environment env) {
+        this.env = env;
+    }
 
     /**
      * Set configuration for modelMapper
@@ -98,8 +102,8 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
         log.debug("[INIT] Configuring additionalProperties");
 
         Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty(HIBERNATE_DIALECT, this.env.getProperty(HIBERNATE_DIALECT));
-        hibernateProperties.setProperty(HIBERNATE_SHOW_SQL, this.env.getProperty(HIBERNATE_SHOW_SQL));
+        hibernateProperties.setProperty(HIBERNATE_DIALECT, getPropertyValue(HIBERNATE_DIALECT));
+        hibernateProperties.setProperty(HIBERNATE_SHOW_SQL, getPropertyValue(HIBERNATE_SHOW_SQL));
 
         log.debug("[END] Configuring additionalProperties");
         return hibernateProperties;
@@ -115,10 +119,10 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
         log.debug("[INIT] Configuring dataSource");
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Preconditions.checkNotNull(this.env.getProperty(JDBC_DRIVER_CLASS_NAME)));
-        dataSource.setUrl(Preconditions.checkNotNull(this.env.getProperty(JDBC_URL)));
-        dataSource.setUsername(Preconditions.checkNotNull(this.env.getProperty(JDBC_USER)));
-        dataSource.setPassword(Preconditions.checkNotNull(this.env.getProperty(JDBC_PASS)));
+        dataSource.setDriverClassName(Preconditions.checkNotNull(getPropertyValue(JDBC_DRIVER_CLASS_NAME)));
+        dataSource.setUrl(Preconditions.checkNotNull(getPropertyValue(JDBC_URL)));
+        dataSource.setUsername(Preconditions.checkNotNull(getPropertyValue(JDBC_USER)));
+        dataSource.setPassword(Preconditions.checkNotNull(getPropertyValue(JDBC_PASS)));
 
         log.debug("[END] Configuring dataSource");
         return dataSource;
@@ -214,32 +218,52 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
         log.debug("[INIT] Configuring Mail Sender");
 
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(this.env.getProperty(MAIL_HOST));
-        mailSender.setPort(Integer.parseInt(this.env.getProperty(MAIL_PORT)));
-        mailSender.setUsername(getEncryptedProperty(this.env.getProperty(MAIL_USERNAME)));
-        mailSender.setPassword(getEncryptedProperty(this.env.getProperty(MAIL_PASSWORD)));
+        mailSender.setHost(getPropertyValue(MAIL_HOST));
+        mailSender.setPort(Integer.parseInt(getPropertyValue(MAIL_PORT)));
+        mailSender.setUsername(getPropertyValue(MAIL_USERNAME));
+        mailSender.setPassword(getPropertyValue(MAIL_PASSWORD));
 
         Properties props = mailSender.getJavaMailProperties();
-        props.put(MAIL_TRANSPORT_PROTOCOL, this.env.getProperty(MAIL_TRANSPORT_PROTOCOL));
-        props.put(MAIL_SMTP_AUTH, this.env.getProperty(MAIL_SMTP_AUTH));
-        props.put(MAIL_SMTP_STARTTLS_ENABLE, this.env.getProperty(MAIL_SMTP_STARTTLS_ENABLE));
-        props.put(MAIL_DEBUG, this.env.getProperty(MAIL_DEBUG));
+        props.put(MAIL_TRANSPORT_PROTOCOL, getPropertyValue(MAIL_TRANSPORT_PROTOCOL));
+        props.put(MAIL_SMTP_AUTH, getPropertyValue(MAIL_SMTP_AUTH));
+        props.put(MAIL_SMTP_STARTTLS_ENABLE, getPropertyValue(MAIL_SMTP_STARTTLS_ENABLE));
+        props.put(MAIL_DEBUG, getPropertyValue(MAIL_DEBUG));
 
         log.debug("[END] Mail Sender successfully configured ");
         return mailSender;
     }
 
     /**
+     * Get property value
+     *
+     * @param property
+     * @return property value
+     */
+    private String getPropertyValue(String property) {
+        log.debug("[INIT] getPropertyValue: {}", property);
+        String propertyVal;
+        if (PropertyValueEncryptionUtils.isEncryptedValue(property)) {
+            log.trace("property: {} is encrypted", property);
+            propertyVal = getEncryptedProperty(property);
+        } else {
+            log.trace("property: {} is NOT encrypted", property);
+            propertyVal = env.getProperty(property);
+        }
+        log.debug("[END] getPropertyValue: {}", property);
+        return propertyVal;
+    }
+
+    /**
      * Decrypt encryptedPropery
      *
-     * @param encryptedPropery
+     * @param encryptedProperty
      * @return decrypted propery
      */
-    private String getEncryptedProperty(String encryptedPropery) {
-        log.debug("[INIT] decrypting property {}", encryptedPropery);
+    private String getEncryptedProperty(String encryptedProperty) {
+        log.debug("[INIT] decrypting property {}", encryptedProperty);
         String decryptedProperty = null;
         try {
-            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedPropery, getEncryptor());
+            decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedProperty, getEncryptor());
         } catch (NullPointerException e) {
             log.error("JASYPT ENVIRONMENT VARIABLE HAS NOT BEEN DEFINED");
         }
@@ -264,13 +288,13 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     /**
      * Get PBEConfig based on jasypt properties
      *
-     * @return
+     * @return EnvironmentStringPBEConfig
      */
     private PBEConfig getEnvironmentConfig() {
         log.debug("[INIT] getEnvironmentConfig");
         EnvironmentStringPBEConfig config = new EnvironmentStringPBEConfig();
-        config.setAlgorithm(this.env.getProperty(JASYPT_ENVIRONMENT_ALGORITHM));
-        config.setPasswordEnvName(this.env.getProperty(JASYPT_ENVIRONMENT_NAME));
+        config.setAlgorithm(env.getProperty(JASYPT_ENVIRONMENT_ALGORITHM));
+        config.setPasswordEnvName(env.getProperty(JASYPT_ENVIRONMENT_NAME));
         log.debug("[END] getEnvironmentConfig");
         return config;
     }

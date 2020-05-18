@@ -25,6 +25,7 @@ import java.io.Serializable;
 @MappedSuperclass
 public class Auditable<U> implements Serializable {
 
+    private static final long serialVersionUID = 3737729462519113727L;
     @CreatedDate
     @Column(name = "dataCreationDate", updatable = false)
     private String dataCreationDate;

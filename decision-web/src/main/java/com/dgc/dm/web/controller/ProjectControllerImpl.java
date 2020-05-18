@@ -33,6 +33,17 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
     public static final String NO_RESULT_FOUND = "No se han encontrado datos que cumplan con los filtros definidos";
     private static final String PROJECT_MODEL = "project";
     private static final String FORM_MODEL = "form";
+    public static final String NO_PROJECT_FOUNDS = "No se han encontrado proyectos guardados";
+    public static final String EMPTY_FILE_EXCEPTION = "Debe añadir un fichero Excel con la información a procesar";
+    public static final String ERROR_ADDING_INFO_TO_PROJECT = "No se ha podido añadir información al proyecto, por favor póngase en contacto con el administrador";
+    public static final String NO_PROJECT_FOUND = "No se ha encontrado el proyecto con id: ";
+    public static final String NO_DECISION_TABLE_FOUND = "No se ha definido una tabla de decisión para el Proyecto, por favor añada filtros y vuelva a intentarlo";
+    public static final String NO_RESULTS_FIT_FILTERS = "No se han encontrado resultados que cumplan con los filtros definidos";
+    public static final String ERROR_GENERATING_DMN_FILE = "Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador";
+    public static final String DATA_DELETED_SUCCESSFULLY = "Registros borrados correctamente";
+    public static final String PROJECT_SUCCESSFULLY_DELETED = "Proyecto borrado correctamente";
+    public static final String NO_FILTERS_FOUND = "No se han podido generar los filtros, por favor póngase en contacto con el administrador";
+    public static final String NO_PROJECT_ID_FOUND = "No se ha enviado el identificador del proyecto en la consulta";
 
     /**
      * Generate Dmn file based on project.DmnFile
@@ -56,14 +67,9 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
             dmnFile.deleteOnExit();
             // close stream and return to view
             response.flushBuffer();
-        } catch (FileNotFoundException e) {
-            log.error("Error generating DMN File: {}", e.getMessage());
-            e.printStackTrace();
-            throw new DecisionException("Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador");
         } catch (IOException e) {
             log.error("Error generating DMN File: {}", e.getMessage());
-            e.printStackTrace();
-            throw new DecisionException("Error generando el Fichero DMN del proyecto, por favor póngase en contacto con el administrador");
+            throw new DecisionException(ERROR_GENERATING_DMN_FILE);
         }
         log.debug("[END] generateDmnFile file");
     }
@@ -94,7 +100,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         final ModelAndView modelAndView = new ModelAndView(SELECT_PROJECT_VIEW);
         final Map<String, List<Map<String, Object>>> projects = this.getModelFacade().getExistingProjects();
         if (null == projects || projects.isEmpty()) {
-            throw new DecisionException("No se han encontrado proyectos guardados");
+            throw new DecisionException(NO_PROJECT_FOUNDS);
         } else {
             log.info("Found {} projects", projects.size());
             modelAndView.addAllObjects(projects);
@@ -117,7 +123,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
 
         if (file.isEmpty()) {
             log.error("No Excel file attached");
-            throw new DecisionException("Debe añadir un fichero Excel con la información a procesar");
+            throw new DecisionException(EMPTY_FILE_EXCEPTION);
         } else {
             ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
 
@@ -148,13 +154,13 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
 
         if (file.isEmpty()) {
             log.error("No file attached");
-            throw new DecisionException("Debe añadir un fichero Excel con la información a procesar");
+            throw new DecisionException(EMPTY_FILE_EXCEPTION);
         } else {
             try {
                 ProjectDto project = getExcelFacade().processExcel(file, id);
                 if (null == project) {
                     log.error("Error adding info to projectId: {}", id);
-                    throw new DecisionException("No se ha podido añadir información al proyecto, por favor póngase en contacto con el administrador");
+                    throw new DecisionException(ERROR_ADDING_INFO_TO_PROJECT);
                 } else {
                     modelAndView.getModel().put(PROJECT_MODEL, project);
                     getModelFacade().addFilterInformationToModel(modelAndView, project);
@@ -165,7 +171,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
             } catch (Exception e) {
                 log.error("Error Uploading file {}", e.getMessage());
                 e.printStackTrace();
-                throw new DecisionException("No se ha podido añadir información al proyecto, por favor póngase en contacto con el administrador");
+                throw new DecisionException(ERROR_ADDING_INFO_TO_PROJECT);
             }
             log.info("[END] file processed");
             return modelAndView;
@@ -225,11 +231,11 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
 
         if (null == project.getDmnFile() || 0 >= project.getDmnFile().length) {
             log.error("DMN file NOT defined on project {}", project);
-            throw new DecisionException("No se ha definido una tabla de decisión para el Proyecto, por favor añada filtros y vuelva a intentarlo");
+            throw new DecisionException(NO_DECISION_TABLE_FOUND);
         } else {
             List<Map<String, Object>> result = getModelFacade().executeDmn(project);
             if (null == result) {
-                throw new DecisionException("No se han encontrado resultados que cumplan con los filtros definidos");
+                throw new DecisionException(NO_RESULTS_FIT_FILTERS);
             } else {
                 modelAndView.addObject(FORM_MODEL, result);
                 log.info("Results filtered by DMN file successfully processed");
@@ -285,7 +291,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
                 log.info("Successfully added DMN file for project {}", project);
 
                 if (null == result) {
-                    throw new DecisionException("No se han encontrado datos que cumplan con la tabla de decision añadida");
+                    throw new DecisionException(NO_RESULT_FOUND);
                 } else {
                     modelAndView.addObject(FORM_MODEL, result);
                     log.info("Results filtered by DMN file successfully processed");
@@ -337,7 +343,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         ProjectDto project = getProjectById(id);
 
         getModelFacade().deleteRowData(project);
-        modelAndView.addObject(MODEL_MESSAGE, "Registros borrados correctamente");
+        modelAndView.addObject(MODEL_MESSAGE, DATA_DELETED_SUCCESSFULLY);
 
         log.info("[END] Delete all registers for project {}", project);
         return modelAndView;
@@ -357,7 +363,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         ProjectDto project = getProjectById(id);
 
         getModelFacade().deleteProject(project);
-        modelAndView.addObject(MODEL_MESSAGE, "Proyecto borrado correctamente");
+        modelAndView.addObject(MODEL_MESSAGE, PROJECT_SUCCESSFULLY_DELETED);
 
         log.info("[END] Delete project {}", project);
         return modelAndView;
@@ -374,7 +380,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         final List<FilterDto> filters = form.getFilters();
         if (null == filters || filters.isEmpty()) {
             log.warn("No filters found");
-            throw new DecisionException("No se han podido generar los filtros, por favor póngase en contacto con el administrador");
+            throw new DecisionException(NO_FILTERS_FOUND);
         }
         log.info("[END] getFiltersFromForm filters {}", filters);
         return filters;
@@ -454,7 +460,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         final ModelAndView modelAndView = new ModelAndView(EDIT_PROJECT);
         if (id == null) {
             log.error("SelectedProjectId is NULL");
-            throw new DecisionException("No se ha enviado el identificador del proyecto en la consulta");
+            throw new DecisionException(NO_PROJECT_ID_FOUND);
         } else {
             log.info("SelectedProjectId " + id);
             final ProjectDto project = getProjectById(id);
@@ -477,7 +483,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         ProjectDto project = getModelFacade().getProject(id);
         if (null == project) {
             log.error("[END] No project found by Id {}", id);
-            throw new DecisionException("No se ha encontrado el proyecto con id: " + id);
+            throw new DecisionException(NO_PROJECT_FOUND + id);
         }
         log.debug("[END] getProjectById found: {}", project);
         return project;

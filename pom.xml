@@ -12,6 +12,7 @@
     <modules>
         <module>decision-core</module>
         <module>decision-web</module>
+        <module>decision-manager-coverage</module>
     </modules>
 
     <name>Decision Manager</name>
@@ -72,112 +73,149 @@
             <artifactId>sonar-maven-plugin</artifactId>
             <version>${sonar-maven-plugin.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                    <configuration>
-                        <compilerArguments>
-                            <endorseddirs>${endorsed.dir}</endorseddirs>
-                        </compilerArguments>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>${maven-dependency-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>copy</goal>
-                            </goals>
-                            <configuration>
-                                <outputDirectory>${endorsed.dir}</outputDirectory>
-                                <silent>true</silent>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>javax</groupId>
-                                        <artifactId>javaee-endorsed-api</artifactId>
-                                        <version>${javaee-endorsed-api.version}</version>
-                                        <type>jar</type>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>${maven-clean-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>auto-clean</id>
-                            <phase>install</phase>
-                            <goals>
-                                <goal>clean</goal>
-                            </goals>
-                            <configuration>
-                                <filesets>
-                                    <fileset>
-                                        <directory>tomcat_home/webapps/${project.artifactId}</directory>
-                                    </fileset>
-                                </filesets>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>log4j-plugin-processor</id>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                            <phase>process-classes</phase>
-                            <configuration>
-                                <proc>only</proc>
-                                <annotationProcessors>
-                                    <annotationProcessor>
-                                        org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor
-                                    </annotationProcessor>
-                                </annotationProcessors>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.sonarsource.scanner.maven</groupId>
-                    <artifactId>sonar-maven-plugin</artifactId>
-                    <version>${sonar-maven-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <phase>compile</phase>
-                            <goals>
-                                <goal>sonar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${endorsed.dir}</outputDirectory>
+                            <silent>true</silent>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax</groupId>
+                                    <artifactId>javaee-endorsed-api</artifactId>
+                                    <version>${javaee-endorsed-api.version}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven-clean-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>auto-clean</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>tomcat_home/webapps/${project.artifactId}</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>sonar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <dependenciesToScan>
+                        <dependency>com.dgc.dm:decision-core</dependency>
+                        <dependency>com.dgc.dm:decision-web</dependency>
+                    </dependenciesToScan>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>${surefire-junit47.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <!-- Ensures that both integration-test and verify goals of the Failsafe
+                        Maven plugin are executed. -->
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <testFailureIgnore>true</testFailureIgnore>
+                            <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
-
     <properties>
         <tomcat_home>${env.CATALINA_HOME}</tomcat_home>
         <java.version>1.8</java.version>
-        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <javaee-endorsed-api.version>7.0</javaee-endorsed-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>2.6</maven-dependency-plugin.version>
@@ -185,6 +223,12 @@
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
+        <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
+        <asm.version>8.0.1</asm.version>
+        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M4</maven-failsafe-plugin.version>
+        <surefire-junit47.version>3.0.0-M4</surefire-junit47.version>
+        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
 
         <!-- Core dependencies -->
         <jasypt.version>1.9.3</jasypt.version>
@@ -207,6 +251,10 @@
         <log4j2.version>2.13.2</log4j2.version>
         <commons-text.version>1.8</commons-text.version>
         <commons-io.version>2.6</commons-io.version>
+
+        <!-- test dependencies -->
+        <mockito.version>3.3.3</mockito.version>
+        <junit-jupiter.version>5.7.0-M1</junit-jupiter.version>
 
         <!-- email dependencies -->
         <javax.mail.version>1.4.7</javax.mail.version>
@@ -238,6 +286,9 @@
         <!-- Sonar properties -->
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>dgckero</sonar.organization>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.language>java</sonar.language>
 
     </properties>
 

@@ -35,6 +35,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     private static final int ROW_ONE = 1;
     private static final int ROW_ZERO = 0;
     private static final int SHEET_ZERO = 0;
+    public static final String NO_FILTERS_FOUND = "No se han encontrado filtros para el proyecto ";
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
@@ -155,7 +156,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
                 lower = true;
             }
         }
-        String result = sb.toString().replaceAll("\\s+", "").replaceAll("_", "");
+        String result = sb.toString().replaceAll("\\s+", "").replace("_", "");
         log.debug("[END] getColumnNameByCellValue result: {}", result);
         return result;
     }
@@ -172,12 +173,10 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     private static Cell getNextCellNoNull(Cell cell, Sheet worksheet, int cellNumber, boolean goOverWorkSheet) {
         log.debug("[INIT] getNextCellNoNull cellNumber: {}, goOverWorkSheet:{}", cellNumber, goOverWorkSheet);
         Cell cellToBeProcessed = cell;
-        if (null == cell) {
-            if (goOverWorkSheet) {
-                for (int i = 2; i < worksheet.getLastRowNum() && null == cellToBeProcessed; i++) {
-                    Row row = worksheet.getRow(i);
-                    cellToBeProcessed = row.getCell(cellNumber);
-                }
+        if (null == cell && goOverWorkSheet) {
+            for (int i = 2; i < worksheet.getLastRowNum() && null == cellToBeProcessed; i++) {
+                Row row = worksheet.getRow(i);
+                cellToBeProcessed = row.getCell(cellNumber);
             }
         }
         log.debug("[END] getNextCellNoNull cellToBeProcessed: {}", cellToBeProcessed);
@@ -218,7 +217,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
         List<Map<String, Object>> projectFilters = getFilterService().getFilters(project);
         if (null == projectFilters || projectFilters.isEmpty()) {
             log.warn("[END] No filters found for project {}", project);
-            throw new DecisionException("No se han encontrado filtros para el proyecto " + project.getName());
+            throw new DecisionException(NO_FILTERS_FOUND + project.getName());
         } else if ((projectFilters.size() - 1) == colMapByName.size()) { // subtract 1 to project's filters because of the rowId column
             log.info("[END] Excel file has same number of columns ({}) than filters ({}) for project {}", colMapByName.size(), projectFilters.size() - 1, project);
             return colMapByName;
@@ -246,6 +245,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
             processExcelRows(worksheet, colMapByName, project, getRowDataService().getRowDataSize(project) + 1);
             log.info("[END] Processed Excel file " + file.getOriginalFilename());
         } catch (DecisionException e) {
+            log.error("Error processing Excel: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Error processing Excel: {}", e.getMessage());
@@ -325,7 +325,7 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
             getFilterService().persistFilterList(generateFilterList(colMapByName, project), project);
         } catch (PersistenceException e) {
             log.error("Error Creating project : {}", e.getMessage());
-            if (e.getCause() instanceof GenericJDBCException && ((GenericJDBCException) e).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
+            if ((e.getCause() instanceof GenericJDBCException) && ((GenericJDBCException) e.getCause()).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
                 throw new DecisionException("Ya existe un proyecto con nombre " + projectName + ", por favor utilice un nombre diferente");
             }
         }
@@ -401,41 +401,86 @@ public class ExcelFacadeImpl extends CommonFacade implements ExcelFacade {
     public Object[] populateGeneratedObject(ProjectDto project, Row row, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns,
                                             List<Object> excelObjs, int rowNumber) throws IllegalAccessException,
             InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Object[] result = null;
 
         log.trace("[INIT] populating dynamic class with Excel row number {}", rowNumber);
         Object[] insertQueryValues = {};
-        Iterator<Cell> excelRowIterator = row.cellIterator();
-        while (excelRowIterator.hasNext()) {
-            RowDataDto obj = generatedObj.getConstructor().newInstance();
-            for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
-                if (column.getValue() == Date.class) {
-                    column.setValue(String.class);
-                }
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
+        if (row == null || row.cellIterator() == null) {
+            log.warn("ror number {} is empty", rowNumber);
+        } else {
+            Iterator<Cell> excelRowIterator = row.cellIterator();
+            while (excelRowIterator.hasNext()) {
+                insertQueryValues = generateInsertQueryValuesByRow(project, rowNumber, excelObjs, generatedObj, columns, excelRowIterator, insertQueryValues);
             }
-            //Add projectId
-            insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
             if (isArrayEmpty(insertQueryValues)) {
-                insertQueryValues = new Object[]{};
+                log.warn("insertQueryValues is empty");
             } else {
-                //Add rowId
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
-                // Add createDate
-                insertQueryValues = appendValueToObjectArray(insertQueryValues, new Date());
-
-                obj.setRowId(rowNumber);
-                obj.setProject(project);
-                obj.setDataCreationDate(format.format(new Date()));
-                excelObjs.add(obj);
-
-                log.trace("added object ({}) by row( {})", obj, rowNumber);
+                log.trace("[END] populating dynamic class with Excel row number {}", rowNumber);
+                result = insertQueryValues;
             }
+        }
+        return result;
+    }
+
+    /**
+     * Generate insert query from row values
+     *
+     * @param project
+     * @param rowNumber
+     * @param excelObjs
+     * @param generatedObj
+     * @param columns
+     * @param excelRowIterator
+     * @param insertQueryValues
+     * @return sql query insert
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     */
+    private Object[] generateInsertQueryValuesByRow(ProjectDto project, int rowNumber, List<Object> excelObjs, Class<? extends RowDataDto> generatedObj, Map<String, Class<?>> columns, Iterator<Cell> excelRowIterator, Object[] insertQueryValues) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        log.debug("[INIT] generateInsertQueryValuesByRow rowNumber: {}, project: {}", rowNumber, project);
+        RowDataDto obj = generatedObj.getConstructor().newInstance();
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+            if (column.getValue() == Date.class) {
+                column.setValue(String.class);
+            }
+            insertQueryValues = appendValueToObjectArray(insertQueryValues, populateDynamicClassProperty(generatedObj, column, excelRowIterator, obj));
         }
         if (isArrayEmpty(insertQueryValues)) {
-            log.warn("insertQueryValues is empty");
-            return null;
+            insertQueryValues = new Object[]{};
+        } else {
+            insertQueryValues = addCommonValuesToObject(insertQueryValues, project, rowNumber, obj, excelObjs);
+            log.trace("added object ({}) by row( {})", obj, rowNumber);
         }
-        log.trace("[END] populating dynamic class with Excel row number {}", rowNumber);
+        log.debug("[END] generateInsertQueryValuesByRow insertQueryValues: {}", insertQueryValues);
+        return insertQueryValues;
+    }
+
+    /**
+     * Add common values to both rowDataDto object and query
+     *
+     * @param insertQueryValues
+     * @param project
+     * @param rowNumber
+     * @param obj
+     * @param excelObjs
+     * @return query values
+     */
+    private Object[] addCommonValuesToObject(Object[] insertQueryValues, ProjectDto project, int rowNumber, RowDataDto obj, List<Object> excelObjs) {
+        log.debug("[INIT] addCommonValuesToObject rowNumber: {}, project: {}", rowNumber, project);
+        //Add projectId
+        insertQueryValues = appendValueToObjectArray(insertQueryValues, project.getId());
+        //Add rowId
+        insertQueryValues = appendValueToObjectArray(insertQueryValues, rowNumber);
+        // Add createDate
+        insertQueryValues = appendValueToObjectArray(insertQueryValues, new Date());
+
+        obj.setRowId(rowNumber);
+        obj.setProject(project);
+        obj.setDataCreationDate(format.format(new Date()));
+        excelObjs.add(obj);
+        log.debug("[END] addCommonValuesToObject object: {}", obj);
         return insertQueryValues;
     }
 

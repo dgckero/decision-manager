@@ -23,6 +23,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
     @Autowired
     private RowDataDao rowDataDao;
 
+
     /**
      * Create RowDataTable based on project.RowDataTableName
      *
@@ -31,7 +32,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void createRowDataTable (Map<String, Class<?>> columns, ProjectDto project) {
+    public void createRowDataTable(Map<String, Class<?>> columns, ProjectDto project) {
         log.debug("[INIT] createRowDataTable project: {}", project);
         rowDataDao.createRowDataTable(columns, getModelMapper().map(project, Project.class));
         log.debug("[END] createRowDataTable");
@@ -45,7 +46,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void persistRowData (String insertSentence, List<Object[]> infoToBePersisted) {
+    public void persistRowData(String insertSentence, List<Object[]> infoToBePersisted) {
         log.debug("[INIT] Persisting Excel rows");
         rowDataDao.persistRowData(insertSentence, infoToBePersisted);
         log.debug("[END] Persisted Excel rows");
@@ -58,7 +59,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      * @return List of RowData
      */
     @Override
-    public final List<Map<String, Object>> getRowData (ProjectDto project) {
+    public final List<Map<String, Object>> getRowData(ProjectDto project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
         List<Map<String, Object>> entities = rowDataDao.getRowData(getModelMapper().map(project, Project.class));
         log.info("[END] Got all info from table: {}", project.getRowDataTableName());
@@ -72,7 +73,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteRowData (ProjectDto project) {
+    public void deleteRowData(ProjectDto project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
         rowDataDao.deleteRowData(getModelMapper().map(project, Project.class));
         log.debug("[END] Registers successfully deleted for project {}", project);
@@ -85,7 +86,7 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      * @return number of rows on table project.RowDataTableName
      */
     @Override
-    public final Integer getRowDataSize (ProjectDto project) {
+    public final Integer getRowDataSize(ProjectDto project) {
         log.debug("[INIT] Getting common data size for project {}", project);
         Integer commonDataSize = rowDataDao.getRowDataSize(getModelMapper().map(project, Project.class));
         log.debug("[END] common data size {} for project {}", commonDataSize, project);

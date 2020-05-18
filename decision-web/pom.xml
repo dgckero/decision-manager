@@ -74,7 +74,7 @@
         <dependency>
             <groupId>com.dgc.dm</groupId>
             <artifactId>decision-core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>
@@ -142,6 +142,8 @@
 
     <build>
         <finalName>decision-web</finalName>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${basedir}/src/main/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -170,8 +172,6 @@
                     </webResources>
                 </configuration>
             </plugin>
-
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -191,7 +191,7 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
+
 </project>

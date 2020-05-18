@@ -33,7 +33,7 @@ public class PojoGenerator {
      * @throws CannotCompileException
      * @throws IOException
      */
-    public static Class generate (final String className, final Map<String, Class<?>> properties)
+    public static Class generate(final String className, final Map<String, Class<?>> properties)
             throws NotFoundException, CannotCompileException, IOException {
         log.debug("[INIT] generate className: {}, properties: {}", className, properties);
         final CtClass cc = getCtcClass(className);
@@ -53,7 +53,7 @@ public class PojoGenerator {
      * @throws CannotCompileException
      * @throws NotFoundException
      */
-    private static CtClass getCtcClass (final String className) throws IOException, CannotCompileException, NotFoundException {
+    private static CtClass getCtcClass(final String className) throws IOException, CannotCompileException, NotFoundException {
         log.debug("[INIT] getCtcClass className: {}", className);
         final ClassPool pool = ClassPool.getDefault();
 
@@ -78,7 +78,7 @@ public class PojoGenerator {
      * @param props map containing required properties
      * @throws CannotCompileException
      */
-    private static void populateClass (final CtClass cc, final Set<Map.Entry<String, Class<?>>> props) throws CannotCompileException {
+    private static void populateClass(final CtClass cc, final Set<Map.Entry<String, Class<?>>> props) throws CannotCompileException {
         log.debug("[INIT] populateClass cc: {}, props: {}", cc, props);
         for (final Map.Entry<String, Class<?>> entry : props) {
             final Class<?> clazz = getPropertyClass(entry.getValue());
@@ -102,7 +102,7 @@ public class PojoGenerator {
      * @param className
      * @return className without special characters
      */
-    public static String getPropertyNameByColumnName (String className) {
+    public static String getPropertyNameByColumnName(String className) {
         log.debug("[INIT] getPropertyNameByColumnName className: {}", className);
         className = stripAccents(className);
         String propertyName = className.replaceAll(P_ALPHA_P_DIGIT, "");
@@ -117,10 +117,10 @@ public class PojoGenerator {
      * @param columnClass
      * @return Java type mapped from columnClass
      */
-    private static Class<?> getPropertyClass (final Class<?> columnClass) {
+    private static Class<?> getPropertyClass(final Class<?> columnClass) {
         log.debug("[INIT] getPropertyClass columnClass: {}", columnClass);
         Class<?> result = String.class;
-        if (!EMAIL_TYPE.equals(columnClass.getSimpleName())) if (!Date.class.equals(columnClass)) {
+        if (!EMAIL_TYPE.equals(columnClass.getSimpleName()) && !Date.class.equals(columnClass)) {
             result = columnClass;
         }
         log.debug("[END] getPropertyClass result: {}", result);
@@ -136,7 +136,7 @@ public class PojoGenerator {
      * @return CMethod generated
      * @throws CannotCompileException
      */
-    private static CtMethod generateGetter (final CtClass declaringClass, final String fieldName, final Class fieldClass)
+    private static CtMethod generateGetter(final CtClass declaringClass, final String fieldName, final Class fieldClass)
             throws CannotCompileException {
         log.debug("[INIT] generateGetter declaringClass: {}, fieldName: {}, fieldClass: {}", declaringClass, fieldName, fieldClass);
         final String getterName = "get" + StringUtils.capitalize(fieldName);
@@ -154,7 +154,7 @@ public class PojoGenerator {
      * @return CMethod generated
      * @throws CannotCompileException
      */
-    private static CtMethod generateSetter (final CtClass declaringClass, final String fieldName, final Class fieldClass)
+    private static CtMethod generateSetter(final CtClass declaringClass, final String fieldName, final Class fieldClass)
             throws CannotCompileException {
         log.debug("[INIT] generateSetter declaringClass: {}, fieldName: {}, fieldClass: {}", declaringClass, fieldName, fieldClass);
         final String setterName = "set" + StringUtils.capitalize(fieldName);
@@ -171,7 +171,7 @@ public class PojoGenerator {
      * @return CMethod generated
      * @throws CannotCompileException
      */
-    private static CtMethod generateToString (final CtClass declaringClass, final Set<? extends Map.Entry<String, Class<?>>> props) throws CannotCompileException {
+    private static CtMethod generateToString(final CtClass declaringClass, final Set<? extends Map.Entry<String, Class<?>>> props) throws CannotCompileException {
         log.debug("[INIT] generateToString declaringClass: {}, props: {}", declaringClass, props);
         StringBuilder sb = new StringBuilder("public String toString() { return ");
 
@@ -190,7 +190,7 @@ public class PojoGenerator {
      * @param clazz
      * @return reference to CtClass
      */
-    private static CtClass resolveCtClass (final Class clazz) {
+    private static CtClass resolveCtClass(final Class clazz) {
         log.debug("[INIT] resolveCtClass by clazz: {}", clazz);
         final ClassPool pool = ClassPool.getDefault();
         log.debug("[END] resolveCtClass by clazz: {}", clazz);

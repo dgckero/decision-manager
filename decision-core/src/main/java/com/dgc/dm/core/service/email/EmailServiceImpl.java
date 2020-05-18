@@ -6,7 +6,6 @@ package com.dgc.dm.core.service.email;
 
 import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,29 +28,10 @@ public class EmailServiceImpl implements EmailService {
      */
     private final ScheduledExecutorService quickService = Executors.newScheduledThreadPool(NO_OF_QUICK_SERVICE_THREADS);
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
 
-    /**
-     * Return default email body formatted in HTML
-     *
-     * @param from
-     * @return default email body
-     */
-    private static String generateDefaultEmailBodyHtml (final String from) {
-        log.debug("[INIT] generateDefaultEmailBodyHtml from: {} ", from);
-
-        final String htmlMessage = "\n" +
-                "<html>\n" +
-                "<body>\n" +
-                "<h4>Se han encontrado sus datos de contacto en la aplicación decision-manager, por favor póngase en contacto con el administrador de la aplicación:</h4>" +
-                "    <h5>Contacto del emisor: <a title=\"" + from + "\" href=\"mailto:" + from + "\">" + from + "</a>\n" +
-                "</body>\n" +
-                "</html>";
-
-        log.debug("[END] Mensaje HTML a enviar {}", htmlMessage);
-
-        return htmlMessage;
+    public EmailServiceImpl(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
     }
 
     /**
@@ -62,7 +42,7 @@ public class EmailServiceImpl implements EmailService {
      * @param name
      * @return email formatted on HTML
      */
-    private static String generateEmailBodyHtml (final String from, final String body, final String name) {
+    private static String generateEmailBodyHtml(final String from, final String body, final String name) {
         log.debug("[INIT] generateEmailBodyHtml from: {}, body: {}, name: {}", from, body, name);
 
         final String htmlMessage = "\n" +
@@ -87,7 +67,7 @@ public class EmailServiceImpl implements EmailService {
      * @param project
      */
     @Override
-    public final void sendAsynchronousMail (final String toEmail, final ProjectDto project) {
+    public final void sendAsynchronousMail(final String toEmail, final ProjectDto project) {
         log.debug("[INIT] sendAsynchronousMail to {}", toEmail);
 
         final SimpleMailMessage mail = new SimpleMailMessage();
@@ -96,7 +76,7 @@ public class EmailServiceImpl implements EmailService {
         mail.setSubject("test email");
         mail.setText(project.getEmailTemplate());
 
-        this.quickService.submit(( ) -> {
+        this.quickService.submit(() -> {
             try {
                 this.javaMailSender.send(mail);
             } catch (MailException e) {
@@ -115,7 +95,7 @@ public class EmailServiceImpl implements EmailService {
      * @throws MessagingException
      */
     @Override
-    public final void sendMail (final String to, final ProjectDto project) throws MessagingException {
+    public final void sendMail(final String to, final ProjectDto project) throws MessagingException {
         log.debug("[init] sendMail to: {}, project: {}", to, project);
         final MimeMessage message = this.generateEmailMessage(to, project);
         log.debug("Enviando mensaje {}", message);
@@ -134,7 +114,7 @@ public class EmailServiceImpl implements EmailService {
      * @throws MessagingException
      */
     @Override
-    public final void sendMail (final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
+    public final void sendMail(final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
         log.debug("[INIT] sendMail from: {}, to: {}, subject: {}, body: {}, name: {}", from, to, subject, body, name);
         final MimeMessage message = this.generateEmailMessage(from, to, subject, body, name);
         log.debug("Enviando mensaje {}", message);
@@ -150,7 +130,7 @@ public class EmailServiceImpl implements EmailService {
      * @return MimeMessage
      * @throws MessagingException
      */
-    private MimeMessage generateEmailMessage (final String to, final ProjectDto project) throws MessagingException {
+    private MimeMessage generateEmailMessage(final String to, final ProjectDto project) throws MessagingException {
         log.debug("[INIT] generateEmailMessage to:  {}, Project: {}", to, project);
 
         final MimeMessage mail = this.javaMailSender.createMimeMessage();
@@ -175,7 +155,7 @@ public class EmailServiceImpl implements EmailService {
      * @return MimeMessage
      * @throws MessagingException
      */
-    private MimeMessage generateEmailMessage (final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
+    private MimeMessage generateEmailMessage(final String from, final String to, final String subject, final String body, final String name) throws MessagingException {
         log.debug("[INIT] generateEmailMessage from: {}, to:  {}, subject: {}, body: {}, name: {}", from, to, subject, body, name);
 
         final MimeMessage mail = this.javaMailSender.createMimeMessage();

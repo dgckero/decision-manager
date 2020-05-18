@@ -9,9 +9,11 @@ import com.dgc.dm.core.service.db.ProjectService;
 import com.dgc.dm.core.service.db.RowDataService;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter(AccessLevel.PROTECTED)
+@Setter(AccessLevel.PROTECTED)
 class CommonFacade {
 
     @Autowired

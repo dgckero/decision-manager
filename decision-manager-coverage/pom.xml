@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>decision-manager</artifactId>
+        <groupId>com.dgc.dm</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>decision-manager-coverage</artifactId>
+    <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <!-- Copy the ant tasks jar. Needed for ts.jacoco.report-ant . -->
+                    <execution>
+                        <id>jacoco-dependency-ant</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.jacoco</groupId>
+                                    <artifactId>org.jacoco.ant</artifactId>
+                                    <version>${jacoco.ant-version}</version>
+                                </artifactItem>
+                            </artifactItems>
+                            <stripVersion>true</stripVersion>
+                            <outputDirectory>${basedir}/target/jacoco-jars</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- Execute an ant task within maven -->
+                                <echo message="Generating JaCoCo Reports" />
+                                <taskdef name="report" classname="org.jacoco.ant.ReportTask">
+                                    <classpath path="${basedir}/target/jacoco-jars/org.jacoco.ant.jar" />
+                                </taskdef>
+                                <mkdir dir="${basedir}/target/coverage-report" />
+                                <report>
+                                    <executiondata>
+                                        <fileset dir="${build.directory.decision-core}">
+                                            <include name="jacoco.exec" />
+                                        </fileset>
+                                        <fileset dir="${build.directory.decision-web}">
+                                            <include name="jacoco.exec" />
+                                        </fileset>
+                                    </executiondata>
+                                    <structure name="jacoco-multi Coverage Project">
+                                        <group name="jacoco-multi">
+                                            <classfiles>
+                                                <fileset dir="${classes.directory.decision-core}" />
+                                                <fileset dir="${classes.directory.decision-web}" />
+                                            </classfiles>
+                                            <sourcefiles encoding="UTF-8">
+                                                <fileset dir="${sources.directory.decision-core}" />
+                                                <fileset dir="${sources.directory.decision-web}" />
+                                            </sourcefiles>
+                                        </group>
+                                    </structure>
+                                    <html destdir="${basedir}/target/coverage-report/html" />
+                                    <xml destfile="${basedir}/target/coverage-report/coverage-report.xml" />
+                                    <csv destfile="${basedir}/target/coverage-report/coverage-report.csv" />
+                                </report>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>org.jacoco.ant</artifactId>
+                        <version>${jacoco.ant-version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dgc.dm</groupId>
+            <artifactId>decision-core</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dgc.dm</groupId>
+            <artifactId>decision-web</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <build.directory.decision-core>../decision-core/target</build.directory.decision-core>
+        <build.directory.decision-web>../decision-web/target</build.directory.decision-web>
+
+        <classes.directory.decision-core>../decision-core/target/classes</classes.directory.decision-core>
+        <classes.directory.decision-web>../decision-web/target/classes</classes.directory.decision-web>
+
+        <sources.directory.decision-core>../decision-core/src/main/java</sources.directory.decision-core>
+        <sources.directory.decision-web>../decision-web/src/main/java</sources.directory.decision-web>
+
+        <generated-sources.directory.decision-core>../decision-core/target/generated-sources/annotations</generated-sources.directory.decision-core>
+        <generated-sources.directory.decision-web>../decision-web/target/generated-sources/annotations</generated-sources.directory.decision-web>
+
+        <maven-antrun-plugin.version>3.0.0</maven-antrun-plugin.version>
+        <jacoco.ant-version>0.8.5</jacoco.ant-version>
+    </properties>
+
+</project>

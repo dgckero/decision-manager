@@ -80,7 +80,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @param rowData
      * @return SQL Insert Query
      */
-    private String generateSqlSentence (String insertSentence, Object[] rowData) {
+    private String generateSqlSentence(String insertSentence, Object[] rowData) {
         String[] tokens = insertSentence.split("\\?", rowData.length + 1);
         StringBuilder sBuilder = new StringBuilder();
 
@@ -105,7 +105,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @return all information from project.RowDataTableName
      */
     @Override
-    public final List<Map<String, Object>> getRowData (Project project) {
+    public final List<Map<String, Object>> getRowData(Project project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
         List<Map<String, Object>> entities = getJdbcTemplate().queryForList("Select * from " + project.getRowDataTableName() + " where project=" + project.getId());
         log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
@@ -119,9 +119,9 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void deleteRowData (Project project) {
+    public void deleteRowData(Project project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
-        sessionFactory.getCurrentSession().createSQLQuery("DELETE FROM " + project.getRowDataTableName());
+        sessionFactory.getCurrentSession().createSQLQuery("DELETE FROM " + project.getRowDataTableName()).executeUpdate();
         log.debug("[END] Registers successfully deleted for project {}", project);
     }
 
@@ -132,7 +132,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @return number of rows on table project.RowDataTableName
      */
     @Override
-    public final Integer getRowDataSize (Project project) {
+    public final Integer getRowDataSize(Project project) {
         log.debug("[INIT] Getting common data size for project {}", project);
         Integer count = getJdbcTemplate().queryForObject("SELECT count(*) FROM " + project.getRowDataTableName(), Integer.class);
         log.debug("[END] common data size {} for project {}", count, project);

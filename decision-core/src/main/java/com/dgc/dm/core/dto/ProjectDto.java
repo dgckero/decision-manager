@@ -13,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @Data
 public class ProjectDto extends AuditableDto<String> {
+    private static final long serialVersionUID = -2351483953617918420L;
     private Integer id;
     private String name;
     private String rowDataTableName;

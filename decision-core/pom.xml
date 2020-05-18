@@ -152,6 +152,8 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${basedir}/src/main/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -164,5 +166,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>

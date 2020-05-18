@@ -15,19 +15,17 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Maven Package
-        run: mvn clean package
-      - name: Maven install
-        run: mvn install
-  sonarcloud:
-    runs-on: ubuntu-latest
-    steps:
+      - name: Maven package
+        run: mvn clean -pl :decision-core,:decision-web -am package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - uses: actions/checkout@v2
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
       - name: SonarCloud Scan
-        run: mvn verify sonar:sonar
+        run: mvn -B verify sonar:sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

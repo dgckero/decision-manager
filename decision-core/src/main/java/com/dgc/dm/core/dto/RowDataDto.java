@@ -17,7 +17,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Data
-public class RowDataDto<T> extends AuditableDto<T> implements Serializable {
-    private T rowId;
+public class RowDataDto extends AuditableDto<String> implements Serializable {
+    private static final long serialVersionUID = 6945445488400565743L;
+    private int rowId;
     private ProjectDto project;
 }

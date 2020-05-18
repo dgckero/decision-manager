@@ -184,7 +184,7 @@ section.section-main-result {
     margin-top: -4px;
 }
 
-.dgc-mt-m05{
+.dgc-mt-m05 {
     margin-top: -0.5rem !important;
 }
 
@@ -204,13 +204,14 @@ section.section-main-result {
     margin-top: -16px;
 }
 
-.dgc-ml-20{
+.dgc-ml-20 {
     margin-left: 20px;
 }
 
-.dgc-ml-30{
+.dgc-ml-30 {
     margin-left: 30px;
 }
+
 /* Edit project */
 
 .fieldset-border {
@@ -366,10 +367,9 @@ aside a#topInfolinkedin {
     height: 128px;
 }
 
-
 #topbarInfoBuilt {
     background: rgba(238, 238, 238, 0.7);
-    height: 97px;
+    height: 90px;
 }
 
 #topbarInfoBuilt aside a {
@@ -481,11 +481,6 @@ div #leftMenu {
 .wrapper {
     display: flex;
     width: 100%;
-    align-items: stretch;
-}
-
-.wrapper {
-    display: flex;
     align-items: stretch;
 }
 

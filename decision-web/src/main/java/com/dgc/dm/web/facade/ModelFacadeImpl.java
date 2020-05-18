@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
-import org.sqlite.SQLiteException;
 
 import java.io.IOException;
 import java.util.*;
@@ -30,6 +29,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
     public static final String PROJECT_IS_NULL = "Project is null";
     public static final String NO_FILTERS_FOUND = "No filters found";
+    public static final String DATABASE_ERROR = "Error accediendo a la base de datos, por favor póngase en contacto en el administrador";
 
     private final BPMNServer bpmnServer;
 
@@ -286,7 +286,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      * @return list of projects
      */
     @Override
-    public final List<Map<String, Object>> getProjects() throws SQLiteException {
+    public final List<Map<String, Object>> getProjects() {
         List<Map<String, Object>> result = null;
         log.info("[INIT] Getting projects ");
         final List<Map<String, Object>> projects = this.getProjectService().getProjects();
@@ -437,7 +437,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.error(NO_FILTERS_FOUND);
             modelAndView.getModel().put("message", NO_FILTERS_FOUND);
         } else {
-            log.error("Found {} filters", filters.size());
+            log.info("Found {} filters", filters.size());
             modelAndView.addAllObjects(filters);
             modelAndView.addObject("form", this.getFilterCreationDto(project, filters.get("filterList")));
             modelAndView.addObject("contactFilter", this.getContactFilter(project));
@@ -478,13 +478,9 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     public Map<String, List<Map<String, Object>>> getExistingProjects() {
         log.info("[INIT] getExistingProjects");
         Map<String, List<Map<String, Object>>> modelMap = null;
-        List<Map<String, Object>> projects;
-        try {
-            projects = this.getProjects();
-        } catch (final SQLiteException exception) {
-            exception.printStackTrace();
-            throw new DecisionException("Error accediendo a la base de datos, por favor póngase en contacto en el administrador");
-        }
+
+        List<Map<String, Object>> projects = this.getProjects();
+
         if (null == projects) {
             log.warn("No projects founds");
         } else {

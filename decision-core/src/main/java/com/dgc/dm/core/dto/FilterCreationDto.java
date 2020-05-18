@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class FilterCreationDto implements Serializable {
 
+    private static final long serialVersionUID = -5281911749000764925L;
     private List<FilterDto> filters;
 
 }

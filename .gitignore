@@ -24,3 +24,7 @@
 /target/
 /lib/
 /${tomcat_home}/
+/decision-web/logs/
+/decision-core/logs/
+/decision-web/${env.CATALINA_HOME}/
+/decision-manager-coverage/target/

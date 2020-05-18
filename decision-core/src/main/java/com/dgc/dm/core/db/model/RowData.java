@@ -22,6 +22,7 @@ import java.io.Serializable;
 @Table(name = "Data")
 @Entity
 public class RowData extends Auditable<String> implements Serializable {
+    private static final long serialVersionUID = -142742773753488072L;
     @Id
     @Column(name = "rowId", updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)

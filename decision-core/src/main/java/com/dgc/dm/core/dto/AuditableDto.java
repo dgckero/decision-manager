@@ -16,6 +16,7 @@ import java.io.Serializable;
 @Data
 @SuperBuilder(toBuilder = true)
 public class AuditableDto<U> implements Serializable {
+    private static final long serialVersionUID = 8559179058473875292L;
     private String dataCreationDate;
 
     private String lastUpdatedDate;

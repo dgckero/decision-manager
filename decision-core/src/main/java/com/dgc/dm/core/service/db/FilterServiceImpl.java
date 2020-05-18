@@ -26,8 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FilterServiceImpl extends CommonServer implements FilterService {
 
     @Autowired
-    private
-    FilterDao filterDao;
+    private FilterDao filterDao;
 
     /**
      * Create FILTERS table, set contactFilter to true and persist filterList into FILTERS table
@@ -37,7 +36,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void persistFilterList (List<FilterDto> filterList, ProjectDto project) {
+    public void persistFilterList(List<FilterDto> filterList, ProjectDto project) {
         log.info("[INIT] persistFilterList filterList: {}, project: {}", filterList, project);
 
         filterDao.createFilterTable(getModelMapper().map(project, Project.class));
@@ -58,9 +57,8 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * Set true on contact filter that contains Email information
      *
      * @param filterList
-     * @return filterList having contact filter updated
      */
-    private List<Filter> markContactFilter (List<Filter> filterList) {
+    private void markContactFilter(List<Filter> filterList) {
         log.debug("[INIT] markContactFilter filterList: {}", filterList);
         AtomicInteger itemNumber = new AtomicInteger();
         filterList.stream()
@@ -80,7 +78,6 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
                                 )
                 );
         log.debug("[END] markContactFilter filterList: {}", filterList);
-        return filterList;
     }
 
     /**
@@ -89,7 +86,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return all filters
      */
     @Override
-    public List<Map<String, Object>> getFilters ( ) {
+    public List<Map<String, Object>> getFilters() {
         log.debug("[INIT] Getting All filters");
         List<Map<String, Object>> filters = filterDao.getFilters();
         log.debug("[END] Found " + filters.size() + " filters");
@@ -103,7 +100,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return project's filters
      */
     @Override
-    public List<Map<String, Object>> getFilters (ProjectDto project) {
+    public List<Map<String, Object>> getFilters(ProjectDto project) {
         log.debug("[INIT] Getting filters for project " + project);
         List<Map<String, Object>> filters = filterDao.getFilters(getModelMapper().map(project, Project.class));
         log.debug("[END] Found " + filters.size() + " filters for project " + project);
@@ -117,7 +114,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void updateFilters (List<FilterDto> filters) {
+    public void updateFilters(List<FilterDto> filters) {
         log.debug("[INIT] Updating " + filters.size() + " filters ");
         filterDao.updateFilters(getModelMapper().map(filters, (new TypeToken<List<Filter>>() {
         }.getType())));
@@ -131,7 +128,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return
      */
     @Override
-    public FilterDto getContactFilter (ProjectDto project) {
+    public FilterDto getContactFilter(ProjectDto project) {
         log.debug("[INIT] getContactFilter for project " + project);
         FilterDto result;
 
