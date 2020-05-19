@@ -85,6 +85,12 @@
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>${system-rules.version}</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -255,6 +261,7 @@
         <!-- test dependencies -->
         <mockito.version>3.3.3</mockito.version>
         <junit-jupiter.version>5.7.0-M1</junit-jupiter.version>
+        <system-rules.version>1.19.0</system-rules.version>
 
         <!-- email dependencies -->
         <javax.mail.version>1.4.7</javax.mail.version>

@@ -1,7 +1,6 @@
 package com.dgc.dm.web.controller;
 
 import com.dgc.dm.core.exception.DecisionException;
-import com.dgc.dm.web.configuration.ApplicationConfiguration;
 import com.dgc.dm.web.facade.ExcelFacade;
 import com.dgc.dm.web.facade.ModelFacade;
 import org.apache.catalina.connector.ClientAbortException;
@@ -21,6 +20,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 class CommonControllerTest {
 
+    private static final long MAX_UPLOAD_SIZE = 5242880L;
     @Mock
     private ExcelFacade mockExcelFacade;
     @Mock
@@ -49,7 +49,7 @@ class CommonControllerTest {
     @Test
     void testResolveException_MaxUploadSizeExceededException() {
         // Setup
-        final MaxUploadSizeExceededException exception = new MaxUploadSizeExceededException(ApplicationConfiguration.MAX_UPLOAD_SIZE);
+        final MaxUploadSizeExceededException exception = new MaxUploadSizeExceededException(MAX_UPLOAD_SIZE);
 
         // Run the test
         final ModelAndView result = commonControllerUnderTest.resolveException(null, null, "object", exception);

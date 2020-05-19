@@ -5,7 +5,6 @@
 package com.dgc.dm.web.controller;
 
 import com.dgc.dm.core.exception.DecisionException;
-import com.dgc.dm.web.configuration.ApplicationConfiguration;
 import com.dgc.dm.web.facade.ExcelFacade;
 import com.dgc.dm.web.facade.ModelFacade;
 import lombok.AccessLevel;
@@ -42,7 +41,7 @@ class CommonController implements HandlerExceptionResolver {
     protected static final String NEW_PROJECT_VIEW = "newProject";
     protected static final String MODEL_MESSAGE = "message";
     protected static final String INFORMATION_VIEW = "information";
-    public static final String MAX_UPLOAD_SIZE_EXCEEDED = "El fichero a procesar es demasiado grande, el tamaño máximo es: " + ApplicationConfiguration.MAX_UPLOAD_SIZE;
+    public static final String MAX_UPLOAD_SIZE_EXCEEDED = "El fichero a procesar es demasiado grande, por favor consulte con el administrador";
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -59,7 +58,7 @@ class CommonController implements HandlerExceptionResolver {
      * @param binder
      */
     @InitBinder
-    protected final void initBinder (ServletRequestDataBinder binder) {
+    protected final void initBinder(ServletRequestDataBinder binder) {
         log.debug("[INIT] initBinder registering custom property editor for byte[] and Date");
         binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
         binder.registerCustomEditor(Date.class, new CustomDateEditor(format, true));
@@ -76,8 +75,8 @@ class CommonController implements HandlerExceptionResolver {
      * @return error view
      */
     @Override
-    public final ModelAndView resolveException (HttpServletRequest request, HttpServletResponse response,
-                                                Object object, Exception exception) {
+    public final ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
+                                               Object object, Exception exception) {
         log.debug("[INIT] handleError exception: {}", exception.getMessage());
         ModelAndView modelAndView = new ModelAndView(ERROR_VIEW);
 
@@ -97,7 +96,7 @@ class CommonController implements HandlerExceptionResolver {
             }
             modelAndView.getModel().put(MODEL_MESSAGE, exception.getMessage());
         }
-        log.debug("[END] resolveException exception: {}",exception.getMessage());
+        log.debug("[END] resolveException exception: {}", exception.getMessage());
         return modelAndView;
     }
 

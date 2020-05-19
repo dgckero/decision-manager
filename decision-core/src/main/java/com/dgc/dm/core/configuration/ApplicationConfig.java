@@ -239,7 +239,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @param property
      * @return property value
      */
-    private String getPropertyValue(String property) {
+    public String getPropertyValue(String property) {
         log.debug("[INIT] getPropertyValue: {}", property);
         String propertyVal;
         if (PropertyValueEncryptionUtils.isEncryptedValue(property)) {

@@ -29,6 +29,9 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
     public static final String PROJECT_IS_NULL = "Project is null";
     public static final String NO_FILTERS_FOUND = "No filters found";
+    public static final String CONTACT_FILTER = "contactFilter";
+    public static final String FILTER_ACTIVE = "active";
+    public static final String FILTER_VALUE = "value";
 
     private final BPMNServer bpmnServer;
 
@@ -66,10 +69,10 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
                         id((Integer) filterIterator.get("ID")).
                         name(filterName).
                         filterClass((String) filterIterator.get("class")).
-                        contactFilter(null != filterIterator.get("contactFilter") && (filterIterator.get("contactFilter").equals(ACTIVE_FILTER))).
+                        contactFilter(null != filterIterator.get(CONTACT_FILTER) && (filterIterator.get(CONTACT_FILTER).equals(ACTIVE_FILTER))).
                         project(project).
-                        active(null != filterIterator.get("active") && (filterIterator.get("active").equals(ACTIVE_FILTER))).
-                        value(null == filterIterator.get("value") ? null : (String) filterIterator.get("value")).
+                        active(null != filterIterator.get(FILTER_ACTIVE) && (filterIterator.get(FILTER_ACTIVE).equals(ACTIVE_FILTER))).
+                        value(null == filterIterator.get(FILTER_VALUE) ? null : (String) filterIterator.get(FILTER_VALUE)).
                         build();
                 filterDtoList.add(filter);
                 log.debug("Added filter {}", filter);
@@ -424,7 +427,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.info("Found {} filters", filters.size());
             modelAndView.addAllObjects(filters);
             modelAndView.addObject("form", this.getFilterCreationDto(project, filters.get("filterList")));
-            modelAndView.addObject("contactFilter", this.getContactFilter(project));
+            modelAndView.addObject(CONTACT_FILTER, this.getContactFilter(project));
         }
         log.debug("[END] addFilterInformationToModel for project: {}", project);
     }

@@ -33,7 +33,7 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     /**
      * Maximum allowed size (in bytes) before an upload gets rejected.
      */
-    public static final long MAX_UPLOAD_SIZE = 5242880L;
+    private static final long MAX_UPLOAD_SIZE = 5242880L;
 
     /**
      * Spanish locale
