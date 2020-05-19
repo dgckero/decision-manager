@@ -6,7 +6,6 @@ package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +79,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return all projects
      */
     @Override
-    public List<Map<String, Object>> getProjects() throws UncategorizedSQLException {
+    public List<Map<String, Object>> getProjects() {
         List<Map<String, Object>> result = null;
         log.debug("[INIT] Getting projects ");
         final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");

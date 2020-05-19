@@ -25,11 +25,10 @@ import java.util.stream.Stream;
 @Service
 class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
-    private static final Integer CONTACT_FILTER = 1;
+    private static final Integer ACTIVE_FILTER = 1;
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
     public static final String PROJECT_IS_NULL = "Project is null";
     public static final String NO_FILTERS_FOUND = "No filters found";
-    public static final String DATABASE_ERROR = "Error accediendo a la base de datos, por favor póngase en contacto en el administrador";
 
     private final BPMNServer bpmnServer;
 
@@ -50,44 +49,35 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
      * @return List of filterDto
      */
     private static List<FilterDto> getFilterListByModelMap(final Collection<Map<String, Object>> filterList, final ProjectDto project) {
-        List<FilterDto> result = null;
         log.debug("[INIT] getFilterListByModelMap by project: {}", project);
-        if (null == project) {
-            log.warn("Project is NULL, not possible to parse List<Map<String,Object>> to List<FilterDto>");
-        } else if (null == filterList || filterList.isEmpty()) {
-            log.warn("FilterList is empty, not possible to parse List<Map<String,Object>> to List<FilterDto>");
-        } else {
-            log.debug("Parsing List<Map<String,Object>> to List<FilterDto>");
 
-            final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
-            final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
-            while (entryIterator.hasNext()) {
-                final Map<String, Object> filterIterator = entryIterator.next();
+        final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
+        final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
+        while (entryIterator.hasNext()) {
+            final Map<String, Object> filterIterator = entryIterator.next();
 
-                final String filterName = (String) filterIterator.get("name");
-                if (OMITTED_DATA.contains(filterName)) {
-                    // Don't send to decision view
-                    entryIterator.remove();
-                    log.debug("Removed filter " + filterName + " from filterList");
-                } else {
-                    final FilterDto filter = FilterDto.builder().
-                            id((Integer) filterIterator.get("ID")).
-                            name(filterName).
-                            filterClass((String) filterIterator.get("class")).
-                            contactFilter(filterIterator.get("contactFilter").equals(CONTACT_FILTER)).
-                            project(project).
-                            active(null != filterIterator.get("active") && (filterIterator.get("active").equals(1))).
-                            value(null == filterIterator.get("value") ? null : (String) filterIterator.get("value")).
-                            build();
-                    filterDtoList.add(filter);
-                    log.debug("Added filter {}", filter);
-                }
+            final String filterName = (String) filterIterator.get("name");
+            if (OMITTED_DATA.contains(filterName)) {
+                // Don't send to decision view
+                entryIterator.remove();
+                log.debug("Removed filter " + filterName + " from filterList");
+            } else {
+                final FilterDto filter = FilterDto.builder().
+                        id((Integer) filterIterator.get("ID")).
+                        name(filterName).
+                        filterClass((String) filterIterator.get("class")).
+                        contactFilter(null != filterIterator.get("contactFilter") && (filterIterator.get("contactFilter").equals(ACTIVE_FILTER))).
+                        project(project).
+                        active(null != filterIterator.get("active") && (filterIterator.get("active").equals(ACTIVE_FILTER))).
+                        value(null == filterIterator.get("value") ? null : (String) filterIterator.get("value")).
+                        build();
+                filterDtoList.add(filter);
+                log.debug("Added filter {}", filter);
             }
-            log.debug("Generated List<filterDto>");
-            result = filterDtoList;
         }
+
         log.debug("[END] getFilterListByModelMap by project: {}", project);
-        return result;
+        return filterDtoList;
     }
 
     /**
@@ -108,7 +98,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         } else {
             log.info("Generating FilterCreationDto");
             final List<FilterDto> filterDtoList = getFilterListByModelMap(filterList, project);
-            if (null == filterDtoList) {
+            if (filterDtoList.isEmpty()) {
                 log.warn("No filters found for project {}", project);
             } else {
                 log.info("Adding {} filters to FilterCreationDto", filterDtoList.size());
@@ -210,11 +200,15 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<Map<String, Object>> createDMNModel(final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws DecisionException, IOException {
         List<Map<String, Object>> res = null;
-        final ProjectDto project = filters.get(0).getProject();
-        if (null == project) {
-            log.warn("No project found on filters ");
+        if (null == filters || filters.isEmpty()) {
+            log.error("No filters found to be updated");
         } else {
-            res = this.createDMNModel(project, filters, emailTemplate, sendEmail);
+            final ProjectDto project = filters.get(0).getProject();
+            if (null == project) {
+                log.error("No project found on filters ");
+            } else {
+                res = this.createDMNModel(project, filters, emailTemplate, sendEmail);
+            }
         }
         log.info("[END] Creating and running Decision Table");
         return res;
@@ -233,28 +227,18 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public List<Map<String, Object>> createDMNModel(final ProjectDto project, final List<FilterDto> filters, final String emailTemplate, final Boolean sendEmail) throws IOException {
-        final List<Map<String, Object>> res;
         log.info("[INIT] Creating and running Decision Table");
 
-        if (null == project) {
-            log.warn("No project found on filters ");
-            res = null;
-        } else {
-            log.info("Updating active filters on data base");
-            this.updateFilters(filters);
+        this.updateFilters(filters);
+        log.debug("Send Email enabled? {}", sendEmail);
+        project.setEmailTemplate(emailTemplate);
 
-            log.debug("Send Email enabled? {}", sendEmail);
-            project.setEmailTemplate(emailTemplate);
+        final List<Map<String, Object>> result = this.bpmnServer.createAndRunDMN(project, getActiveFilters(filters), sendEmail);
+        log.info("Adding DMN file for project {}", project);
+        this.updateProject(project);
 
-            final List<Map<String, Object>> result = this.bpmnServer.createAndRunDMN(project, getActiveFilters(filters), sendEmail);
-
-            log.info("Adding DMN file for project {}", project);
-            this.updateProject(project);
-
-            res = result;
-        }
         log.info("[END] Creating and running Decision Table");
-        return res;
+        return result;
     }
 
     /**
@@ -290,12 +274,12 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         List<Map<String, Object>> result = null;
         log.info("[INIT] Getting projects ");
         final List<Map<String, Object>> projects = this.getProjectService().getProjects();
-        if (projects.isEmpty()) {
-            log.info("No project founds");
+        if (null == projects || projects.isEmpty()) {
+            log.info("[END] No project founds");
         } else {
             result = projects;
+            log.info("[END] Got {} projects", projects.size());
         }
-        log.info("[END] Got {} projects", projects.size());
         return result;
     }
 

@@ -5,21 +5,20 @@
 package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
-import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ProjectDao {
 
-    Project createProject (String projectName);
+    Project createProject(String projectName);
 
-    void updateProject (Project project);
+    void updateProject(Project project);
 
-    List<Map<String, Object>> getProjects ( ) throws UncategorizedSQLException;
+    List<Map<String, Object>> getProjects();
 
-    Project getProject (Integer selectedProjectId);
+    Project getProject(Integer selectedProjectId);
 
-    void deleteProject (Project project);
+    void deleteProject(Project project);
 
 }
