@@ -271,11 +271,11 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
     @Override
     public final ModelAndView editDmn(@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile) {
         log.info("[INIT] editDmn for projectId: {}", id);
-        ProjectDto project = this.getProjectById(id);
         if (dmnFile.isEmpty()) {
             log.error("No DMN file attached");
             throw new DecisionException("Debe añadir un fichero con la tabla de decisión");
         } else {
+            ProjectDto project = this.getProjectById(id);
             ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
             try {
                 log.info("Validating DMN file {} for project {}", dmnFile.getOriginalFilename(), project);

@@ -12,10 +12,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,6 +37,8 @@ class RowDataDaoImplTest {
     @InjectMocks
     private RowDataDaoImpl rowDataDaoImplUnderTest;
 
+    final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
+
     @BeforeEach
     void setUp() {
         initMocks(this);
@@ -49,8 +48,28 @@ class RowDataDaoImplTest {
     @Test
     void testCreateRowDataTable() {
         // Setup
+        final Map<String, Class<?>> columns = new HashMap<String, Class<?>>() {
+            {
+                put("fechaColumn", Date.class);
+                put("stringColumn", String.class);
+                put("numberColumn", Integer.class);
+                put(null, String.class);
+            }
+        };
+
+        when(mockSession.createSQLQuery(any())).thenReturn(mockNativeQuery);
+        when(mockNativeQuery.executeUpdate()).thenReturn(1);
+
+        // Run the test
+        rowDataDaoImplUnderTest.createRowDataTable(columns, project);
+        // Verify the results
+        assertTrue(true);
+    }
+
+    @Test
+    void testCreateRowDataTable_emptyColumns() {
+        // Setup
         final Map<String, Class<?>> columns = new HashMap<>();
-        final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
         when(mockSession.createSQLQuery(any())).thenReturn(mockNativeQuery);
         when(mockNativeQuery.executeUpdate()).thenReturn(1);
 
@@ -65,14 +84,17 @@ class RowDataDaoImplTest {
         // Setup
         final List<Object[]> infoToBePersisted = new ArrayList<Object[]>() {
             {
-                add(new Object[]{"value"});
+                add(new Object[]{null, String.class});
+                add(new Object[]{"01-01-2001", Date.class});
+                add(new Object[]{"stringColumn", String.class});
+                add(new Object[]{1, Integer.class});
             }
         };
 
         when(mockSession.createSQLQuery(any())).thenReturn(mockNativeQuery);
         when(mockNativeQuery.executeUpdate()).thenReturn(1);
         // Run the test
-        rowDataDaoImplUnderTest.persistRowData("?", infoToBePersisted);
+        rowDataDaoImplUnderTest.persistRowData("?,?,?,?", infoToBePersisted);
 
         // Verify the results
         assertTrue(true);
@@ -81,7 +103,6 @@ class RowDataDaoImplTest {
     @Test
     void testGetRowData() {
         // Setup
-        final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
         when(mockJdbcTemplate.queryForList(any())).thenReturn(Mockito.anyList());
         // Run the test
         final List<Map<String, Object>> result = rowDataDaoImplUnderTest.getRowData(project);
@@ -93,7 +114,6 @@ class RowDataDaoImplTest {
     @Test
     void testDeleteRowData() {
         // Setup
-        final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
         when(mockSession.createSQLQuery(any())).thenReturn(mockNativeQuery);
         when(mockNativeQuery.executeUpdate()).thenReturn(1);
         // Run the test
@@ -106,7 +126,6 @@ class RowDataDaoImplTest {
     @Test
     void testGetRowDataSize() {
         // Setup
-        final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
         when(mockJdbcTemplate.queryForObject(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any())).thenReturn(new Integer(1));
         // Run the test
         final Integer result = rowDataDaoImplUnderTest.getRowDataSize(project);

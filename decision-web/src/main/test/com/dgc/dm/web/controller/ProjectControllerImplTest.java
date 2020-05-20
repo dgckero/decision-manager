@@ -35,7 +35,30 @@ class ProjectControllerImplTest {
     @InjectMocks
     private ProjectControllerImpl projectControllerImplUnderTest;
 
-    final ProjectDto projectDto = new ProjectDto(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
+    String dmnTestFile = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+            "<definitions id=\"definition-0\" name=\"definition-name\" namespace=\"http://camunda.org/schema/1.0/dmn\" xmlns=\"http://www.omg.org/spec/DMN/20151101/dmn.xsd\">\n" +
+            "  <decision id=\"decision-0\" name=\"decision-name\">\n" +
+            "    <decisionTable hitPolicy=\"COLLECT\" id=\"decisionTable-name\">\n" +
+            "      <input id=\"input_62182179-95ab-49fd-adc9-e1b7d5850153\">\n" +
+            "        <inputExpression id=\"inputExpression_name\" typeRef=\"filterclass\">\n" +
+            "          <text>name</text>\n" +
+            "        </inputExpression>\n" +
+            "      </input>\n" +
+            "      <output id=\"output1\" label=\"rule matched?\" typeRef=\"string\"/>\n" +
+            "      <rule id=\"rule_f014d999-6bb9-4b93-b3f8-1914ce4704b3\">\n" +
+            "        <inputEntry id=\"inputEntry_1feab26d-8e9b-4943-8667-7aa42faa1f92\" label=\"name\">\n" +
+            "          <text>\"value\"</text>\n" +
+            "        </inputEntry>\n" +
+            "        <outputEntry id=\"Accepted\" label=\"Accepted_sendEMail\">\n" +
+            "          <text>\"Accepted_sendEMail\"</text>\n" +
+            "        </outputEntry>\n" +
+            "      </rule>\n" +
+            "    </decisionTable>\n" +
+            "  </decision>\n" +
+            "</definitions>";
+
+    ProjectDto projectDto = new ProjectDto(0, "name", "rowDataTableName", "emailTemplate", dmnTestFile.getBytes());
+
 
     @BeforeEach
     void setUp() {
@@ -105,6 +128,23 @@ class ProjectControllerImplTest {
     }
 
     @Test
+    void testCreateProject_throwsDecisionException() throws Exception {
+        // Setup
+        String name = "file.txt";
+        String originalFileName = "file.txt";
+        String contentType = "text/plain";
+        byte[] content = "Hello World!".getBytes();
+        MultipartFile mockMultipartFile = new MockMultipartFile(name,
+                originalFileName, contentType, content);
+        when(mockExcelFacade.processExcel(mockMultipartFile, "projectName")).thenReturn(null);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.createProject("projectName", mockMultipartFile);
+        });
+    }
+
+    @Test
     void testAddInformationToProject() {
         // Setup
         String name = "file.txt";
@@ -130,6 +170,42 @@ class ProjectControllerImplTest {
         byte[] content = null;
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.addInformationToProject(0, mockMultipartFile);
+        });
+    }
+
+    @Test
+    void testAddInformationToProject_ThrowsDecisionException2() {
+        // Setup
+        String name = "file.txt";
+        String originalFileName = "file.txt";
+        String contentType = "text/plain";
+        byte[] content = "test".getBytes();
+        MultipartFile mockMultipartFile = new MockMultipartFile(name,
+                originalFileName, contentType, content);
+
+        when(mockExcelFacade.processExcel(mockMultipartFile, 0)).thenReturn(null);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.addInformationToProject(0, mockMultipartFile);
+        });
+    }
+
+    @Test
+    void testAddInformationToProject_ThrowsDecisionException3() {
+        // Setup
+        String name = "file.txt";
+        String originalFileName = "file.txt";
+        String contentType = "text/plain";
+        byte[] content = "test".getBytes();
+        MultipartFile mockMultipartFile = new MockMultipartFile(name,
+                originalFileName, contentType, content);
+
+        when(mockExcelFacade.processExcel(mockMultipartFile, 0)).thenThrow(NullPointerException.class);
 
         // Run the test
         assertThrows(DecisionException.class, () -> {
@@ -174,18 +250,6 @@ class ProjectControllerImplTest {
     }
 
     @Test
-    void testGetFilteredResults_throwsDecisionException() {
-        // Setup
-        projectDto.setDmnFile(null);
-        when(mockModelFacade.getProject(0)).thenReturn(projectDto);
-
-        // Run the test
-        assertThrows(DecisionException.class, () -> {
-            projectControllerImplUnderTest.getFilteredResults(0);
-        });
-    }
-
-    @Test
     void testGetFilteredResults() {
         // Setup
         List<Map<String, Object>> result = new ArrayList<>();
@@ -200,6 +264,31 @@ class ProjectControllerImplTest {
     }
 
     @Test
+    void testGetFilteredResults_throwsDecisionException() {
+        // Setup
+        projectDto.setDmnFile(null);
+        when(mockModelFacade.getProject(0)).thenReturn(projectDto);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.getFilteredResults(0);
+        });
+    }
+
+    @Test
+    void testGetFilteredResults_throwsDecisionException2() {
+        // Setup
+        List<Map<String, Object>> result = new ArrayList<>();
+        when(mockModelFacade.getProject(0)).thenReturn(projectDto);
+        when(mockModelFacade.executeDmn(projectDto)).thenReturn(null);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.getFilteredResults(0);
+        });
+    }
+
+    @Test
     void testGetProjectDmn_throwsDecisionException() {
         // Setup
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -209,6 +298,33 @@ class ProjectControllerImplTest {
         assertThrows(DecisionException.class, () -> {
             projectControllerImplUnderTest.getProjectDmn(0, response);
         });
+    }
+
+    @Test
+    void testEditDmn() {
+        // Setup
+        String name = "file.txt";
+        String originalFileName = "file.txt";
+        String contentType = "text/plain";
+        byte[] content = "Hello World!".getBytes();
+        MultipartFile mockMultipartFile = new MockMultipartFile(name,
+                originalFileName, contentType, content);
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            when(mockModelFacade.getProject(0)).thenReturn(projectDto);
+            doNothing().when(mockModelFacade).validateDmn(projectDto, mockMultipartFile.getBytes());
+            when(mockModelFacade.executeDmn(projectDto)).thenReturn(result);
+            doNothing().when(mockModelFacade).updateProject(projectDto);
+
+            // Run the test
+            final ModelAndView modelAndView = projectControllerImplUnderTest.editDmn(0, mockMultipartFile);
+
+            // Verify the results
+            assertTrue(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
     }
 
     @Test
@@ -237,30 +353,21 @@ class ProjectControllerImplTest {
     }
 
     @Test
-    void testEditDmn() {
+    void testEditDmn_throwsDecisionException2() {
         // Setup
         String name = "file.txt";
         String originalFileName = "file.txt";
         String contentType = "text/plain";
-        byte[] content = "Hello World!".getBytes();
+        byte[] content = null;
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
-        List<Map<String, Object>> result = new ArrayList<>();
-        try {
-            when(mockModelFacade.getProject(0)).thenReturn(projectDto);
-            doNothing().when(mockModelFacade).validateDmn(projectDto, mockMultipartFile.getBytes());
-            when(mockModelFacade.executeDmn(projectDto)).thenReturn(result);
-            doNothing().when(mockModelFacade).updateProject(projectDto);
+        when(mockModelFacade.getProject(0)).thenReturn(projectDto);
 
-            // Run the test
-            final ModelAndView modelAndView = projectControllerImplUnderTest.editDmn(0, mockMultipartFile);
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.editDmn(0, mockMultipartFile);
+        });
 
-            // Verify the results
-            assertTrue(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-            assertTrue(false);
-        }
     }
 
     @Test
@@ -327,7 +434,7 @@ class ProjectControllerImplTest {
         try {
             when(mockModelFacade.createDMNModel(form.getFilters().get(0).getProject(), form.getFilters(), null, false)).thenReturn(result);
             // Run the test
-            final ModelAndView modelAndView = projectControllerImplUnderTest.addFilters("emailTemplate", false, form, request);
+            projectControllerImplUnderTest.addFilters("emailTemplate", false, form, request);
 
             // Verify the results
             assertTrue(true);
@@ -335,6 +442,64 @@ class ProjectControllerImplTest {
             e.printStackTrace();
             assertTrue(false);
         }
+    }
+
+    @Test
+    void testAddFilters_throwsDecisionException() {
+        // Setup
+        final FilterCreationDto form = new FilterCreationDto(new ArrayList<>());
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.addFilters("emailTemplate", false, form, null);
+        });
+    }
+
+    @Test
+    void testAddFilters_throwsDecisionException2() {
+        // Setup
+        final FilterCreationDto form = new FilterCreationDto(Arrays.asList(new FilterDto(0, "name", "filterClass", "value", false, false, new ProjectDto(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes()))));
+
+        try {
+            when(mockModelFacade.createDMNModel(form.getFilters().get(0).getProject(), form.getFilters(), null, false)).thenThrow(Exception.class);
+            // Run the test
+            assertThrows(DecisionException.class, () -> {
+                projectControllerImplUnderTest.addFilters("emailTemplate", false, form, null);
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testAddFilters_throwsDecisionException3() {
+        // Setup
+        final FilterCreationDto form = new FilterCreationDto(Arrays.asList(new FilterDto(0, "name", "filterClass", "value", false, false, new ProjectDto(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes()))));
+        final HttpServletRequest request = null;
+
+        try {
+            when(mockModelFacade.createDMNModel(form.getFilters().get(0).getProject(), form.getFilters(), null, false)).thenReturn(new ArrayList<>());
+            // Run the test
+            assertThrows(DecisionException.class, () -> {
+                projectControllerImplUnderTest.addFilters("emailTemplate", false, form, request);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    void testAddFilters_throwsDecisionException4() {
+        // Setup
+        final FilterCreationDto form = new FilterCreationDto(Arrays.asList(new FilterDto(0, "name", "filterClass", "value", false, false, null)));
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            projectControllerImplUnderTest.addFilters("emailTemplate", false, form, null);
+        });
+
     }
 
     @Test

@@ -13,7 +13,7 @@ import org.springframework.jdbc.UncategorizedSQLException;
 import org.sqlite.SQLiteErrorCode;
 
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,21 +80,57 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void testGetProjects() throws Exception {
+    void testGetProjects() {
         // Setup
-        when(mockProjectDao.getProjects()).thenReturn(Arrays.asList(new HashMap<>()));
+        List<Map<String, Object>> projects = new ArrayList<Map<String, Object>>() {
+            {
+                add(
+                        new HashMap<String, Object>() {
+                            {
+                                put("projectA", projectDto);
+                            }
+                        }
+                );
+            }
+        };
+        when(mockProjectDao.getProjects()).thenReturn(projects);
 
         // Run the test
         final List<Map<String, Object>> result = projectServiceImplUnderTest.getProjects();
 
         // Verify the results
-        assertTrue(true);
+        assertNotNull(result);
     }
 
     @Test
-    void testGetProjects_ProjectDaoThrowsUncategorizedSQLException() {
+    void testGetProjects_notFound() {
         // Setup
-        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Erroor", "Erroor", SQLiteErrorCode.SQLITE_INTERNAL.code));
+        when(mockProjectDao.getProjects()).thenReturn(new ArrayList<>());
+
+        // Run the test
+        final List<Map<String, Object>> result = projectServiceImplUnderTest.getProjects();
+
+        // Verify the results
+        assertNull(result);
+    }
+
+    @Test
+    void testGetProjects_ProjectDaoThrowsUncategorizedSQLException_SQLITE_ERROR() {
+        // Setup
+        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Erroor", "Erroor", SQLiteErrorCode.SQLITE_ERROR.code));
+        when(mockProjectDao.getProjects()).thenThrow(ex);
+
+        // Run the test
+        final List<Map<String, Object>> result = projectServiceImplUnderTest.getProjects();
+
+        // Verify the results
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetProjects_ProjectDaoThrowsUncategorizedSQLException_NO_SQLITE_ERROR() {
+        // Setup
+        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Erroor", "Erroor", SQLiteErrorCode.SQLITE_LOCKED.code));
         when(mockProjectDao.getProjects()).thenThrow(ex);
 
         assertThrows(UncategorizedSQLException.class, () -> {
@@ -113,6 +149,19 @@ class ProjectServiceImplTest {
 
         // Verify the results
         assertEquals(projectDto, result);
+    }
+
+    @Test
+    void testGetProject_noProjectFound() {
+        // Setup
+        when(mockProjectDao.getProject(0)).thenReturn(null);
+        when(mockModelMapper.map(projectEntity, ProjectDto.class)).thenReturn(projectDto);
+
+        // Run the test
+        final ProjectDto result = projectServiceImplUnderTest.getProject(0);
+
+        // Verify the results
+        assertNull(result);
     }
 
     @Test

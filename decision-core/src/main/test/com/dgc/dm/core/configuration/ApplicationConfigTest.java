@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 class ApplicationConfigTest {
 
     @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+    final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock
     private Environment mockEnv;
@@ -86,7 +86,7 @@ class ApplicationConfigTest {
     }
 
     @Test
-    public void testSessionFactory() {
+    void testSessionFactory() {
         // Setup
         when(mockEnv.getProperty(JDBC_DRIVER_CLASS_NAME)).thenReturn("org.sqlite.JDBC");
         when(mockEnv.getProperty(JDBC_URL)).thenReturn("jdbc:sqlite:decisiondb.sqlite");
@@ -105,7 +105,7 @@ class ApplicationConfigTest {
     }
 
     @Test
-    public void testTransactionManager() {
+    void testTransactionManager() {
         // Setup
         when(mockEnv.getProperty(JDBC_DRIVER_CLASS_NAME)).thenReturn("org.sqlite.JDBC");
         when(mockEnv.getProperty(JDBC_URL)).thenReturn("jdbc:sqlite:decisiondb.sqlite");
@@ -124,7 +124,7 @@ class ApplicationConfigTest {
     }
 
     @Test
-    public void testAnnotationDrivenTransactionManager() {
+    void testAnnotationDrivenTransactionManager() {
         // Setup
         when(mockEnv.getProperty(JDBC_DRIVER_CLASS_NAME)).thenReturn("org.sqlite.JDBC");
         when(mockEnv.getProperty(JDBC_URL)).thenReturn("jdbc:sqlite:decisiondb.sqlite");
