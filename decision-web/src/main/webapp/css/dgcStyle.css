@@ -18,6 +18,10 @@ footer {
     margin-left: 10px;
 }
 
+.license-img-style {
+    border-width: 0;
+}
+
 .dgc-inner-main {
     margin-top: -17px;
     margin-bottom: 30px;

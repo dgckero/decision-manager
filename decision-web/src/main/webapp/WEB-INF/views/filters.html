@@ -48,6 +48,14 @@
                         <legend>Seleccione los filtros de la decisión</legend>
 
                         <table>
+                            <caption></caption>
+                            <thead>
+                            <tr>
+                                <th:block th:each="item, itemStat : ${filterList}">
+                                    <th id="${item.index}" th:text="${mapKeys}"></th>
+                                </th:block>
+                            </tr>
+                            </thead>
                             <th:block th:each="item, itemStat : ${filterList}">
                                 <tr>
                                     <td>

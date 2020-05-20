@@ -67,8 +67,8 @@
                                             <include name="jacoco.exec" />
                                         </fileset>
                                     </executiondata>
-                                    <structure name="jacoco-multi Coverage Project">
-                                        <group name="jacoco-multi">
+                                    <structure name="Decision-Manager Coverage Project">
+                                        <group name="Decision-Manager">
                                             <classfiles>
                                                 <fileset dir="${classes.directory.decision-core}" />
                                                 <fileset dir="${classes.directory.decision-web}" />
