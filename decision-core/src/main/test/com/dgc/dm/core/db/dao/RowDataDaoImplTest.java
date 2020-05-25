@@ -11,11 +11,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -103,12 +103,13 @@ class RowDataDaoImplTest {
     @Test
     void testGetRowData() {
         // Setup
-        when(mockJdbcTemplate.queryForList(any())).thenReturn(Mockito.anyList());
+        when(mockJdbcTemplate.queryForList("Select * from " + project.getRowDataTableName() + " where project=:projectId", new MapSqlParameterSource()
+                .addValue("projectId", project.getId()))).thenReturn(new ArrayList<>());
         // Run the test
         final List<Map<String, Object>> result = rowDataDaoImplUnderTest.getRowData(project);
 
         // Verify the results
-        assertTrue(true);
+        assertNotNull(result);
     }
 
     @Test

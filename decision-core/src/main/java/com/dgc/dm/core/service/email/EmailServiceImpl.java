@@ -81,7 +81,6 @@ public class EmailServiceImpl implements EmailService {
                 this.javaMailSender.send(mail);
             } catch (MailException e) {
                 log.error("Exception occur while send a mail : ", e);
-                e.printStackTrace();
             }
         });
         log.debug("[END] sendAsynchronousMail");

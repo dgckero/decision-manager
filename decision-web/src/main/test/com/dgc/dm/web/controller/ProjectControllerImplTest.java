@@ -112,13 +112,24 @@ class ProjectControllerImplTest {
     @Test
     void testCreateProject() throws Exception {
         // Setup
+        List<Map<String, Object>> projectFilters = new ArrayList<Map<String, Object>>() {
+            {
+                add(new HashMap<String, Object>() {{
+                    put("test", "test");
+                }});
+            }
+        };
         String name = "file.txt";
         String originalFileName = "file.txt";
         String contentType = "text/plain";
         byte[] content = "Hello World!".getBytes();
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
-        when(mockExcelFacade.processExcel(mockMultipartFile, "projectName")).thenReturn(projectDto);
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = "testInsertSentence";
+        when(mockModelFacade.createProjectModel("projectName", new HashMap<>())).thenReturn(projectDto);
+
+        when(mockExcelFacade.processExcel(mockMultipartFile, projectDto, infoToBePersisted)).thenReturn(insertSentence);
 
         // Run the test
         final ModelAndView result = projectControllerImplUnderTest.createProject("projectName", mockMultipartFile);
@@ -136,7 +147,9 @@ class ProjectControllerImplTest {
         byte[] content = "Hello World!".getBytes();
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
-        when(mockExcelFacade.processExcel(mockMultipartFile, "projectName")).thenReturn(null);
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = "testInsertSentence";
+        when(mockExcelFacade.processExcel(mockMultipartFile, projectDto, infoToBePersisted)).thenReturn(insertSentence);
 
         // Run the test
         assertThrows(DecisionException.class, () -> {
@@ -153,7 +166,14 @@ class ProjectControllerImplTest {
         byte[] content = "Hello World!".getBytes();
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
-        when(mockExcelFacade.processExcel(mockMultipartFile, 0)).thenReturn(projectDto);
+
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = "testInsertSentence";
+        List<Map<String, Object>> projectFilters = new ArrayList<>();
+
+        when(mockModelFacade.getProject(0)).thenReturn(projectDto);
+        when(mockExcelFacade.addInformationToProject(mockMultipartFile, projectDto, 0, projectFilters, infoToBePersisted)).thenReturn(insertSentence);
+
         // Run the test
         final ModelAndView result = projectControllerImplUnderTest.addInformationToProject(0, mockMultipartFile);
 
@@ -187,7 +207,10 @@ class ProjectControllerImplTest {
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
 
-        when(mockExcelFacade.processExcel(mockMultipartFile, 0)).thenReturn(null);
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = "testInsertSentence";
+        List<Map<String, Object>> projectFilters = new ArrayList<>();
+        when(mockExcelFacade.addInformationToProject(mockMultipartFile, projectDto, 0, projectFilters, infoToBePersisted)).thenReturn(null);
 
         // Run the test
         assertThrows(DecisionException.class, () -> {
@@ -205,7 +228,10 @@ class ProjectControllerImplTest {
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
 
-        when(mockExcelFacade.processExcel(mockMultipartFile, 0)).thenThrow(NullPointerException.class);
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = "testInsertSentence";
+        List<Map<String, Object>> projectFilters = new ArrayList<>();
+        when(mockExcelFacade.addInformationToProject(mockMultipartFile, projectDto, 0, projectFilters, infoToBePersisted)).thenThrow(NullPointerException.class);
 
         // Run the test
         assertThrows(DecisionException.class, () -> {

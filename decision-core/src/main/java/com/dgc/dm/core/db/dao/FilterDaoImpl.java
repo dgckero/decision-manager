@@ -8,6 +8,7 @@ import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,7 +111,11 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     @Override
     public final List<Map<String, Object>> getFilters(final Project project) {
         log.debug("[INIT] Getting Filters by project {}", project);
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS where project=" + project.getId());
+        final List<Map<String, Object>> filters =
+                this.getJdbcTemplate().queryForList("Select * from FILTERS where project =:projectId",
+                        new MapSqlParameterSource()
+                                .addValue("projectId", project.getId()));
+
         log.debug("[END] Got filters");
         return filters;
     }

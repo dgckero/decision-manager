@@ -9,20 +9,15 @@ import com.dgc.dm.core.service.db.RowDataService;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.hibernate.exception.GenericJDBCException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import org.sqlite.SQLiteErrorCode;
-import org.sqlite.SQLiteException;
 
-import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,9 +47,11 @@ class ExcelFacadeImplTest {
             "originalFileName", "contentType", "Hello World!".getBytes());
     final Map<String, Class<?>> columns = new HashMap<String, Class<?>>() {
         {
-            put("fechaColumn", Date.class);
+            put(new Date().toString(), Date.class);
             put("stringColumn", String.class);
             put("numberColumn", Double.class);
+            put("test@test.com", String.class);
+            put(new Date().toString(), String.class);
         }
     };
 
@@ -92,16 +89,13 @@ class ExcelFacadeImplTest {
     @BeforeEach
     void setUp() {
         initMocks(this);
-        excelFacadeImplUnderTest.setProjectService(mockProjectService);
-        excelFacadeImplUnderTest.setFilterService(mockFilterService);
-        excelFacadeImplUnderTest.setRowDataService(mockRowDataService);
     }
 
     @Test
-    void testProcessExcel_throwsDecisionException() {
+    void testProcessExcel_throwsIOException() {
         // Run the test
-        assertThrows(DecisionException.class, () -> {
-            excelFacadeImplUnderTest.processExcel(mockMultipartFile, project);
+        assertThrows(IOException.class, () -> {
+            excelFacadeImplUnderTest.processExcel(mockMultipartFile, project, new ArrayList<>());
         });
     }
 
@@ -118,7 +112,7 @@ class ExcelFacadeImplTest {
             doNothing().when(mockFilterService).persistFilterList(new ArrayList<>(), project);
 
             // Run the test
-            final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, project.getName());
+            final String result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, project, new ArrayList<>());
 
             // Verify the results
             assertTrue(true);
@@ -130,38 +124,8 @@ class ExcelFacadeImplTest {
     }
 
     @Test
-    void testProcessExcel_byName_throwsDecisionException() {
+    void testAddInformationToProject() {
         // Setup
-
-        try {
-            String projectName = "name_" + Math.random();
-            project.setName(projectName);
-            MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
-                    "originalFileName", "contentType", IOUtils.toByteArray(excel.toURI()));
-
-            SQLException sqlException = new SQLiteException(null, SQLiteErrorCode.SQLITE_CONSTRAINT);
-            PersistenceException ex = new PersistenceException(null, new GenericJDBCException(null, sqlException, null));
-
-            when(mockProjectService.createProject(project.getName())).thenThrow(ex);
-            doNothing().when(mockRowDataService).createRowDataTable(columns, project);
-            doNothing().when(mockFilterService).persistFilterList(new ArrayList<>(), project);
-
-            // Run the test
-            assertThrows(DecisionException.class, () -> {
-                excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, projectName);
-            });
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            assertTrue(false);
-        }
-    }
-
-
-    @Test
-    void testProcessExcel_byProjectId() {
-        // Setup
-
         try {
             project.setName("name_" + Math.random());
             MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
@@ -169,7 +133,7 @@ class ExcelFacadeImplTest {
             when(mockProjectService.getProject(0)).thenReturn(project);
             when(mockFilterService.getFilters(project)).thenReturn(filters);
             // Run the test
-            final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, 0);
+            final String result = excelFacadeImplUnderTest.addInformationToProject(mockExcelMultipartFile, project, 0, filters, new ArrayList<>());
 
             // Verify the results
             assertTrue(true);
@@ -181,14 +145,15 @@ class ExcelFacadeImplTest {
     }
 
     @Test
-    void testProcessExcel_projectNotFound() {
+    void tesAddInformationToProject_projectNotFound() {
         try {
             // Setup
             MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
                     "originalFileName", "contentType", IOUtils.toByteArray(excel.toURI()));
             when(mockProjectService.getProject(0)).thenReturn(null);
             // Run the test
-            final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, 0);
+
+            final String result = excelFacadeImplUnderTest.addInformationToProject(mockExcelMultipartFile, null, 0, filters, new ArrayList<>());
 
             // Verify the results
             assertNull(result);
@@ -200,16 +165,19 @@ class ExcelFacadeImplTest {
     }
 
     @Test
-    void testProcessExcel_NoFiltersFound() {
+    void testAddInformationToProject_NoFiltersFound() {
         try {
             // Setup
+            List<Map<String, Object>> projectFilters = new ArrayList();
+            List<Object[]> infoToBePersisted = new ArrayList<>();
+            int rowIdNumber = 0;
             MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
                     "originalFileName", "contentType", IOUtils.toByteArray(excel.toURI()));
             when(mockProjectService.getProject(0)).thenReturn(project);
             when(mockFilterService.getFilters(project)).thenReturn(null);
             // Run the test
             assertThrows(DecisionException.class, () -> {
-                final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, 0);
+                excelFacadeImplUnderTest.addInformationToProject(mockExcelMultipartFile, project, rowIdNumber, projectFilters, infoToBePersisted);
             });
 
         } catch (IOException e) {
@@ -219,7 +187,7 @@ class ExcelFacadeImplTest {
     }
 
     @Test
-    void testProcessExcel_NoSameColumnNumbers() {
+    void testAddInformationToProject_NoSameColumnNumbers() {
         try {
             // Setup
             List<Map<String, Object>> oneFilter = new ArrayList<Map<String, Object>>() {
@@ -229,6 +197,9 @@ class ExcelFacadeImplTest {
                     }});
                 }
             };
+            List<Map<String, Object>> projectFilters = new ArrayList();
+            List<Object[]> infoToBePersisted = new ArrayList<>();
+            int rowIdNumber = 0;
 
             MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
                     "originalFileName", "contentType", IOUtils.toByteArray(excel.toURI()));
@@ -236,7 +207,7 @@ class ExcelFacadeImplTest {
             when(mockFilterService.getFilters(project)).thenReturn(oneFilter);
             // Run the test
             assertThrows(DecisionException.class, () -> {
-                final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockExcelMultipartFile, 0);
+                excelFacadeImplUnderTest.addInformationToProject(mockExcelMultipartFile, project, rowIdNumber, projectFilters, infoToBePersisted);
             });
 
         } catch (IOException e) {
@@ -246,45 +217,45 @@ class ExcelFacadeImplTest {
     }
 
     @Test
-    void testProcessExcel_throwsDecisionException2() {
-
-        // Setup
-        when(mockProjectService.getProject(0)).thenReturn(project);
-        when(mockFilterService.getFilters(project)).thenReturn(filters);
-        // Run the test
-
-        assertThrows(DecisionException.class, () -> {
-            final ProjectDto result = excelFacadeImplUnderTest.processExcel(mockEmptyMultipartFile, 0);
-        });
-
-    }
-
-    @Test
-    void testCreateProjectModel() {
-        // Setup
-        when(mockProjectService.createProject("name")).thenReturn(project);
-        doNothing().when(mockRowDataService).createRowDataTable(columns, project);
-        doNothing().when(mockFilterService).persistFilterList(new ArrayList<>(), project);
-
-        // Run the test
-        final ProjectDto result = excelFacadeImplUnderTest.createProjectModel("name", columns);
-
-        // Verify the results
-        assertEquals(project, result);
-    }
-
-    @Test
     void testProcessExcelRows() {
         // Setup
         when(mockWorksheet.getPhysicalNumberOfRows()).thenReturn(2);
         when(mockWorksheet.getRow(2)).thenReturn(mockRow);
         project.setName("name_" + Math.random());
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        int rowIdNumber = 0;
 
         // Run the test
-        excelFacadeImplUnderTest.processExcelRows(mockWorksheet, columns, project, 0);
+        excelFacadeImplUnderTest.processExcelRows(mockWorksheet, columns, project, rowIdNumber, infoToBePersisted);
 
         // Verify the results
         assertTrue(true);
+    }
+
+    @Test
+    void testProcessExcelRows_throwsDecisionException() {
+        // Setup
+        when(mockWorksheet.getPhysicalNumberOfRows()).thenReturn(2);
+        when(mockWorksheet.getRow(2)).thenReturn(mockRow);
+        project.setName("name_" + Math.random());
+        final Map<String, Class<?>> columns = new HashMap<String, Class<?>>() {
+            {
+                put("fechaColumn", Date.class);
+                put("stringColumn", String.class);
+                put("numberColumn", Double.class);
+                put("test@test.com", String.class);
+                put("15/04/1984", String.class);
+                put(null, null);
+                put("", String.class);
+            }
+        };
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        int rowIdNumber = 0;
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            excelFacadeImplUnderTest.processExcelRows(mockWorksheet, columns, project, rowIdNumber, infoToBePersisted);
+        });
     }
 
     @Test
@@ -299,4 +270,33 @@ class ExcelFacadeImplTest {
         assertTrue(true);
     }
 
+    @Test
+    void testCompareExcelColumnNames_throwsDecisionException() {
+        // Setup
+        List<Map<String, Object>> projectFilters = new ArrayList();
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            excelFacadeImplUnderTest.compareExcelColumnNames(mockMultipartFile, project, projectFilters);
+        });
+    }
+
+    @Test
+    void testGetExcelColumnNames() {
+        // Setup
+        Map<String, Class<?>> result = null;
+        try {
+            MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
+                    "originalFileName", "contentType", IOUtils.toByteArray(excel.toURI()));
+
+            // Run the test
+            result = excelFacadeImplUnderTest.getExcelColumnNames(mockExcelMultipartFile);
+
+            // Verify the results
+            assertNotNull(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }

@@ -6,6 +6,7 @@ package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,7 +108,11 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
     @Override
     public final List<Map<String, Object>> getRowData(Project project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
-        List<Map<String, Object>> entities = getJdbcTemplate().queryForList("Select * from " + project.getRowDataTableName() + " where project=" + project.getId());
+        List<Map<String, Object>> entities = getJdbcTemplate().
+                queryForList("Select * from " + project.getRowDataTableName() + " where project=:projectId",
+                        new MapSqlParameterSource()
+                                .addValue("projectId", project.getId())
+                );
         log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }

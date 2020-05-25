@@ -3,17 +3,22 @@ package com.dgc.dm.web.facade;
 import com.dgc.dm.core.dto.FilterCreationDto;
 import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
+import com.dgc.dm.core.exception.DecisionException;
 import com.dgc.dm.core.service.bpmn.BPMNServer;
 import com.dgc.dm.core.service.db.FilterService;
 import com.dgc.dm.core.service.db.ProjectService;
 import com.dgc.dm.core.service.db.RowDataService;
+import org.hibernate.exception.GenericJDBCException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
+import javax.persistence.PersistenceException;
 import java.util.*;
 
 import static com.dgc.dm.web.facade.ModelFacadeImpl.NO_FILTERS_FOUND;
@@ -70,9 +75,6 @@ class ModelFacadeImplTest {
     @BeforeEach
     void setUp() {
         initMocks(this);
-        modelFacadeImplUnderTest.setFilterService(mockFilterService);
-        modelFacadeImplUnderTest.setProjectService(mockProjectService);
-        modelFacadeImplUnderTest.setRowDataService(mockRowDataService);
     }
 
     @Test
@@ -520,5 +522,68 @@ class ModelFacadeImplTest {
 
         // Verify the results
         assertNull(result);
+    }
+
+    @Test
+    void testCreateProjectModel() {
+        // Setup
+        final Map<String, Class<?>> columns = new HashMap<String, Class<?>>() {
+            {
+                put(new Date().toString(), Date.class);
+                put("stringColumn", String.class);
+                put("numberColumn", Double.class);
+                put("test@test.com", String.class);
+                put(new Date().toString(), String.class);
+            }
+        };
+
+        when(mockProjectService.createProject("name")).thenReturn(project);
+        doNothing().when(mockRowDataService).createRowDataTable(columns, project);
+        doNothing().when(mockFilterService).persistFilterList(new ArrayList<>(), project);
+
+        // Run the test
+        final ProjectDto result = modelFacadeImplUnderTest.createProjectModel("name", columns);
+
+        // Verify the results
+        assertEquals(project, result);
+    }
+
+    @Test
+    void testCreateProjectModel_throwsDecisionException() {
+        // Setup
+        Map<String, Class<?>> colMapByName = new HashMap<>();
+        GenericJDBCException genException = new GenericJDBCException("Error", new SQLiteException("Error", SQLiteErrorCode.SQLITE_CONSTRAINT));
+        PersistenceException ex = new PersistenceException(genException);
+
+        when(mockProjectService.createProject("name")).thenThrow(ex);
+
+        // Run the test
+        assertThrows(DecisionException.class, () -> {
+            modelFacadeImplUnderTest.createProjectModel("name", colMapByName);
+        });
+    }
+
+    @Test
+    void testPersistRowData() {
+        // Setup
+        doNothing().when(mockRowDataService).persistRowData(null, null);
+
+        // Run the test
+        modelFacadeImplUnderTest.persistRowData(null, null);
+
+        // Verify the results
+        verify(mockRowDataService).persistRowData(null, null);
+    }
+
+    @Test
+    void testGetRowDataSize() {
+        // Setup
+        when(mockRowDataService.getRowDataSize(project)).thenReturn(0);
+
+        // Run the test
+        int result = modelFacadeImplUnderTest.getRowDataSize(project);
+
+        // Verify the results
+        assertEquals(0, result);
     }
 }

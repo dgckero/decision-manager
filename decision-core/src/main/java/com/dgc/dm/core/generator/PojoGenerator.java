@@ -136,7 +136,7 @@ public class PojoGenerator {
      * @return CMethod generated
      * @throws CannotCompileException
      */
-    private static CtMethod generateGetter(final CtClass declaringClass, final String fieldName, final Class fieldClass)
+    private static CtMethod generateGetter(final CtClass declaringClass, final String fieldName, final Class<?> fieldClass)
             throws CannotCompileException {
         log.debug("[INIT] generateGetter declaringClass: {}, fieldName: {}, fieldClass: {}", declaringClass, fieldName, fieldClass);
         final String getterName = "get" + StringUtils.capitalize(fieldName);
@@ -154,7 +154,7 @@ public class PojoGenerator {
      * @return CMethod generated
      * @throws CannotCompileException
      */
-    private static CtMethod generateSetter(final CtClass declaringClass, final String fieldName, final Class fieldClass)
+    private static CtMethod generateSetter(final CtClass declaringClass, final String fieldName, final Class<?> fieldClass)
             throws CannotCompileException {
         log.debug("[INIT] generateSetter declaringClass: {}, fieldName: {}, fieldClass: {}", declaringClass, fieldName, fieldClass);
         final String setterName = "set" + StringUtils.capitalize(fieldName);
@@ -190,7 +190,7 @@ public class PojoGenerator {
      * @param clazz
      * @return reference to CtClass
      */
-    private static CtClass resolveCtClass(final Class clazz) {
+    private static CtClass resolveCtClass(final Class<?> clazz) {
         log.debug("[INIT] resolveCtClass by clazz: {}", clazz);
         final ClassPool pool = ClassPool.getDefault();
         log.debug("[END] resolveCtClass by clazz: {}", clazz);

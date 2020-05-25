@@ -58,11 +58,11 @@ class ProjectServiceImplTest {
     void testCreateProject_ThrowsGenericJDBCException() {
         // Setup
 
-        when(mockProjectDao.createProject(projectDto.getName())).thenThrow(GenericJDBCException.class);
+        when(mockProjectDao.createProject("projectName")).thenThrow(GenericJDBCException.class);
 
         // Run the test
         assertThrows(GenericJDBCException.class, () -> {
-            projectServiceImplUnderTest.createProject(projectDto.getName());
+            projectServiceImplUnderTest.createProject("projectName");
         });
     }
 
@@ -117,7 +117,7 @@ class ProjectServiceImplTest {
     @Test
     void testGetProjects_ProjectDaoThrowsUncategorizedSQLException_SQLITE_ERROR() {
         // Setup
-        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Erroor", "Erroor", SQLiteErrorCode.SQLITE_ERROR.code));
+        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Error", "Error", SQLiteErrorCode.SQLITE_ERROR.code));
         when(mockProjectDao.getProjects()).thenThrow(ex);
 
         // Run the test
@@ -130,7 +130,7 @@ class ProjectServiceImplTest {
     @Test
     void testGetProjects_ProjectDaoThrowsUncategorizedSQLException_NO_SQLITE_ERROR() {
         // Setup
-        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Erroor", "Erroor", SQLiteErrorCode.SQLITE_LOCKED.code));
+        UncategorizedSQLException ex = new UncategorizedSQLException(null, null, new SQLException("Error", "Error", SQLiteErrorCode.SQLITE_LOCKED.code));
         when(mockProjectDao.getProjects()).thenThrow(ex);
 
         assertThrows(UncategorizedSQLException.class, () -> {

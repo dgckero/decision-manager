@@ -6,7 +6,7 @@
     <parent>
         <artifactId>decision-manager</artifactId>
         <groupId>com.dgc.dm</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -188,6 +188,15 @@
                         <goals>
                             <goal>run</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
                     </execution>
                 </executions>
             </plugin>

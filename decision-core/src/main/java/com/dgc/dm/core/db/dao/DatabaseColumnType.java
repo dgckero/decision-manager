@@ -7,13 +7,17 @@ package com.dgc.dm.core.db.dao;
  * Enum to parse java types to database types
  */
 public enum DatabaseColumnType {
+
     DATE(java.util.Date.class.getSimpleName()),
     DOUBLE(Double.class.getSimpleName()),
     EMAIL(Constants.EMAIL_TYPE),
     INTEGER(Integer.class.getSimpleName()),
     STRING(String.class.getSimpleName());
 
+    private final String simpleNameClass;
+
     DatabaseColumnType(final String simpleNameClass) {
+        this.simpleNameClass = simpleNameClass;
     }
 
     /**

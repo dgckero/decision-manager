@@ -9,12 +9,19 @@ import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
 import com.dgc.dm.core.exception.DecisionException;
 import com.dgc.dm.core.service.bpmn.BPMNServer;
+import com.dgc.dm.core.service.db.FilterService;
+import com.dgc.dm.core.service.db.ProjectService;
+import com.dgc.dm.core.service.db.RowDataService;
 import lombok.extern.log4j.Log4j2;
+import org.hibernate.exception.GenericJDBCException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
+import org.sqlite.SQLiteErrorCode;
 
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +30,7 @@ import java.util.stream.Stream;
 
 @Log4j2
 @Service
-class ModelFacadeImpl extends CommonFacade implements ModelFacade {
+class ModelFacadeImpl implements ModelFacade {
 
     private static final Integer ACTIVE_FILTER = 1;
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
@@ -35,13 +42,22 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
 
     private final BPMNServer bpmnServer;
 
+    private final RowDataService rowDataService;
+
+    private final ProjectService projectService;
+
+    private final FilterService filterService;
+
     /**
      * Initialize bpmnServer
      *
      * @param bpmnServer
      */
-    public ModelFacadeImpl(BPMNServer bpmnServer) {
+    public ModelFacadeImpl(BPMNServer bpmnServer, RowDataService rowDataService, ProjectService projectService, FilterService filterService) {
         this.bpmnServer = bpmnServer;
+        this.rowDataService = rowDataService;
+        this.projectService = projectService;
+        this.filterService = filterService;
     }
 
     /**
@@ -128,7 +144,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn("Project is NULL, not possible to get contact filter");
             result = null;
         } else {
-            result = this.getFilterService().getContactFilter(project);
+            result = filterService.getContactFilter(project);
         }
         log.debug("[INIT] getContactFilter by project: {}, result: {}", project, result);
         return result;
@@ -148,7 +164,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn("Project is NULL, not possible to get filters");
             result = null;
         } else {
-            result = this.getFilterService().getFilters(project);
+            result = filterService.getFilters(project);
         }
         log.info("[END] Getting filters for project {}", project);
         return result;
@@ -166,7 +182,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         if (null == project) {
             log.warn("Project is NULL, it won't be updated");
         } else {
-            this.getProjectService().updateProject(project);
+            projectService.updateProject(project);
         }
         log.info("[end] updateProject {}", project);
     }
@@ -184,7 +200,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn("No filters found to be updated");
         } else {
             log.info("Updating {} filters", filters.size());
-            this.getFilterService().updateFilters(filters);
+            filterService.updateFilters(filters);
             log.info("Updated {} filters successfully", filters.size());
         }
         log.info("[END] Updating filters");
@@ -276,7 +292,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     public final List<Map<String, Object>> getProjects() {
         List<Map<String, Object>> result = null;
         log.info("[INIT] Getting projects ");
-        final List<Map<String, Object>> projects = this.getProjectService().getProjects();
+        final List<Map<String, Object>> projects = projectService.getProjects();
         if (null == projects || projects.isEmpty()) {
             log.info("[END] No project founds");
         } else {
@@ -297,7 +313,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
     public ProjectDto getProject(final Integer selectedProjectId) {
         log.info("[INIT] Getting project by Id {}", selectedProjectId);
         final ProjectDto result;
-        final ProjectDto project = this.getProjectService().getProject(selectedProjectId);
+        final ProjectDto project = projectService.getProject(selectedProjectId);
         if (null == project) {
             log.warn("No project found by Id {}", selectedProjectId);
             result = null;
@@ -360,7 +376,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn(PROJECT_IS_NULL);
         } else {
             log.info("Getting all info from table: {}", project.getRowDataTableName());
-            final List<Map<String, Object>> entities = this.getRowDataService().getRowData(project);
+            final List<Map<String, Object>> entities = rowDataService.getRowData(project);
             if (null == entities || entities.isEmpty()) {
                 log.info("Not found data from project {}", project);
             } else {
@@ -385,7 +401,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn(PROJECT_IS_NULL);
         } else {
             log.info("Deleting all registers for project {}", project);
-            this.getRowDataService().deleteRowData(project);
+            rowDataService.deleteRowData(project);
             log.info("Registers successfully deleted for project {}", project);
         }
         log.info("[END] deleteRowData for project: {}", project);
@@ -404,7 +420,7 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
             log.warn(PROJECT_IS_NULL);
         } else {
             log.info("Deleting project {}", project);
-            this.getProjectService().deleteProject(project);
+            projectService.deleteProject(project);
         }
         log.info("[END] delete project :{}", project);
     }
@@ -477,5 +493,88 @@ class ModelFacadeImpl extends CommonFacade implements ModelFacade {
         }
         log.info("[END] getExistingProjects");
         return modelMap;
+    }
+
+    /**
+     * Create Project and Data tables
+     * Add Project information on Project table
+     *
+     * @param projectName
+     * @param colMapByName
+     * @return new Project
+     */
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName) {
+        log.info("[INIT] createProjectModel by projectName: {}", projectName);
+        ProjectDto project = null;
+        try {
+            project = projectService.createProject(projectName);
+            rowDataService.createRowDataTable(colMapByName, project);
+            filterService.persistFilterList(generateFilterList(colMapByName, project), project);
+        } catch (PersistenceException e) {
+            log.error("Error Creating project : {}", e.getMessage());
+            if ((e.getCause() instanceof GenericJDBCException) && ((GenericJDBCException) e.getCause()).getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
+                throw new DecisionException("Ya existe un proyecto con nombre " + projectName + ", por favor utilice un nombre diferente");
+            }
+        }
+        log.info("[END] createProjectModel project: {}", project);
+        return project;
+    }
+
+    /**
+     * Generate filter list based on project's columns
+     *
+     * @param columns
+     * @param project
+     * @return
+     */
+    private static List<FilterDto> generateFilterList(Map<String, Class<?>> columns, ProjectDto project) {
+        log.info("[INIT] generateFilterList by project: {}", project);
+
+        List<FilterDto> filterList = new ArrayList<>();
+        for (Map.Entry<String, Class<?>> column : columns.entrySet()) {
+            if (!StringUtils.isEmpty(column.getValue())) {
+                filterList.add(FilterDto.builder().
+                        name(column.getKey()).
+                        filterClass(column.getValue().getSimpleName()).
+                        active(Boolean.FALSE).
+                        contactFilter(Boolean.FALSE).
+                        project(project).
+                        build());
+            }
+        }
+        log.info("[END] generateFilterList by project: {}", project);
+        return filterList;
+    }
+
+    /**
+     * Persist row data
+     *
+     * @param insertSentence
+     * @param infoToBePersisted
+     */
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void persistRowData(String insertSentence, List<Object[]> infoToBePersisted) {
+        log.info("[INIT] persistRowData");
+
+        rowDataService.persistRowData(insertSentence, infoToBePersisted);
+
+        log.info("[END] persistRowData");
+    }
+
+    /**
+     * Get number of rows on table project.RowDataTableName
+     *
+     * @param project
+     * @return number of rows on table project.RowDataTableName
+     */
+    @Override
+    public int getRowDataSize(ProjectDto project) {
+        log.info("[INIT] getRowDataSize by project: {}", project);
+
+        int rowDataSize = rowDataService.getRowDataSize(project);
+
+        log.info("[END] persistRowData by project: {}, rowDataSize: {}", project, rowDataSize);
+        return rowDataSize;
     }
 }

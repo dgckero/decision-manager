@@ -5,14 +5,21 @@
 package com.dgc.dm.web.facade;
 
 import com.dgc.dm.core.dto.ProjectDto;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public interface ExcelFacade {
-    ProjectDto processExcel (MultipartFile file, String project) throws IOException;
+    String processExcel(MultipartFile file, ProjectDto project, List<Object[]> infoToBePersisted) throws IOException;
 
-    ProjectDto processExcel (MultipartFile file, Integer projectId);
+    String addInformationToProject(MultipartFile file, ProjectDto project, int rowIdNumber, List<Map<String, Object>> projectFilters, List<Object[]> infoToBePersisted);
 
-    void processExcel (MultipartFile file, ProjectDto project);
+    Map<String, Class<?>> getExcelColumnNames(MultipartFile file) throws IOException;
+
+    Map<String, Class<?>> compareExcelColumnNames(MultipartFile file, ProjectDto project, List<Map<String, Object>> projectFilters);
+
+    Map<String, Class<?>> compareExcelColumnNames(Sheet worksheet, MultipartFile file, ProjectDto project, List<Map<String, Object>> projectFilters);
 }

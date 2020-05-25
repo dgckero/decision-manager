@@ -11,6 +11,8 @@ import com.dgc.dm.core.exception.DecisionException;
 import com.dgc.dm.web.controller.iface.ProjectController;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +121,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView createProject(@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws IOException {
         log.info("[INIT] createProject file {} projectName {}", file.getOriginalFilename(), projectName);
 
@@ -127,11 +131,17 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         } else {
             ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
 
-            final ProjectDto project = this.getExcelFacade().processExcel(file, projectName);
+            Map<String, Class<?>> columnNames = this.getExcelFacade().getExcelColumnNames(file);
+            ProjectDto project = this.getModelFacade().createProjectModel(projectName, columnNames);
+
             if (null == project) {
                 log.error("Error creating project");
                 throw new DecisionException("No se ha podido crear el proyecto, por favor póngase en contacto con el administrador");
             } else {
+                List<Object[]> infoToBePersisted = new ArrayList<>();
+                String insertSentence = this.getExcelFacade().processExcel(file, project, infoToBePersisted);
+                this.getModelFacade().persistRowData(insertSentence, infoToBePersisted);
+
                 modelAndView.getModel().put(PROJECT_MODEL, project);
                 getModelFacade().addFilterInformationToModel(modelAndView, project);
             }
@@ -148,7 +158,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    public final ModelAndView addInformationToProject(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws DecisionException {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView addInformationToProject(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
         log.info("[INIT] adding information {} to existing projectId {}", file.getOriginalFilename(), id);
         ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
 
@@ -157,20 +168,20 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
             throw new DecisionException(EMPTY_FILE_EXCEPTION);
         } else {
             try {
-                ProjectDto project = getExcelFacade().processExcel(file, id);
-                if (null == project) {
-                    log.error("Error adding info to projectId: {}", id);
-                    throw new DecisionException(ERROR_ADDING_INFO_TO_PROJECT);
-                } else {
-                    modelAndView.getModel().put(PROJECT_MODEL, project);
-                    getModelFacade().addFilterInformationToModel(modelAndView, project);
-                    log.info("File successfully processed");
-                }
+                ProjectDto project = getProjectById(id);
+                List<Map<String, Object>> projectFilters = getModelFacade().getFilters(project);
+                getExcelFacade().compareExcelColumnNames(file, project, projectFilters);
+                List<Object[]> infoToBePersisted = new ArrayList<>();
+                String insertSentence = getExcelFacade().addInformationToProject(file, project, (getModelFacade().getRowDataSize(project) + 1), projectFilters, infoToBePersisted);
+                getModelFacade().persistRowData(insertSentence, infoToBePersisted);
+
+                modelAndView.getModel().put(PROJECT_MODEL, project);
+                getModelFacade().addFilterInformationToModel(modelAndView, project);
+                log.info("File successfully processed");
             } catch (DecisionException e) {
                 throw e;
             } catch (Exception e) {
                 log.error("Error Uploading file {}", e.getMessage());
-                e.printStackTrace();
                 throw new DecisionException(ERROR_ADDING_INFO_TO_PROJECT);
             }
             log.info("[END] file processed");
@@ -298,7 +309,6 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
                 }
             } catch (Exception e) {
                 log.error("Error validating DMN File {}", e.getMessage());
-                e.printStackTrace();
                 throw new DecisionException(e.getMessage());
             }
             log.info("[END] editDmn for project: {}", project);
@@ -405,9 +415,9 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @param emailTemplate
      * @param sendEmail
      * @return list of rows that fits filters
-     * @throws Exception
+     * @throws IOException
      */
-    private List<Map<String, Object>> createAndRunDmnModel(ProjectDto project, List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws Exception {
+    private List<Map<String, Object>> createAndRunDmnModel(ProjectDto project, List<FilterDto> filters, String emailTemplate, Boolean sendEmail) throws IOException {
         log.debug("[INIT] createAndRunDmnModel project: {}, emailTemplate: {}, sendEmail: {}", project, emailTemplate, sendEmail);
         final List<Map<String, Object>> result = Collections.unmodifiableList(this.getModelFacade().createDMNModel(project, filters, (null != sendEmail && sendEmail ? emailTemplate : null), sendEmail));
         if (result.isEmpty()) {
@@ -440,7 +450,6 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
 
         } catch (final Exception e) {
             log.error("Error processing filters: {}", e.getMessage());
-            e.printStackTrace();
             throw new DecisionException("Error procesando los filtros: " + e.getMessage());
         }
 
@@ -478,7 +487,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return projectDto
      * @throws DecisionException if project is not found
      */
-    private ProjectDto getProjectById(final Integer id) throws DecisionException {
+    private ProjectDto getProjectById(final Integer id) {
         log.debug("[INIT] getProjectById id: {}", id);
         ProjectDto project = getModelFacade().getProject(id);
         if (null == project) {
