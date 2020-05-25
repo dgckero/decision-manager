@@ -1,4 +1,4 @@
-FROM jamesdbloom/docker-java8-maven 
+FROM mcneilco/tomcat-maven 
 MAINTAINER Author dgckero
 RUN apt-get update && \
     apt-get install -yq --no-install-recommends wget pwgen ca-certificates && \
