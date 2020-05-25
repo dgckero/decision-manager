@@ -10,6 +10,8 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
 
+environment: decision-manager-vm
+
 stages:
   - stage: Build
     displayName: Build image
@@ -19,32 +21,32 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-        - task: Maven@3
-          inputs:
-            mavenPomFile: 'pom.xml'
-            goals: 'clean package -pl :decision-core,:decision-web -am'
-            options: '-Dsonar.skip=true -DskipTests=true'
-            publishJUnitResults: true
-            testResultsFiles: '**/surefire-reports/TEST-*.xml'
-            javaHomeOption: 'JDKVersion'
-            mavenVersionOption: 'Default'
-            mavenAuthenticateFeed: false
-            effectivePomSkip: false
-            sonarQubeRunAnalysis: false
-            sqMavenPluginVersionChoice: 'pom'
-        - task: Maven@3
-          inputs:
-            mavenPomFile: 'pom.xml'
-            goals: 'deploy -pl :decision-core,:decision-web'
-            options: '-Dsonar.skip=true -DskipTests=true -DskipITs --settings ./maven/settings.xml'
-            publishJUnitResults: true
-            testResultsFiles: '**/surefire-reports/TEST-*.xml'
-            javaHomeOption: 'JDKVersion'
-            mavenVersionOption: 'Default'
-            mavenAuthenticateFeed: false
-            effectivePomSkip: false
-            sonarQubeRunAnalysis: false
-        - task: Docker@2
-          inputs:
-            command: 'buildAndPush'
-            Dockerfile: '**/Dockerfile'
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean package -pl :decision-core,:decision-web -am'
+              options: '-Dsonar.skip=true -DskipTests=true'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+              sqMavenPluginVersionChoice: 'pom'
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'deploy -pl :decision-core,:decision-web'
+              options: '-Dsonar.skip=true -DskipTests=true -DskipITs --settings ./maven/settings.xml'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+#          - task: Docker@2
+#            inputs:
+#              command: 'buildAndPush'
+#              Dockerfile: '**/Dockerfile'
