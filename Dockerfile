@@ -1,4 +1,4 @@
-FROM demo/maven:3.3-jdk-8
+FROM jamesdbloom/docker-java8-maven 
 MAINTAINER Author dgckero
 RUN apt-get update && \
     apt-get install -yq --no-install-recommends wget pwgen ca-certificates && \
