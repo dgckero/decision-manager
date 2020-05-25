@@ -10,8 +10,6 @@ resources:
 variables:
   tag: '$(Build.BuildId)'
 
-environment: decision-manager-vm
-
 stages:
   - stage: Build
     displayName: Build image
