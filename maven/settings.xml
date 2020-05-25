@@ -1,0 +1,14 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <servers>
+
+        <server>
+            <id>decision-manager</id>
+            <username>dgckero0263</username>
+            <password>e2ekq36bhey262cb63ufzvduam7ymuaaekxxces52apifwyp3vaa</password>
+        </server>
+
+    </servers>
+</settings>
