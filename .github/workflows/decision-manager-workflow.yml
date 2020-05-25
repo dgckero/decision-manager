@@ -20,17 +20,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Maven deploy
-        run: mvn -B deploy -pl :decision-core,:decision-web -DskipTests=true -Dsonar.skip=true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: copy decision-core to staging folder
+        run: mkdir staging && cp decision-core/target/decision-core*.jar staging
+      - name: Upload decision-core artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: decision-core
+          path: staging
+      - name: copy decision-web to staging folder
+        run: rm decision-core/target/decision-core*.jar && cp decision-web/target/decision-web*.war staging
+      - name: Upload decision-web artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: decision-web
+          path: staging
       - uses: actions/checkout@v2
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
       - name: SonarCloud Scan
-        run: mvn -B verify sonar:sonar
+        run: mvn -B verify sonar:sonar jacoco:prepare-agent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
