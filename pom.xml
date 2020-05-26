@@ -254,7 +254,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <dockerDirectory>${project.baseUri}/decision-web</dockerDirectory>
+                    <dockerDirectory>${project.baseUri}/</dockerDirectory>
                     <repository>docker.io/dgckero/decision-manager</repository>
                     <tag>${project.version}</tag>
                 </configuration>
