@@ -10,11 +10,11 @@ ADD decision-core/pom.xml $HOME/decision-core
 ADD decision-web/pom.xml $HOME/decision-web
 ADD decision-manager-coverage/pom.xml $HOME/decision-manager-coverage
 
-RUN ["/usr/local/bin/mvn-entrypoint.sh", "mvn", "verify", "clean", "--fail-never"]
+RUN ["mvn","clean","package","-pl :decision-core,:decision-web","-DskipTests=true -Dsonar.skip=true"]
 
 ADD . $HOME
 
-RUN ["mvn","clean","package","-pl :decision-core,:decision-web","-DskipTests=true -Dsonar.skip=true"]
+RUN ["/usr/local/bin/mvn-entrypoint.sh", "mvn", "verify", "clean", "--fail-never"]
 
 FROM tomcat:8.5.43-jdk8
 COPY --from=maven_builder /decision-manager/decision-web/target/decision-web.war /usr/local/tomcat/webapps
