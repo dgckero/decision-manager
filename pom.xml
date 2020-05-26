@@ -255,6 +255,11 @@
                 </executions>
                 <configuration>
                     <dockerDirectory>${project.baseUri}/</dockerDirectory>
+                    <buildArgs>
+                        <JAR_FILE>${project.baseUri}/decision-core/target/decision-core-${project.version}.jar
+                        </JAR_FILE>
+                        <WAR_FILE>${project.baseUri}/decision-web/target/decision-web.war</WAR_FILE>
+                    </buildArgs>
                     <repository>docker.io/dgckero/decision-manager</repository>
                     <tag>${project.version}</tag>
                 </configuration>
