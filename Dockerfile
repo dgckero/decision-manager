@@ -1,5 +1,5 @@
 FROM maven:3.6.1-jdk-8 as maven_builder
-WORKDIR /decision-manager
+WORKDIR /
 ADD pom.xml $HOME
 
 RUN ["/usr/local/bin/mvn-entrypoint.sh", "mvn", "verify", "clean", "--fail-never"]
