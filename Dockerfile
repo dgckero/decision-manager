@@ -10,7 +10,7 @@ ADD decision-core/pom.xml $HOME/decision-core
 ADD decision-web/pom.xml $HOME/decision-web
 ADD decision-manager-coverage/pom.xml $HOME/decision-manager-coverage
 
-RUN ["mvn","clean","package","-pl :decision-core,:decision-web","-DskipTests=true -Dsonar.skip=true"]
+RUN ["mvn","clean","package","-pl com.dgc.dm:decision-core,com.dgc.dm:decision-web","-DskipTests=true -Dsonar.skip=true"]
 
 ADD . $HOME
 
