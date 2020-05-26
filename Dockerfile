@@ -6,9 +6,9 @@ FROM maven:3.6.1-jdk-8 as maven_builder
 
 WORKDIR /decision-manager
 ADD pom.xml $HOME
-ADD decision-core/pom.xml $HOME
-ADD decision-web/pom.xml $HOME
-ADD decision-manager-coverage/pom.xml $HOME
+ADD decision-core/pom.xml $HOME/decision-core
+ADD decision-web/pom.xml $HOME/decision-web
+ADD decision-manager-coverage/pom.xml $HOME/decision-manager-coverage
 
 RUN ["/usr/local/bin/mvn-entrypoint.sh", "mvn", "verify", "clean", "--fail-never"]
 
