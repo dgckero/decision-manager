@@ -6,6 +6,7 @@ package com.dgc.dm.core.configuration;
 
 import com.google.common.base.Preconditions;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig;
@@ -14,24 +15,28 @@ import org.jasypt.properties.PropertyValueEncryptionUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.Properties;
 
 @NoArgsConstructor
@@ -44,7 +49,7 @@ import java.util.Properties;
 })
 @ComponentScan("com.dgc.dm.core")
 @EnableJpaRepositories(
-        basePackages = "com.dgc.dm.core.db",
+        basePackages = "com.dgc.dm.core",
         entityManagerFactoryRef = "sessionFactory")
 @EnableTransactionManagement
 @EnableJpaAuditing
@@ -129,35 +134,56 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
     }
 
     /**
-     * Return factory associated with the persistence context
+     * Configure sessionFactory
      *
-     * @return entityManagerFactory
+     * @return sessionFactory
+     * @throws IOException
      */
     @Bean
-    public LocalSessionFactoryBean sessionFactory() {
+    public LocalSessionFactoryBean sessionFactory() throws IOException {
         log.debug("[INIT] Configuring sessionFactory");
 
-        final LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(this.dataSource());
-        sessionFactory.setPackagesToScan(CORE_PACKAGE);
         sessionFactory.setHibernateProperties(this.getHibernateProperties());
+        sessionFactory.setPackagesToScan(CORE_PACKAGE);
+        sessionFactory.afterPropertiesSet();
 
         log.debug("[END] Configuring sessionFactory");
         return sessionFactory;
     }
 
     /**
-     * Set the EntityManagerFactory that this instance should manage transactions for
+     * Return factory associated with the persistence context
      *
-     * @param entityManagerFactory
+     * @return entityManagerFactory
+     */
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+        log.debug("[INIT] Configuring entityManagerFactory");
+
+        final LocalContainerEntityManagerFactoryBean sessionFactory = new LocalContainerEntityManagerFactoryBean();
+        sessionFactory.setDataSource(this.dataSource());
+        sessionFactory.setPackagesToScan(CORE_PACKAGE);
+        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        sessionFactory.setJpaVendorAdapter(vendorAdapter);
+        sessionFactory.setJpaProperties(getHibernateProperties());
+
+        log.debug("[END] Configuring entityManagerFactory");
+        return sessionFactory;
+    }
+
+    /**
+     * Set transactionManager
+     *
      * @return JpaTransactionManager
      */
     @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager(final EntityManagerFactory entityManagerFactory) {
-        log.debug("[INIT] Configuring transactionManager for entityManagerFactory: " + entityManagerFactory);
+    public HibernateTransactionManager transactionManager() throws IOException {
+        log.debug("[INIT] Configuring transactionManager");
 
-        final DataSourceTransactionManager txManager = new DataSourceTransactionManager();
-        txManager.setDataSource(this.dataSource());
+        final HibernateTransactionManager txManager = new HibernateTransactionManager();
+        txManager.setSessionFactory(this.sessionFactory().getObject());
 
         log.debug("[END] Configuring transactionManager");
         return txManager;
@@ -167,17 +193,11 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * Return the default transaction manager bean to use for annotation-driven database
      * transaction management, i.e. when processing {@code @Transactional} methods.
      */
+    @SneakyThrows
     @Override
-    @Bean
-    @DependsOn("sessionFactory")
     public PlatformTransactionManager annotationDrivenTransactionManager() {
-        log.debug("[INIT] Configuring annotationDrivenTransactionManager");
-
-        final JpaTransactionManager jpa = new JpaTransactionManager();
-        jpa.setEntityManagerFactory(this.sessionFactory().getObject());
-
-        log.debug("[END] Configuring annotationDrivenTransactionManager");
-        return jpa;
+        log.debug("Configuring annotationDrivenTransactionManager");
+        return transactionManager();
     }
 
     /**
@@ -193,19 +213,6 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
         final PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor = new PersistenceExceptionTranslationPostProcessor();
         log.debug("[END] Configuring exceptionTranslation");
         return persistenceExceptionTranslationPostProcessor;
-    }
-
-    /**
-     * Return a new JdbcTemplate, given a DataSource to obtain connections from.
-     *
-     * @return JdbcTemplate
-     */
-    @Bean
-    public JdbcTemplate jdbcTemplate() {
-        log.debug("[INIT] Configuring jdbcTemplate");
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(this.dataSource());
-        log.debug("[END] Configuring jdbcTemplate");
-        return jdbcTemplate;
     }
 
     /**

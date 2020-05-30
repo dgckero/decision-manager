@@ -59,9 +59,9 @@ public class RowDataServiceImpl extends CommonServer implements RowDataService {
      * @return List of RowData
      */
     @Override
-    public final List<Map<String, Object>> getRowData(ProjectDto project) {
+    public final List<Map<String,Object>> getRowData(ProjectDto project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
-        List<Map<String, Object>> entities = rowDataDao.getRowData(getModelMapper().map(project, Project.class));
+        List<Map<String,Object>> entities = rowDataDao.getRowData(getModelMapper().map(project, Project.class));
         log.info("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }

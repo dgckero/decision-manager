@@ -11,14 +11,14 @@ import java.util.Map;
 
 public interface RowDataDao {
 
-    void createRowDataTable (Map<String, Class<?>> columns, Project project);
+    void createRowDataTable(Map<String, Class<?>> columns, Project project);
 
-    void persistRowData (String insertSentence, List<Object[]> infoToBePersisted);
+    void persistRowData(String insertSentence, List<Object[]> infoToBePersisted);
 
-    List<Map<String, Object>> getRowData (Project project);
+    List<Map<String,Object>> getRowData(Project project);
 
-    void deleteRowData (Project project);
+    void deleteRowData(Project project);
 
-    Integer getRowDataSize (Project map);
+    Integer getRowDataSize(Project map);
 
 }

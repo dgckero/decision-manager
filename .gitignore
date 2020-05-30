@@ -1,4 +1,4 @@
-# netbeans files
+ netbeans files
 /nbactions-release-profile.xml
 /nb-configuration.xml
 
@@ -28,3 +28,4 @@
 /decision-core/logs/
 /decision-web/${env.CATALINA_HOME}/
 /decision-manager-coverage/target/
+/decision-web/com/

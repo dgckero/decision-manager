@@ -11,16 +11,15 @@ import com.dgc.dm.core.exception.DecisionException;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface ModelFacade {
-    FilterCreationDto getFilterCreationDto(ProjectDto project, Collection<Map<String, Object>> filterList);
+    FilterCreationDto getFilterCreationDto(ProjectDto project, List<FilterDto> filterList);
 
     FilterDto getContactFilter(ProjectDto project);
 
-    List<Map<String, Object>> getFilters(ProjectDto project);
+    List<FilterDto> getFilters(ProjectDto project);
 
     void updateProject(ProjectDto project);
 
@@ -32,7 +31,7 @@ public interface ModelFacade {
 
     List<FilterDto> getActiveFilters(List<FilterDto> filters);
 
-    List<Map<String, Object>> getProjects();
+    List<ProjectDto> getProjects();
 
     ProjectDto getProject(Integer selectedProjectId);
 
@@ -40,7 +39,7 @@ public interface ModelFacade {
 
     void validateDmn(ProjectDto project, byte[] bytes);
 
-    List<Map<String, Object>> getRowData(ProjectDto project);
+    List<Map<String,Object>> getRowData(ProjectDto project);
 
     void deleteRowData(ProjectDto project);
 
@@ -48,7 +47,7 @@ public interface ModelFacade {
 
     void addFilterInformationToModel(ModelAndView modelAndView, ProjectDto project);
 
-    Map<String, List<Map<String, Object>>> getExistingProjects();
+    Map<String, List<ProjectDto>> getExistingProjects();
 
     ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName);
 

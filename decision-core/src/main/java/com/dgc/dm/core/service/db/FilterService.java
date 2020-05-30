@@ -8,17 +8,14 @@ import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FilterService {
 
-    void persistFilterList (List<FilterDto> filterList, ProjectDto project);
+    void persistFilterList(List<FilterDto> filterList, ProjectDto project);
 
-    List<Map<String, Object>> getFilters ( );
+    List<FilterDto> getFilters(ProjectDto project);
 
-    List<Map<String, Object>> getFilters (ProjectDto project);
+    void updateFilters(List<FilterDto> filters);
 
-    void updateFilters (List<FilterDto> filters);
-
-    FilterDto getContactFilter (ProjectDto project);
+    FilterDto getContactFilter(ProjectDto project);
 }

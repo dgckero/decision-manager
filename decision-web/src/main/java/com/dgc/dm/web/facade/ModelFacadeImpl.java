@@ -23,6 +23,7 @@ import org.sqlite.SQLiteErrorCode;
 
 import javax.persistence.PersistenceException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,8 +32,8 @@ import java.util.stream.Stream;
 @Log4j2
 @Service
 class ModelFacadeImpl implements ModelFacade {
+    private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH24:mm:ss");
 
-    private static final Integer ACTIVE_FILTER = 1;
     private static final Collection<String> OMITTED_DATA = Stream.of("rowId", "project", "dataCreationDate", "lastUpdatedDate").collect(Collectors.toList());
     public static final String PROJECT_IS_NULL = "Project is null";
     public static final String NO_FILTERS_FOUND = "No filters found";
@@ -67,29 +68,20 @@ class ModelFacadeImpl implements ModelFacade {
      * @param project
      * @return List of filterDto
      */
-    private static List<FilterDto> getFilterListByModelMap(final Collection<Map<String, Object>> filterList, final ProjectDto project) {
+    private static List<FilterDto> getFilterListByModelMap(final List<FilterDto> filterList, final ProjectDto project) {
         log.debug("[INIT] getFilterListByModelMap by project: {}", project);
 
         final List<FilterDto> filterDtoList = new ArrayList<>(filterList.size());
-        final Iterator<Map<String, Object>> entryIterator = filterList.iterator();
+        final Iterator<FilterDto> entryIterator = filterList.iterator();
         while (entryIterator.hasNext()) {
-            final Map<String, Object> filterIterator = entryIterator.next();
+            final FilterDto filter = entryIterator.next();
 
-            final String filterName = (String) filterIterator.get("name");
+            final String filterName = filter.getName();
             if (OMITTED_DATA.contains(filterName)) {
                 // Don't send to decision view
                 entryIterator.remove();
                 log.debug("Removed filter " + filterName + " from filterList");
             } else {
-                final FilterDto filter = FilterDto.builder().
-                        id((Integer) filterIterator.get("ID")).
-                        name(filterName).
-                        filterClass((String) filterIterator.get("class")).
-                        contactFilter(null != filterIterator.get(CONTACT_FILTER) && (filterIterator.get(CONTACT_FILTER).equals(ACTIVE_FILTER))).
-                        project(project).
-                        active(null != filterIterator.get(FILTER_ACTIVE) && (filterIterator.get(FILTER_ACTIVE).equals(ACTIVE_FILTER))).
-                        value(null == filterIterator.get(FILTER_VALUE) ? null : (String) filterIterator.get(FILTER_VALUE)).
-                        build();
                 filterDtoList.add(filter);
                 log.debug("Added filter {}", filter);
             }
@@ -107,7 +99,7 @@ class ModelFacadeImpl implements ModelFacade {
      * @return FilterCreationDto
      */
     @Override
-    public final FilterCreationDto getFilterCreationDto(final ProjectDto project, final Collection<Map<String, Object>> filterList) {
+    public final FilterCreationDto getFilterCreationDto(final ProjectDto project, final List<FilterDto> filterList) {
         log.debug("[INIT] getFilterCreationDto by project: {}", project);
         FilterCreationDto result = null;
         if (null == project) {
@@ -157,9 +149,9 @@ class ModelFacadeImpl implements ModelFacade {
      * @return List of filters
      */
     @Override
-    public final List<Map<String, Object>> getFilters(final ProjectDto project) {
+    public final List<FilterDto> getFilters(final ProjectDto project) {
         log.info("[INIT] Getting filters for project {}", project);
-        final List<Map<String, Object>> result;
+        final List<FilterDto> result;
         if (null == project) {
             log.warn("Project is NULL, not possible to get filters");
             result = null;
@@ -289,10 +281,10 @@ class ModelFacadeImpl implements ModelFacade {
      * @return list of projects
      */
     @Override
-    public final List<Map<String, Object>> getProjects() {
-        List<Map<String, Object>> result = null;
+    public final List<ProjectDto> getProjects() {
+        List<ProjectDto> result = null;
         log.info("[INIT] Getting projects ");
-        final List<Map<String, Object>> projects = projectService.getProjects();
+        final List<ProjectDto> projects = projectService.getProjects();
         if (null == projects || projects.isEmpty()) {
             log.info("[END] No project founds");
         } else {
@@ -434,7 +426,7 @@ class ModelFacadeImpl implements ModelFacade {
     @Override
     public final void addFilterInformationToModel(final ModelAndView modelAndView, final ProjectDto project) {
         log.debug("[INIT] addFilterInformationToModel for project: {}", project);
-        final Map<String, List<Map<String, Object>>> filters = this.getFiltersModelMap(project);
+        final Map<String, List<FilterDto>> filters = this.getFiltersModelMap(project);
 
         if (null == filters || filters.isEmpty()) {
             log.error(NO_FILTERS_FOUND);
@@ -454,17 +446,17 @@ class ModelFacadeImpl implements ModelFacade {
      * @param project
      * @return filters Map
      */
-    private Map<String, List<Map<String, Object>>> getFiltersModelMap(final ProjectDto project) {
+    private Map<String, List<FilterDto>> getFiltersModelMap(final ProjectDto project) {
         log.debug("[INIT] getFiltersModelMap for project: {}", project);
-        final Map<String, List<Map<String, Object>>> result;
-        final List<Map<String, Object>> filterList = this.getFilters(project);
+        final Map<String, List<FilterDto>> result;
+        final List<FilterDto> filterList = this.getFilters(project);
 
         if ((null == filterList) || filterList.isEmpty()) {
             log.error(NO_FILTERS_FOUND);
             result = null;
         } else {
             log.info("found {} filters", filterList.size());
-            final Map<String, List<Map<String, Object>>> modelMap = new HashMap<>(1);
+            final Map<String, List<FilterDto>> modelMap = new HashMap<>(1);
             modelMap.put("filterList", filterList);
             result = modelMap;
         }
@@ -478,11 +470,11 @@ class ModelFacadeImpl implements ModelFacade {
      * @return List of projects
      */
     @Override
-    public Map<String, List<Map<String, Object>>> getExistingProjects() {
+    public Map<String, List<ProjectDto>> getExistingProjects() {
         log.info("[INIT] getExistingProjects");
-        Map<String, List<Map<String, Object>>> modelMap = null;
+        Map<String, List<ProjectDto>> modelMap = null;
 
-        List<Map<String, Object>> projects = this.getProjects();
+        List<ProjectDto> projects = this.getProjects();
 
         if (null == projects) {
             log.warn("No projects founds");
@@ -503,7 +495,6 @@ class ModelFacadeImpl implements ModelFacade {
      * @param colMapByName
      * @return new Project
      */
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ProjectDto createProjectModel(String projectName, Map<String, Class<?>> colMapByName) {
         log.info("[INIT] createProjectModel by projectName: {}", projectName);
         ProjectDto project = null;
@@ -539,6 +530,7 @@ class ModelFacadeImpl implements ModelFacade {
                         filterClass(column.getValue().getSimpleName()).
                         active(Boolean.FALSE).
                         contactFilter(Boolean.FALSE).
+                        dataCreationDate(format.format(new Date())).
                         project(project).
                         build());
             }

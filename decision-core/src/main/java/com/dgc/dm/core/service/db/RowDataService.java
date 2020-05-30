@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface RowDataService {
-    void createRowDataTable (Map<String, Class<?>> columns, ProjectDto project);
+    void createRowDataTable(Map<String, Class<?>> columns, ProjectDto project);
 
-    void persistRowData (String insertSentence, List<Object[]> infoToBePersisted);
+    void persistRowData(String insertSentence, List<Object[]> infoToBePersisted);
 
-    List<Map<String, Object>> getRowData (ProjectDto project);
+    List<Map<String,Object>> getRowData(ProjectDto project);
 
-    void deleteRowData (ProjectDto project);
+    void deleteRowData(ProjectDto project);
 
-    Integer getRowDataSize (ProjectDto project);
+    Integer getRowDataSize(ProjectDto project);
 }

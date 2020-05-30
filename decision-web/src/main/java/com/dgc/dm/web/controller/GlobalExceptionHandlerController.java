@@ -56,6 +56,7 @@ public class GlobalExceptionHandlerController {
     @ExceptionHandler(DecisionException.class)
     public ModelAndView handleDecisionException(final Exception e) {
         log.error("handle DecisionException {}", e.getMessage());
+        e.printStackTrace();
         return this.generateErrorModelAndView(e.getMessage());
     }
 
@@ -69,6 +70,7 @@ public class GlobalExceptionHandlerController {
     @ExceptionHandler(Exception.class)
     public ModelAndView handleAllException(final Exception e) {
         log.error("handle internal server error exception {}", e.getMessage());
+        e.printStackTrace();
         return this.generateErrorModelAndView(GENERIC_SERVER_ERROR);
     }
 

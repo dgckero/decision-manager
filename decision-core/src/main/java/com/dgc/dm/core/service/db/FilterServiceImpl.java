@@ -13,12 +13,9 @@ import lombok.extern.log4j.Log4j2;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.Email;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2
@@ -35,7 +32,6 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void persistFilterList(List<FilterDto> filterList, ProjectDto project) {
         log.info("[INIT] persistFilterList filterList: {}, project: {}", filterList, project);
 
@@ -81,28 +77,18 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
     }
 
     /**
-     * Get all filters stored on FILTERS table
-     *
-     * @return all filters
-     */
-    @Override
-    public List<Map<String, Object>> getFilters() {
-        log.debug("[INIT] Getting All filters");
-        List<Map<String, Object>> filters = filterDao.getFilters();
-        log.debug("[END] Found " + filters.size() + " filters");
-        return filters;
-    }
-
-    /**
      * Get all project's filters
      *
      * @param project
      * @return project's filters
      */
     @Override
-    public List<Map<String, Object>> getFilters(ProjectDto project) {
+    public List<FilterDto> getFilters(ProjectDto project) {
         log.debug("[INIT] Getting filters for project " + project);
-        List<Map<String, Object>> filters = filterDao.getFilters(getModelMapper().map(project, Project.class));
+        List<Filter> filtersEntity = filterDao.getFilters(getModelMapper().map(project, Project.class));
+
+        List<FilterDto> filters = getModelMapper().map(filtersEntity, (new TypeToken<List<FilterDto>>() {
+        }.getType()));
         log.debug("[END] Found " + filters.size() + " filters for project " + project);
         return filters;
     }
@@ -113,7 +99,6 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @param filters
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateFilters(List<FilterDto> filters) {
         log.debug("[INIT] Updating " + filters.size() + " filters ");
         filterDao.updateFilters(getModelMapper().map(filters, (new TypeToken<List<Filter>>() {

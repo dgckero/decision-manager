@@ -509,12 +509,12 @@ public class BPMNServerImpl implements BPMNServer {
         log.debug("[INIT] evaluateEntities for project: {}", project);
 
         final List<Map<String, Object>> commonEntitiesAccepted = new ArrayList<>();
-        final List<Map<String, Object>> commonEntitiesToBeValidated = this.rowDataService.getRowData(project);
+        final List<Map<String,Object>> commonEntitiesToBeValidated = this.rowDataService.getRowData(project);
         log.debug("Got {} entities to be validated", commonEntitiesToBeValidated.size());
 
         final FilterDto contactFilter = this.filterService.getContactFilter(project);
 
-        for (final Map<String, Object> commonEntityMap : commonEntitiesToBeValidated) {
+        for (final Map<String,Object> commonEntityMap : commonEntitiesToBeValidated) {
             final VariableMap variableToBeValidated = parseEntityToVariableMap(commonEntityMap);
             try {
                 final DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variableToBeValidated);

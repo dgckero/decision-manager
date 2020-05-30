@@ -7,7 +7,6 @@ package com.dgc.dm.core.db.dao;
 import com.dgc.dm.core.db.model.Project;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ProjectDao {
 
@@ -15,7 +14,7 @@ public interface ProjectDao {
 
     void updateProject(Project project);
 
-    List<Map<String, Object>> getProjects();
+    List<Project> getProjects();
 
     Project getProject(Integer selectedProjectId);
 

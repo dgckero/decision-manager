@@ -89,14 +89,9 @@
             <version>${google-collections}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.modelmapper</groupId>
@@ -147,8 +142,11 @@
             <artifactId>javax.mail-api</artifactId>
             <version>${javax.mail-api.version}</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${validation-api.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

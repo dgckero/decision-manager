@@ -4,6 +4,7 @@
 
 package com.dgc.dm.web.facade;
 
+import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
 import com.dgc.dm.core.dto.RowDataDto;
 import com.dgc.dm.core.exception.DecisionException;
@@ -177,7 +178,7 @@ public class ExcelFacadeImpl implements ExcelFacade {
      * @param projectFilters
      * @return Excel's columns
      */
-    public Map<String, Class<?>> compareExcelColumnNames(Sheet worksheet, MultipartFile file, ProjectDto project, List<Map<String, Object>> projectFilters) {
+    public Map<String, Class<?>> compareExcelColumnNames(Sheet worksheet, MultipartFile file, ProjectDto project, List<FilterDto> projectFilters) {
         log.debug("[INIT] compareExcelColumnNames for project: {}", project);
         Map<String, Class<?>> colMapByName = getExcelColumnNames(worksheet);
         if (colMapByName.isEmpty()) {
@@ -206,7 +207,7 @@ public class ExcelFacadeImpl implements ExcelFacade {
      * @param projectFilters
      * @return Excel's columns
      */
-    public Map<String, Class<?>> compareExcelColumnNames(MultipartFile file, ProjectDto project, List<Map<String, Object>> projectFilters) {
+    public Map<String, Class<?>> compareExcelColumnNames(MultipartFile file, ProjectDto project, List<FilterDto> projectFilters) {
         log.debug("[INIT] compareExcelColumnNames for project: {}", project);
         Map<String, Class<?>> colMapByName;
         try {
@@ -229,7 +230,7 @@ public class ExcelFacadeImpl implements ExcelFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public String addInformationToProject(MultipartFile file, ProjectDto project, int rowIdNumber, List<Map<String, Object>> projectFilters, List<Object[]> infoToBePersisted) {
+    public String addInformationToProject(MultipartFile file, ProjectDto project, int rowIdNumber, List<FilterDto> projectFilters, List<Object[]> infoToBePersisted) {
         log.info("[INIT] Adding information to project Excel file: {}, for project: {} ", file.getOriginalFilename(), project, projectFilters);
         String insertSentence = null;
         if (null == project) {

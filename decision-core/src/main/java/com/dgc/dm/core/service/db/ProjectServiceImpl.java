@@ -9,17 +9,14 @@ import com.dgc.dm.core.db.model.Project;
 import com.dgc.dm.core.dto.ProjectDto;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.exception.GenericJDBCException;
+import org.hibernate.hql.internal.ast.QuerySyntaxException;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Service
@@ -34,9 +31,9 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @param e
      * @return true if Exception is SQLITE_ERROR
      */
-    private static boolean isProjectNotFoundException(Exception e) {
+    private static boolean isProjectNotFoundException(QuerySyntaxException e) {
         return
-                e instanceof UncategorizedSQLException && ((UncategorizedSQLException) e).getSQLException().getErrorCode() == SQLiteErrorCode.SQLITE_ERROR.code || e instanceof SQLiteException && ((SQLiteException) e).getErrorCode() == SQLiteErrorCode.SQLITE_ERROR.code;
+                e.getMessage() != null && e.getMessage().contains("Projects is not mapped");
 
     }
 
@@ -47,7 +44,6 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @return project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ProjectDto createProject(String projectName) throws GenericJDBCException {
         log.debug("[INIT] createProject " + projectName);
         Project projectEntity = projectDao.createProject(projectName);
@@ -62,7 +58,6 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateProject(final ProjectDto project) {
         log.debug("[INIT] Updating project {}", project);
         final Project projectEntity = this.getModelMapper().map(project, Project.class);
@@ -77,23 +72,25 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @throws SQLiteException
      */
     @Override
-    public final List<Map<String, Object>> getProjects() {
-        List<Map<String, Object>> result = null;
+    public final List<ProjectDto> getProjects() {
+        List<ProjectDto> result;
         log.debug("[INIT] Getting projects ");
         try {
-            final List<Map<String, Object>> projects = this.projectDao.getProjects();
-            if (projects.isEmpty()) {
+            final List<Project> projectsEntity = this.projectDao.getProjects();
+            if (projectsEntity.isEmpty()) {
                 log.warn("No project founds");
             } else {
-                log.debug("[END] Got {} projects", projects.size());
-                result = projects;
+                log.debug("[END] Got {} projects", projectsEntity.size());
             }
-        } catch (UncategorizedSQLException e) {
+            result = getModelMapper().map(projectsEntity, (new TypeToken<List<ProjectDto>>() {
+            }.getType()));
+        } catch (QuerySyntaxException e) {
             log.error("Error getting projects " + e.getLocalizedMessage());
             if (isProjectNotFoundException(e)) {
                 log.warn("No project founds");
                 result = new ArrayList<>();
             } else {
+                log.error("Error QuerySyntaxException: {}", e.getMessage());
                 throw e;
             }
         }
@@ -127,7 +124,6 @@ public class ProjectServiceImpl extends CommonServer implements ProjectService {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteProject(ProjectDto project) {
         log.debug("[INIT] deleting project " + project);
         this.projectDao.deleteProject(this.getModelMapper().map(project, Project.class));

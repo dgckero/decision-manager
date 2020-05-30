@@ -7,11 +7,10 @@ package com.dgc.dm.core.db.dao;
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Service
@@ -22,7 +21,6 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
     /**
      * Create table Projects if not exist
      */
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void createProjectTable() {
         log.debug("[INIT] Creating table PROJECTS if not exist");
         final String createTableProject =
@@ -35,7 +33,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
                         "emailTemplate TEXT," +
                         "dmnFile BLOB)";
 
-        sessionFactory.getCurrentSession().createSQLQuery(createTableProject).executeUpdate();
+        sessionFactory.getCurrentSession().createNativeQuery(createTableProject).executeUpdate();
         log.debug("[END] Table PROJECTS successfully created");
     }
 
@@ -46,7 +44,6 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return Project created
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public Project createProject(String projectName) {
         log.debug("[INIT] Creating project " + projectName);
         this.createProjectTable();
@@ -54,6 +51,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
                 Project.builder()
                         .name(projectName)
                         .rowDataTableName(COMMONDATAS_PREFIX_TABLE_NAME + projectName)
+                        .dataCreationDate(new SimpleDateFormat("yyyy-MM-dd HH24:mm:ss").format(new Date()))
                         .build();
         sessionFactory.getCurrentSession().persist(project);
         log.debug("[END] Project " + project + " successfully created");
@@ -66,7 +64,6 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateProject(Project project) {
         log.debug("[INIT] Updating project " + project);
         sessionFactory.getCurrentSession().merge(project);
@@ -79,15 +76,14 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @return all projects
      */
     @Override
-    public List<Map<String, Object>> getProjects() {
-        List<Map<String, Object>> result = null;
+    public List<Project> getProjects() {
+        List<Project> result = null;
         log.debug("[INIT] Getting projects ");
-        final List<Map<String, Object>> projects = getJdbcTemplate().queryForList("Select * from PROJECTS");
-        if (projects.isEmpty()) {
+        result = this.sessionFactory.getCurrentSession().createQuery("from Project").list();
+        if (result.isEmpty()) {
             log.warn("[END] No project founds");
         } else {
-            log.debug("[INIT] Got " + projects.size() + " projects");
-            result = projects;
+            log.debug("[INIT] Got " + result.size() + " projects");
         }
         return result;
     }
@@ -103,7 +99,7 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
         Project result;
         log.debug("[INIT] Getting project by id " + selectedProjectId);
 
-        result = sessionFactory.getCurrentSession().find(Project.class, selectedProjectId);
+        result = sessionFactory.getCurrentSession().get(Project.class, selectedProjectId);
         log.debug("[END] project found " + result);
         return result;
     }
@@ -114,7 +110,6 @@ public class ProjectDaoImpl extends CommonDao implements ProjectDao {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteProject(Project project) {
         log.debug("[INIT] deleting project " + project);
         sessionFactory.getCurrentSession().delete(project);

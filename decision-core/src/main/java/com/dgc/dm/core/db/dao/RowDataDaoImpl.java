@@ -6,10 +6,9 @@ package com.dgc.dm.core.db.dao;
 
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.hibernate.query.Query;
+import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -27,7 +26,6 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void createRowDataTable(Map<String, Class<?>> columns, Project project) {
         log.debug("[INIT] Creating table {}", project.getRowDataTableName());
 
@@ -47,7 +45,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
                 "PRIMARY KEY (rowId, project) )";
         commonDataTableStatements = new StringBuilder(commonDataTableStatements.toString().replaceAll("[,]$", foreignKey));
         log.debug("Executing script {}", commonDataTableStatements);
-        sessionFactory.getCurrentSession().createSQLQuery(commonDataTableStatements.toString()).executeUpdate();
+        sessionFactory.getCurrentSession().createNativeQuery(commonDataTableStatements.toString()).executeUpdate();
 
         log.debug("[END] {} table successfully created", project.getRowDataTableName());
     }
@@ -59,17 +57,11 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @param infoToBePersisted
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void persistRowData(String insertSentence, List<Object[]> infoToBePersisted) {
         log.debug("[INIT] Persisting Excel rows into commonDatas table");
         for (int i = 0; i < infoToBePersisted.size(); i++) {
             Object[] info = infoToBePersisted.get(i);
-            sessionFactory.getCurrentSession().createSQLQuery(generateSqlSentence(insertSentence, info)).executeUpdate();
-            if (i % 20 == 0) {
-                //flush a batch of inserts and release memory:
-                sessionFactory.getCurrentSession().flush();
-                sessionFactory.getCurrentSession().clear();
-            }
+            sessionFactory.getCurrentSession().createNativeQuery(generateSqlSentence(insertSentence, info)).executeUpdate();
         }
         log.debug("[END] Persisted Excel rows into commonDatas table");
     }
@@ -108,11 +100,10 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
     @Override
     public final List<Map<String, Object>> getRowData(Project project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
-        List<Map<String, Object>> entities = getJdbcTemplate().
-                queryForList("Select * from " + project.getRowDataTableName() + " where project=:projectId",
-                        new MapSqlParameterSource()
-                                .addValue("projectId", project.getId())
-                );
+        Query query = sessionFactory.getCurrentSession().createNativeQuery("Select * from " + project.getRowDataTableName() + " where project=:project");
+        query.setParameter("project", project);
+        query.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<Map<String, Object>> entities = query.list();
         log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }
@@ -123,10 +114,9 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void deleteRowData(Project project) {
         log.debug("[INIT] Deleting all registers for project {}", project);
-        sessionFactory.getCurrentSession().createSQLQuery("DELETE FROM " + project.getRowDataTableName()).executeUpdate();
+        sessionFactory.getCurrentSession().createNativeQuery("DELETE FROM " + project.getRowDataTableName()).executeUpdate();
         log.debug("[END] Registers successfully deleted for project {}", project);
     }
 
@@ -139,7 +129,8 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
     @Override
     public final Integer getRowDataSize(Project project) {
         log.debug("[INIT] Getting common data size for project {}", project);
-        Integer count = getJdbcTemplate().queryForObject("SELECT count(*) FROM " + project.getRowDataTableName(), Integer.class);
+        Query query = sessionFactory.getCurrentSession().createNativeQuery("SELECT count(*) FROM " + project.getRowDataTableName());
+        Integer count = (Integer) query.uniqueResult();
         log.debug("[END] common data size {} for project {}", count, project);
 
         return count;

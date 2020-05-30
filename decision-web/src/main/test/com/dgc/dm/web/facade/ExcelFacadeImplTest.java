@@ -1,5 +1,6 @@
 package com.dgc.dm.web.facade;
 
+import com.dgc.dm.core.dto.FilterDto;
 import com.dgc.dm.core.dto.ProjectDto;
 import com.dgc.dm.core.dto.RowDataDto;
 import com.dgc.dm.core.exception.DecisionException;
@@ -56,32 +57,16 @@ class ExcelFacadeImplTest {
     };
 
     File excel = new File("src/main/test/com/dgc/dm/web/facade/SampleData.xlsx");
-    List<Map<String, Object>> filters = new ArrayList<Map<String, Object>>() {
+    List<FilterDto> filters = new ArrayList<FilterDto>() {
         {
-            add(new HashMap<String, Object>() {{
-                put("orderDate", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("Region", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("Rep", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("Item", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("Units", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("UnitsCost", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("Total", "filterVal");
-            }});
-            add(new HashMap<String, Object>() {{
-                put("project", "filterVal");
-            }});
+            add(FilterDto.builder().name("orderDate").value("filterVal").build());
+            add(FilterDto.builder().name("region").value("filterVal").build());
+            add(FilterDto.builder().name("Rep").value("filterVal").build());
+            add(FilterDto.builder().name("item").value("filterVal").build());
+            add(FilterDto.builder().name("Units").value("filterVal").build());
+            add(FilterDto.builder().name("UnitsCost").value("filterVal").build());
+            add(FilterDto.builder().name("Total").value("filterVal").build());
+            add(FilterDto.builder().name("project").value("filterVal").build());
         }
     };
 
@@ -168,7 +153,7 @@ class ExcelFacadeImplTest {
     void testAddInformationToProject_NoFiltersFound() {
         try {
             // Setup
-            List<Map<String, Object>> projectFilters = new ArrayList();
+            List<FilterDto> projectFilters = new ArrayList();
             List<Object[]> infoToBePersisted = new ArrayList<>();
             int rowIdNumber = 0;
             MultipartFile mockExcelMultipartFile = new MockMultipartFile("name",
@@ -190,14 +175,12 @@ class ExcelFacadeImplTest {
     void testAddInformationToProject_NoSameColumnNumbers() {
         try {
             // Setup
-            List<Map<String, Object>> oneFilter = new ArrayList<Map<String, Object>>() {
+            List<FilterDto> oneFilter = new ArrayList<FilterDto>() {
                 {
-                    add(new HashMap<String, Object>() {{
-                        put("orderDate", "filterVal");
-                    }});
+                    add(FilterDto.builder().name("orderDate").value("filterVal").build());
                 }
             };
-            List<Map<String, Object>> projectFilters = new ArrayList();
+            List<FilterDto> projectFilters = new ArrayList();
             List<Object[]> infoToBePersisted = new ArrayList<>();
             int rowIdNumber = 0;
 
@@ -273,7 +256,7 @@ class ExcelFacadeImplTest {
     @Test
     void testCompareExcelColumnNames_throwsDecisionException() {
         // Setup
-        List<Map<String, Object>> projectFilters = new ArrayList();
+        List<FilterDto> projectFilters = new ArrayList();
 
         // Run the test
         assertThrows(DecisionException.class, () -> {

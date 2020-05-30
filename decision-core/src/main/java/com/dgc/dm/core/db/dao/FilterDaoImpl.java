@@ -7,61 +7,31 @@ package com.dgc.dm.core.db.dao;
 import com.dgc.dm.core.db.model.Filter;
 import com.dgc.dm.core.db.model.Project;
 import lombok.extern.log4j.Log4j2;
+import org.hibernate.query.Query;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Service
 public class FilterDaoImpl extends CommonDao implements FilterDao {
-
-    private static final String SELECT_CONTACT_FILTER = "Select * from FILTERS where contactFilter=? and project=?";
-
-    /**
-     * Map ResultSet to Filter object
-     *
-     * @param rs
-     * @param rowNum
-     * @return
-     * @throws SQLException
-     */
-    private static Filter mapResultSet(ResultSet rs, int rowNum) throws SQLException {
-        return Filter.builder()
-                .id(rs.getInt("id")).name(rs.getString("name"))
-                .filterClass(rs.getString("class"))
-                .value(rs.getString("value"))
-                .active(rs.getBoolean("active"))
-                .contactFilter(rs.getBoolean("contactFilter"))
-                .project(
-                        Project.builder().id(rs.getInt("project")).build()
-                )
-                .build();
-    }
-
     /**
      * Create FILTERS table and insert rowId Filter
      *
      * @param project
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void createFilterTable(final Project project) {
         log.debug("[INIT] Creating table: Filters");
 
         final Iterable<String> filterTableStatements = new StringArrayList(project);
         filterTableStatements.forEach(sql -> {
             log.debug(sql);
-            this.sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
+            this.sessionFactory.getCurrentSession().createNativeQuery(sql).executeUpdate();
         });
         log.debug("[END] FILTERS table successfully created");
     }
@@ -72,34 +42,15 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filterList
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void persistFilterList(final List<Filter> filterList) {
         log.debug("[INIT] Persisting filters got from Excel");
 
         for (int i = 0; i < filterList.size(); i++) {
             Filter filter = filterList.get(i);
             this.sessionFactory.getCurrentSession().save(filter);
-            if (i % 20 == 0) {
-                //flush a batch of inserts and release memory:
-                this.sessionFactory.getCurrentSession().flush();
-                this.sessionFactory.getCurrentSession().clear();
-            }
         }
 
         log.debug("[END] Persisted filters got from Excel");
-    }
-
-    /**
-     * Get all filters from FILTERS table
-     *
-     * @return filters from FILTERS table
-     */
-    @Override
-    public final List<Map<String, Object>> getFilters() {
-        log.debug("[INIT] Getting Filters");
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS");
-        log.debug("[END] Got filters");
-        return filters;
     }
 
     /**
@@ -109,13 +60,12 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @return all project's filters
      */
     @Override
-    public final List<Map<String, Object>> getFilters(final Project project) {
+    public final List<Filter> getFilters(final Project project) {
         log.debug("[INIT] Getting Filters by project {}", project);
-        final List<Map<String, Object>> filters =
-                this.getJdbcTemplate().queryForList("Select * from FILTERS where project =:projectId",
-                        new MapSqlParameterSource()
-                                .addValue("projectId", project.getId()));
+        Query query = sessionFactory.getCurrentSession().createQuery("from Filter f where f.project =:project");
+        query.setParameter("project", project);
 
+        List<Filter> filters = query.list();
         log.debug("[END] Got filters");
         return filters;
     }
@@ -126,17 +76,11 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
      * @param filterList
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void updateFilters(final List<Filter> filterList) {
         log.debug("[INIT] Updating filters ");
         for (int i = 0; i < filterList.size(); i++) {
             Filter updatedFilter = filterList.get(i);
             this.sessionFactory.getCurrentSession().merge(updatedFilter);
-            if (i % 5 == 0) {
-                //flush a batch of inserts and release memory:
-                this.sessionFactory.getCurrentSession().flush();
-                this.sessionFactory.getCurrentSession().clear();
-            }
         }
         log.debug("[END] Filters updated");
     }
@@ -152,13 +96,16 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
         log.debug("[INIT] Getting Filters having contactFilter active for project {}", project);
         Filter filter = null;
         try {
-            filter = this.getJdbcTemplate().queryForObject(SELECT_CONTACT_FILTER, new Object[]{1, project.getId()}, FilterDaoImpl::mapResultSet);
+            Query query = this.sessionFactory.getCurrentSession().createQuery("from Filter f where contactFilter= :contactFilter and project= :project");
+            query.setParameter("contactFilter", true);
+            query.setParameter("project", project);
 
-            log.debug("[END] Got filter {}", filter);
+            filter = (Filter) query.uniqueResult();
 
         } catch (final EmptyResultDataAccessException e) {
             log.warn("No filter found having contactFilter active for project {}", project);
         }
+        log.debug("[END] Got filter {}", filter);
         return filter;
     }
 

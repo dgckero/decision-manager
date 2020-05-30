@@ -98,10 +98,11 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return view existing projects
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView getProjects() {
         log.info("[INIT] Go to view project view");
         final ModelAndView modelAndView = new ModelAndView(SELECT_PROJECT_VIEW);
-        final Map<String, List<Map<String, Object>>> projects = this.getModelFacade().getExistingProjects();
+        final Map<String, List<ProjectDto>> projects = this.getModelFacade().getExistingProjects();
         if (null == projects || projects.isEmpty()) {
             throw new DecisionException(NO_PROJECT_FOUNDS);
         } else {
@@ -138,16 +139,26 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
                 log.error("Error creating project");
                 throw new DecisionException("No se ha podido crear el proyecto, por favor póngase en contacto con el administrador");
             } else {
-                List<Object[]> infoToBePersisted = new ArrayList<>();
-                String insertSentence = this.getExcelFacade().processExcel(file, project, infoToBePersisted);
-                this.getModelFacade().persistRowData(insertSentence, infoToBePersisted);
-
-                modelAndView.getModel().put(PROJECT_MODEL, project);
-                getModelFacade().addFilterInformationToModel(modelAndView, project);
+                processExcel(file, project, modelAndView);
             }
             log.info("[END] createProject file {} projectName {}", file.getOriginalFilename(), projectName);
             return modelAndView;
         }
+    }
+
+    /**
+     * @param file
+     * @param project
+     * @param modelAndView
+     * @throws IOException
+     */
+    public void processExcel(MultipartFile file, ProjectDto project, ModelAndView modelAndView) throws IOException {
+        List<Object[]> infoToBePersisted = new ArrayList<>();
+        String insertSentence = this.getExcelFacade().processExcel(file, project, infoToBePersisted);
+        this.getModelFacade().persistRowData(insertSentence, infoToBePersisted);
+
+        modelAndView.getModel().put(PROJECT_MODEL, project);
+        getModelFacade().addFilterInformationToModel(modelAndView, project);
     }
 
     /**
@@ -169,7 +180,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
         } else {
             try {
                 ProjectDto project = getProjectById(id);
-                List<Map<String, Object>> projectFilters = getModelFacade().getFilters(project);
+                List<FilterDto> projectFilters = getModelFacade().getFilters(project);
                 getExcelFacade().compareExcelColumnNames(file, project, projectFilters);
                 List<Object[]> infoToBePersisted = new ArrayList<>();
                 String insertSentence = getExcelFacade().addInformationToProject(file, project, (getModelFacade().getRowDataSize(project) + 1), projectFilters, infoToBePersisted);
@@ -196,6 +207,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView getProjectFilters(@PathVariable Integer id) {
         log.info("[INIT] Go to edit filters for projectId: {}", id);
         ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);
@@ -216,7 +228,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView editEmailTemplate(@PathVariable Integer id, @RequestBody final String emailTemplate) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView editEmailTemplate(@PathVariable Integer id, @RequestBody final String emailTemplate) {
         log.info("[INIT] Edit email template ({}) for projectId {}", emailTemplate, id);
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
 
@@ -235,7 +248,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView getFilteredResults(@PathVariable Integer id) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView getFilteredResults(@PathVariable Integer id) {
         log.info("[INIT] getting results filtering by projecId: {}", id);
         ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
         ProjectDto project = this.getProjectById(id);
@@ -264,6 +278,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @param response
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public void getProjectDmn(@PathVariable Integer id, HttpServletResponse response) {
         log.info("[INIT] Getting dmn file for projectId {}", id);
 
@@ -280,7 +295,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView editDmn(@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView editDmn(@PathVariable Integer id, @RequestParam("dmnFile") MultipartFile dmnFile) {
         log.info("[INIT] editDmn for projectId: {}", id);
         if (dmnFile.isEmpty()) {
             log.error("No DMN file attached");
@@ -323,7 +339,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView getAllRegisters(@PathVariable Integer id) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView getAllRegisters(@PathVariable Integer id) {
         log.info("[INIT] Get all Registers for projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
@@ -346,7 +363,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView deleteRegisters(@PathVariable Integer id) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView deleteRegisters(@PathVariable Integer id) {
         log.info("[INIT] Delete all registers for projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
@@ -366,7 +384,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return success view
      */
     @Override
-    public final ModelAndView deleteProject(@PathVariable Integer id) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView deleteProject(@PathVariable Integer id) {
         log.info("[INIT] Delete projectId {}", id);
 
         ModelAndView modelAndView = new ModelAndView(SUCCESS_VIEW);
@@ -437,7 +456,8 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return result view
      */
     @Override
-    public final ModelAndView addFilters(@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @PathVariable Boolean sendEmail, @ModelAttribute final FilterCreationDto form, final HttpServletRequest request) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public ModelAndView addFilters(@RequestParam(required = false, name = "emailTemplate") String emailTemplate, @PathVariable Boolean sendEmail, @ModelAttribute final FilterCreationDto form, final HttpServletRequest request) {
         log.info("[INIT] Processing filters with form {}, emailTemplate {}, sendEmail {}", form, emailTemplate, sendEmail);
 
         final ModelAndView modelAndView = new ModelAndView(RESULT_VIEW);
@@ -464,6 +484,7 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return view project
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView getProject(@RequestParam("id") final Integer id) {
         log.info("[INIT] viewProject by id: {}", id);
         final ModelAndView modelAndView = new ModelAndView(EDIT_PROJECT);

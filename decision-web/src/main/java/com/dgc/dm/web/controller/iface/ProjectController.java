@@ -12,7 +12,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @RequestMapping("/projects")
 public interface ProjectController {
@@ -20,7 +19,7 @@ public interface ProjectController {
     ModelAndView getProjects ( ) throws DecisionException;
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    ModelAndView createProject (@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws IOException;
+    ModelAndView createProject (@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws Exception;
 
     @RequestMapping(value = "/edit/{id}/results", method = RequestMethod.POST)
     ModelAndView addInformationToProject (@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws DecisionException;
