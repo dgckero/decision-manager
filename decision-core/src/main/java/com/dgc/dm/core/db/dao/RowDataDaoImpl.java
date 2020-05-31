@@ -109,7 +109,7 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
         List<Map<String, Object>> entities = getJdbcTemplate().
                 queryForList("Select * from " + project.getRowDataTableName() + " where project=?",
-                        new Object[]{project.getId()});
+                        project.getId());
         log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }

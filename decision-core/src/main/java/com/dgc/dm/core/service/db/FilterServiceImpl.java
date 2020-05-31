@@ -128,6 +128,7 @@ public class FilterServiceImpl extends CommonServer implements FilterService {
      * @return
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public FilterDto getContactFilter(ProjectDto project) {
         log.debug("[INIT] getContactFilter for project " + project);
         FilterDto result;

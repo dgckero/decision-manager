@@ -137,8 +137,7 @@ class ModelFacadeImpl implements ModelFacade {
      * @return
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public FilterDto getContactFilter(final ProjectDto project) {
+    public final FilterDto getContactFilter(final ProjectDto project) {
         log.info("[INIT] getContactFilter by project: {}", project);
         final FilterDto result;
         if (null == project) {

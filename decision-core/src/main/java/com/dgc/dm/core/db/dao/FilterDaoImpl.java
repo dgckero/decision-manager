@@ -111,7 +111,7 @@ public class FilterDaoImpl extends CommonDao implements FilterDao {
     public final List<Map<String, Object>> getFilters(final Project project) {
         log.debug("[INIT] Getting Filters by project {}", project);
 
-        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS where project= ?", new Object[]{project.getId()});
+        final List<Map<String, Object>> filters = this.getJdbcTemplate().queryForList("Select * from FILTERS where project= ?", project.getId());
 
         log.debug("[END] Got filters");
         return filters;
