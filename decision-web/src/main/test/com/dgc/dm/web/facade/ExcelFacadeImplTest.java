@@ -52,9 +52,11 @@ class ExcelFacadeImplTest {
             "originalFileName", "contentType", "Hello World!".getBytes());
     final Map<String, Class<?>> columns = new HashMap<String, Class<?>>() {
         {
-            put("fechaColumn", Date.class);
+            put(new Date().toString(), Date.class);
             put("stringColumn", String.class);
             put("numberColumn", Double.class);
+            put("test@test.com", String.class);
+            put(new Date().toString(), String.class);
         }
     };
 

@@ -13,7 +13,10 @@ public enum DatabaseColumnType {
     INTEGER(Integer.class.getSimpleName()),
     STRING(String.class.getSimpleName());
 
+    private final String simpleNameClass;
+
     DatabaseColumnType(final String simpleNameClass) {
+        this.simpleNameClass = simpleNameClass;
     }
 
     /**

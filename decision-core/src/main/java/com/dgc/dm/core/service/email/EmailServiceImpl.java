@@ -80,8 +80,7 @@ public class EmailServiceImpl implements EmailService {
             try {
                 this.javaMailSender.send(mail);
             } catch (MailException e) {
-                log.error("Exception occur while send a mail : ", e);
-                e.printStackTrace();
+                log.error("Exception occur while send a mail : {}", e);
             }
         });
         log.debug("[END] sendAsynchronousMail");

@@ -3,6 +3,7 @@
  */
 package com.dgc.dm.web.configuration;
 
+import com.dgc.dm.core.exception.DecisionException;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.ServletRegistration;
@@ -15,7 +16,7 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
      * @return null
      */
     @Override
-    protected Class<?>[] getRootConfigClasses ( ) {
+    protected Class<?>[] getRootConfigClasses() {
         return null;
     }
 
@@ -25,7 +26,7 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
      * @return ApplicationConfiguration
      */
     @Override
-    protected Class<?>[] getServletConfigClasses ( ) {
+    protected Class<?>[] getServletConfigClasses() {
         return new Class[]{ApplicationConfiguration.class};
     }
 
@@ -35,7 +36,7 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
      * @return ServletMapping
      */
     @Override
-    protected String[] getServletMappings ( ) {
+    protected String[] getServletMappings() {
         return new String[]{"/"};
     }
 
@@ -45,9 +46,9 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
      * @param registration
      */
     @Override
-    protected void customizeRegistration (final ServletRegistration.Dynamic registration) {
+    protected void customizeRegistration(final ServletRegistration.Dynamic registration) {
         final boolean done = registration.setInitParameter("throwExceptionIfNoHandlerFound", "true"); // -> true
 
-        if (!done) throw new RuntimeException();
+        if (!done) throw new DecisionException("Error Inicializando throwExceptionIfNoHandlerFound a true");
     }
 }

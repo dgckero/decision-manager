@@ -11,14 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,12 +93,12 @@ class FilterDaoImplTest {
     void testGetFilters1() {
         // Setup
         final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
-        when(mockJdbcTemplate.queryForList(any())).thenReturn(Mockito.anyList());
+        when(mockJdbcTemplate.queryForList("Select * from FILTERS where project= ?", new Object[]{project.getId()})).thenReturn(new ArrayList<>());
         // Run the test
         final List<Map<String, Object>> result = filterDaoImplUnderTest.getFilters(project);
 
         // Verify the results
-        assertTrue(true);
+        assertNotNull(result);
     }
 
     @Test

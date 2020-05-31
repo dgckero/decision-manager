@@ -107,7 +107,9 @@ public class RowDataDaoImpl extends CommonDao implements RowDataDao {
     @Override
     public final List<Map<String, Object>> getRowData(Project project) {
         log.debug("[INIT] Getting all info from table: {}", project.getRowDataTableName());
-        List<Map<String, Object>> entities = getJdbcTemplate().queryForList("Select * from " + project.getRowDataTableName() + " where project=" + project.getId());
+        List<Map<String, Object>> entities = getJdbcTemplate().
+                queryForList("Select * from " + project.getRowDataTableName() + " where project=?",
+                        new Object[]{project.getId()});
         log.debug("[END] Got all info from table: {}", project.getRowDataTableName());
         return entities;
     }

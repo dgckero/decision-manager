@@ -118,6 +118,7 @@ class ProjectControllerImplTest {
         byte[] content = "Hello World!".getBytes();
         MultipartFile mockMultipartFile = new MockMultipartFile(name,
                 originalFileName, contentType, content);
+
         when(mockExcelFacade.processExcel(mockMultipartFile, "projectName")).thenReturn(projectDto);
 
         // Run the test
