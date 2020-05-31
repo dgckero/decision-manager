@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.util.*;
 
@@ -103,8 +102,8 @@ class RowDataDaoImplTest {
     @Test
     void testGetRowData() {
         // Setup
-        when(mockJdbcTemplate.queryForList("Select * from " + project.getRowDataTableName() + " where project=:projectId", new MapSqlParameterSource()
-                .addValue("projectId", project.getId()))).thenReturn(new ArrayList<>());
+        when(mockJdbcTemplate.queryForList("Select * from " + project.getRowDataTableName() + " where project=?",
+                new Object[]{project.getId()})).thenReturn(new ArrayList<>());
         // Run the test
         final List<Map<String, Object>> result = rowDataDaoImplUnderTest.getRowData(project);
 

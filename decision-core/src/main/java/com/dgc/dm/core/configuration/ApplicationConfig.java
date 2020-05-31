@@ -241,13 +241,10 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      */
     public String getPropertyValue(String property) {
         log.debug("[INIT] getPropertyValue: {}", property);
-        String propertyVal;
-        if (PropertyValueEncryptionUtils.isEncryptedValue(property)) {
+        String propertyVal = env.getProperty(property);
+        if (PropertyValueEncryptionUtils.isEncryptedValue(propertyVal)) {
             log.trace("property: {} is encrypted", property);
-            propertyVal = getEncryptedProperty(property);
-        } else {
-            log.trace("property: {} is NOT encrypted", property);
-            propertyVal = env.getProperty(property);
+            propertyVal = getEncryptedProperty(propertyVal);
         }
         log.debug("[END] getPropertyValue: {}", property);
         return propertyVal;
@@ -260,7 +257,7 @@ public class ApplicationConfig implements TransactionManagementConfigurer {
      * @return decrypted propery
      */
     private String getEncryptedProperty(String encryptedProperty) {
-        log.debug("[INIT] decrypting property {}", encryptedProperty);
+        log.debug("[INIT] decrypting property");
         String decryptedProperty = null;
         try {
             decryptedProperty = PropertyValueEncryptionUtils.decrypt(encryptedProperty, getEncryptor());

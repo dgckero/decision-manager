@@ -8,12 +8,15 @@
 <body>
 <script type="text/javascript">
     $(document).ready(function () {
-        $('#resultTable').DataTable({
+        var table = $('#resultTable').DataTable({
             "language": {
                 "url": "/decision-web/i18/datatables-spanish.json"
             },
-            "scrollY": 300,
-            "scrollX": true,
+            "scrollY": "300px",
+            "scrollY": "400px",
+            "scrollCollapse": true,
+            "scroller": true,
+            "pageLength": 10,
             dom: 'Bfrtip',
             buttons: [
                 'copyHtml5',
@@ -22,6 +25,7 @@
                 'pdfHtml5'
             ]
         });
+        new $.fn.dataTable.FixedColumns(table);
     });
 
 </script>
@@ -33,7 +37,7 @@
     <div class="row-fluid" id="internalContainer">
         <aside class="span3" id="application-status" th:insert="fragments/menu :: menuFragment">
         </aside>
-        <section class="span12 ml-5 dgc-mt-m4" id="main">
+        <section class="ml-5 dgc-mt-m4 span12" id="main">
             <div class="dgc-inner-main mt-1 col-sm-12">
                 <form action="#" th:object="${form}">
                     <table class="table table-striped table-bordered" id="resultTable">

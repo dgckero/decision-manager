@@ -137,7 +137,8 @@ class ModelFacadeImpl implements ModelFacade {
      * @return
      */
     @Override
-    public final FilterDto getContactFilter(final ProjectDto project) {
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public FilterDto getContactFilter(final ProjectDto project) {
         log.info("[INIT] getContactFilter by project: {}", project);
         final FilterDto result;
         if (null == project) {
@@ -157,6 +158,7 @@ class ModelFacadeImpl implements ModelFacade {
      * @return List of filters
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public final List<Map<String, Object>> getFilters(final ProjectDto project) {
         log.info("[INIT] Getting filters for project {}", project);
         final List<Map<String, Object>> result;
@@ -569,6 +571,7 @@ class ModelFacadeImpl implements ModelFacade {
      * @return number of rows on table project.RowDataTableName
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public int getRowDataSize(ProjectDto project) {
         log.info("[INIT] getRowDataSize by project: {}", project);
 

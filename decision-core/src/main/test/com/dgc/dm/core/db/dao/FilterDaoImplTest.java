@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,9 +91,8 @@ class FilterDaoImplTest {
     void testGetFilters1() {
         // Setup
         final Project project = new Project(0, "name", "rowDataTableName", "emailTemplate", "content".getBytes());
-        when(mockJdbcTemplate.queryForList("Select * from FILTERS where project =:projectId",
-                new MapSqlParameterSource()
-                        .addValue("projectId", project.getId()))).thenReturn(new ArrayList<>());
+        when(mockJdbcTemplate.queryForList("Select * from FILTERS where project= ?", new Object[]{project.getId()})).
+                thenReturn(new ArrayList<>());
         // Run the test
         final List<Map<String, Object>> result = filterDaoImplUnderTest.getFilters(project);
 

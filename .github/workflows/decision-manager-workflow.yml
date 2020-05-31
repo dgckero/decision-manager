@@ -2,7 +2,8 @@ name: Decision Manager Workflow
 
 on:
   push:
-    branches: '**'
+    branches:
+      - master
   pull_request:
     branches: '**'
 

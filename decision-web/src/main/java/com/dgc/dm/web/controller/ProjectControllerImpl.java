@@ -11,8 +11,6 @@ import com.dgc.dm.core.exception.DecisionException;
 import com.dgc.dm.web.controller.iface.ProjectController;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -121,7 +119,6 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView createProject(@RequestParam("name") String projectName, @RequestParam("file") MultipartFile file) throws IOException {
         log.info("[INIT] createProject file {} projectName {}", file.getOriginalFilename(), projectName);
 
@@ -138,12 +135,18 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
                 log.error("Error creating project");
                 throw new DecisionException("No se ha podido crear el proyecto, por favor póngase en contacto con el administrador");
             } else {
-                List<Object[]> infoToBePersisted = new ArrayList<>();
-                String insertSentence = this.getExcelFacade().processExcel(file, project, infoToBePersisted);
-                this.getModelFacade().persistRowData(insertSentence, infoToBePersisted);
+                try {
+                    List<Object[]> infoToBePersisted = new ArrayList<>();
+                    String insertSentence = this.getExcelFacade().processExcel(file, project, infoToBePersisted);
+                    this.getModelFacade().persistRowData(insertSentence, infoToBePersisted);
 
-                modelAndView.getModel().put(PROJECT_MODEL, project);
-                getModelFacade().addFilterInformationToModel(modelAndView, project);
+                    modelAndView.getModel().put(PROJECT_MODEL, project);
+                    getModelFacade().addFilterInformationToModel(modelAndView, project);
+                } catch (Exception e) {
+                    log.error("Error creating project: {}", e.getMessage());
+                    deleteProject(project.getId());
+                    throw e;
+                }
             }
             log.info("[END] createProject file {} projectName {}", file.getOriginalFilename(), projectName);
             return modelAndView;
@@ -158,7 +161,6 @@ public class ProjectControllerImpl extends CommonController implements ProjectCo
      * @return decision view
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ModelAndView addInformationToProject(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
         log.info("[INIT] adding information {} to existing projectId {}", file.getOriginalFilename(), id);
         ModelAndView modelAndView = new ModelAndView(CommonController.FILTERS_VIEW);

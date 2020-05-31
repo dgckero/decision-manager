@@ -34,7 +34,7 @@
                             <div class="col-md-4">
                                 <input class="form-control input-md" disabled id="projectCreationDate"
                                        name="dataCreationDate"
-                                       th:value="${selectedProject.dataCreationDate}" type="date">
+                                       th:value="${selectedProject.dataCreationDate}" type="text">
                             </div>
                         </div>
                         <form method="post" th:action="@{/projects/edit/__${selectedProject.id}__/emailTemplate}">

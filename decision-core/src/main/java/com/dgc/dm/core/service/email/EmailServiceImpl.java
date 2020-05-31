@@ -71,9 +71,9 @@ public class EmailServiceImpl implements EmailService {
         log.debug("[INIT] sendAsynchronousMail to {}", toEmail);
 
         final SimpleMailMessage mail = new SimpleMailMessage();
-        mail.setFrom("prueba@gmail.com");
+        mail.setFrom("noreply@decision-manager.com");
         mail.setTo(toEmail);
-        mail.setSubject("test email");
+        mail.setSubject("Decision-Manager notification");
         mail.setText(project.getEmailTemplate());
 
         this.quickService.submit(() -> {

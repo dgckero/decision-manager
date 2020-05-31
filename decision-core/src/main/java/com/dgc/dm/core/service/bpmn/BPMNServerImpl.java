@@ -487,7 +487,7 @@ public class BPMNServerImpl implements BPMNServer {
             final String emailTo = ((null == variableToBeValidated.get(contactFilter.getName())) ? null : (String) variableToBeValidated.get(contactFilter.getName()));
             if (null != emailTo) {
                 try {
-                    log.trace("Sending email to {}", emailTo);
+                    log.debug("Sending email to {}", emailTo);
                     this.emailService.sendAsynchronousMail(emailTo, project);
                 } catch (final MailException e) {
                     log.error("Error sending email to {}, error: {}", emailTo, e.getMessage());
