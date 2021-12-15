@@ -245,7 +245,7 @@
     </build>
     <properties>
         <tomcat_home>${env.CATALINA_HOME}</tomcat_home>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <javaee-endorsed-api.version>7.0</javaee-endorsed-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -270,7 +270,7 @@
         <spring.version>5.2.3.RELEASE</spring.version>
         <spring-data-jpa.version>2.2.4.RELEASE</spring-data-jpa.version>
         <javax.persistence-api.version>2.2</javax.persistence-api.version>
-        <cglib.version>2.2.2</cglib.version>
+        <cglib.version>3.2.7</cglib.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <poi.version>4.1.1</poi.version>
         <hibernate.version>6.1.2.Final</hibernate.version>
