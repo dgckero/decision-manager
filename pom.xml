@@ -267,7 +267,7 @@
 
         <!-- Core dependencies -->
         <jasypt.version>1.9.3</jasypt.version>
-        <spring.version>5.2.3.RELEASE</spring.version>
+        <spring.version>5.3.18</spring.version>
         <spring-data-jpa.version>2.2.4.RELEASE</spring-data-jpa.version>
         <javax.persistence-api.version>2.2</javax.persistence-api.version>
         <cglib.version>3.2.7</cglib.version>
